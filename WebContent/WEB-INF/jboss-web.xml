@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-web>
+ <!-- 
+ <resource-ref>
+   <res-ref-name>jdbc/newsdb</res-ref-name>
+   <jndi-name>java:/jdbc/newsdb</jndi-name>
+ </resource-ref>
+
+  <context-root>/web-rest</context-root>  -->
+  
+  <!-- 
+  <context-root>/info-rest</context-root>  -->
+</jboss-web>

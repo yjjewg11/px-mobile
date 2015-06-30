@@ -1,0 +1,179 @@
+package com.company.web.servlet;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.lang.StringUtils;
+
+@SuppressWarnings({ "serial", "deprecation" })
+public class XheditorUploadFileServlet  extends HttpServlet {
+	
+	private static String baseDir = "/ARTICLE_IMG/";//上传文件存储目录
+	private static String fileExt = "jpg,jpeg,bmp,gif,png";
+	private static Long maxSize = 0l;
+
+	// 0:不建目录 1:按天存入目录 2:按月存入目录 3:按扩展名存目录 建议使用按天存
+	private static String dirType = "1";
+	
+	/**
+	 * 文件上传初始化工作
+	 */
+	public void init() throws ServletException {
+		/*获取web.xml中servlet的配置文件目录参数*/
+		baseDir = this.getInitParameter("baseDir");
+		
+		/*获取文件上传存储的相当路径*/
+		if (StringUtils.isBlank(baseDir)) baseDir = "/ARTICLE_IMG/";
+		
+		String realBaseDir = this.getServletConfig().getServletContext().getRealPath(baseDir);
+		File baseFile = new File(realBaseDir);
+		if (!baseFile.exists()) {
+			baseFile.mkdir();
+		}
+
+		/*获取文件类型参数*/
+		fileExt = this.getInitParameter("fileExt");
+		if (StringUtils.isBlank(fileExt)) fileExt = "jpg,jpeg,gif,bmp,png";
+
+		/*获取文件大小参数*/
+		String maxSize_str = this.getInitParameter("maxSize");
+		if (StringUtils.isNotBlank(maxSize_str)) maxSize = new Long(maxSize_str);
+		
+		/*获取文件目录类型参数*/
+		dirType = this.getInitParameter("dirType");
+		
+		if (StringUtils.isBlank(dirType))
+			dirType = "1";
+		if (",0,1,2,3,".indexOf("," + dirType + ",") < 0)
+			dirType = "1";
+	}
+
+	/**
+	 * 上传文件数据处理过程
+	 */
+	@SuppressWarnings({"unchecked" })
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		response.setContentType("text/html; charset=UTF-8");
+		response.setHeader("Cache-Control", "no-cache");
+
+		String err = "";
+		String newFileName = "";
+		 //为该请求创建一个DiskFileItemFactory对象，通过它来解析请求
+        FileItemFactory factory = new DiskFileItemFactory();
+        ServletFileUpload upload = new ServletFileUpload(factory);
+        
+		try {
+			List<FileItem> items = upload.parseRequest(request);
+			Map<String, Serializable> fields = new HashMap<String, Serializable>();
+			Iterator<FileItem> iter = items.iterator();
+			
+			while (iter.hasNext()) {
+				FileItem item = (FileItem) iter.next();
+				if (item.isFormField())
+					fields.put(item.getFieldName(), item.getString());
+				else
+					fields.put(item.getFieldName(), item);
+			}
+			
+			/*获取表单的上传文件*/
+			FileItem uploadFile = (FileItem)fields.get("filedata");
+			
+			/*获取文件上传路径名称*/
+			String fileNameLong = uploadFile.getName();
+			//System.out.println("fileNameLong:" + fileNameLong);
+			
+			/*获取文件扩展名*/
+			/*索引加1的效果是只取xxx.jpg的jpg*/
+			String extensionName = fileNameLong.substring(fileNameLong.lastIndexOf(".") + 1);
+			//System.out.println("extensionName:" + extensionName);
+			
+			/*检查文件类型*/
+			if (("," + fileExt.toLowerCase() + ",").indexOf("," + extensionName.toLowerCase() + ",") < 0){
+				printInfo(response, "不允许上传此类型的文件", "");
+				return;
+			}
+			/*文件是否为空*/
+			if (uploadFile.getSize() == 0){
+				printInfo(response, "上传文件不能为空", "");
+				return;
+			}
+			/*检查文件大小*/
+			if (maxSize > 0 && uploadFile.getSize() > maxSize){
+				printInfo(response, "上传文件的大小超出限制", "");
+				return;
+			}
+			
+			//0:不建目录, 1:按天存入目录, 2:按月存入目录, 3:按扩展名存目录.建议使用按天存.
+			String fileFolder = "";
+			if (dirType.equalsIgnoreCase("1"))
+				fileFolder = new SimpleDateFormat("yyyyMMdd").format(new Date());;
+			if (dirType.equalsIgnoreCase("2"))
+				fileFolder = new SimpleDateFormat("yyyyMM").format(new Date());
+			if (dirType.equalsIgnoreCase("3"))
+				fileFolder = extensionName.toLowerCase();
+			
+			/*文件存储的相对路径*/
+			String saveDirPath = baseDir + fileFolder + "/";
+			//System.out.println("saveDirPath:" + saveDirPath);
+			
+			/*文件存储在容器中的绝对路径*/
+			String saveFilePath = this.getServletConfig().getServletContext().getRealPath("") + saveDirPath;
+			//System.out.println("saveFilePath:" + saveFilePath);
+			
+			/*构建文件目录以及目录文件*/
+			File fileDir = new File(saveFilePath);
+			if (!fileDir.exists()) {fileDir.mkdirs();}
+			
+			/*重命名文件*/
+			String filename = UUID.randomUUID().toString();
+			File savefile = new File(saveFilePath + filename + "." + extensionName);
+			
+			/*存储上传文件*/
+			//System.out.println(upload == null);
+			uploadFile.write(savefile);
+			
+			//这个地方根据项目的不一样，需要做一些特别的定制。
+			newFileName = "/xheditor" + saveDirPath + filename + "." + extensionName;		
+			//System.out.println("newFileName:" + newFileName);
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+			newFileName = "";
+			err = "错误: " + ex.getMessage();
+		}
+		printInfo(response, err, newFileName);
+	}
+	/**
+	 * 使用I/O流输出 json格式的数据
+	 * @param response
+	 * @param err
+	 * @param newFileName
+	 * @throws IOException
+	 */
+	public void printInfo(HttpServletResponse response, String err, String newFileName) throws IOException {
+		PrintWriter out = response.getWriter();
+		//String filename = newFileName.substring(newFileName.lastIndexOf("/") + 1);
+		out.println("{\"err\":\"" + err + "\",\"msg\":\"" + newFileName + "\"}");
+		out.flush();
+		out.close();
+	}
+
+}
