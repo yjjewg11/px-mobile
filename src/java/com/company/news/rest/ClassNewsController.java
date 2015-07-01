@@ -41,7 +41,7 @@ public class ClassNewsController extends AbstractRESTController {
 			HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		PaginationData pData = this.getPaginationDataByRequest(request);
+		PaginationData pData =  this.getPaginationDataByRequest(request);
 
 		PageQueryResult pageQueryResult = classNewsService.query(
 				request.getParameter("classuuid"), pData);
