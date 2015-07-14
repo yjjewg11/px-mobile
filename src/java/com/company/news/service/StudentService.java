@@ -6,6 +6,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -60,14 +62,14 @@ public class StudentService extends AbstractServcice {
 			responseMessage.setMessage("Classuuid不能为空");
 			return false;
 		}
-
-		PClass pClass = (PClass) this.nSimpleHibernateDao.getObjectById(
-				PClass.class, studentJsonform.getClassuuid());
-		// 班级不存在
-		if (pClass == null) {
+		
+		PClass pClass=(PClass) this.nSimpleHibernateDao.getObjectById(PClass.class, studentJsonform.getClassuuid());
+		//班级不存在
+		if(pClass==null){
 			responseMessage.setMessage("班级不存在");
 			return false;
 		}
+
 
 		Student student = new Student();
 
@@ -93,19 +95,19 @@ public class StudentService extends AbstractServcice {
 
 		Student student = (Student) this.nSimpleHibernateDao.getObjectById(
 				Student.class, studentJsonform.getUuid());
+		
+		Student old_student=new Student();
+		ConvertUtils.register(new DateConverter(null), java.util.Date.class); 
+		BeanUtils.copyProperties(old_student, student);
+		
 		if (student != null) {
-
-			student.setBa_tel(studentJsonform.getBa_tel());
-			student.setBirthday(studentJsonform.getBirthday());
-			student.setHeadimg(studentJsonform.getHeadimg());
-			student.setMa_tel(studentJsonform.getMa_tel());
-			student.setNai_tel(studentJsonform.getNai_tel());
-			student.setNickname(studentJsonform.getNickname());
-			student.setOther_tel(studentJsonform.getOther_tel());
-			student.setSex(studentJsonform.getSex());
-			student.setWaigong_tel(studentJsonform.getWaigong_tel());
-			student.setWaipo_tel(studentJsonform.getWaipo_tel());
-			student.setYe_tel(studentJsonform.getYe_tel());
+			BeanUtils.copyProperties(student, studentJsonform);
+			//设置不能被修改的字段
+			student.setUuid(old_student.getUuid());
+			student.setName(old_student.getName());
+			student.setClassuuid(old_student.getClassuuid());
+			student.setGroupuuid(old_student.getGroupuuid());
+			student.setCreate_time(old_student.getCreate_time());
 
 			// 有事务管理，统一在Controller调用时处理异常
 			this.nSimpleHibernateDao.getHibernateTemplate().update(student);
@@ -129,25 +131,30 @@ public class StudentService extends AbstractServcice {
 	 * 
 	 * @return
 	 */
-	public List<Student> query(String classuuid) {
+	public List<Student> query(String classuuid,String groupuuid) {
+		String hql="from Student where 1=1";
+		
 		// Group_uuid昵称验证
-		if (StringUtils.isBlank(classuuid)) {
-			return null;
+		if (StringUtils.isNotBlank(classuuid)) {
+			hql+=" and classuuid='"+classuuid+"'";
 		}
-		return (List<Student>) this.nSimpleHibernateDao.getHibernateTemplate()
-				.find("from Student where classuuid=?", classuuid);
+		
+		if (StringUtils.isNotBlank(groupuuid)) {
+			hql+=" and groupuuid='"+groupuuid+"'";
+		}		
+		
+		return (List<Student>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
 	}
-
+	
 	/**
 	 * 
 	 * @param uuid
 	 * @return
 	 */
-	public Student get(String uuid) throws Exception {
-		return (Student) this.nSimpleHibernateDao.getObjectById(Student.class,
-				uuid);
+	public Student get(String uuid)throws Exception{
+		return (Student) this.nSimpleHibernateDao.getObjectById(Student.class, uuid);
 	}
-
+	
 	/**
 	 * 
 	 * @param tel
@@ -182,5 +189,6 @@ public class StudentService extends AbstractServcice {
 		return (List<Student>) this.nSimpleHibernateDao.getHibernateTemplate()
 				.find("from Student where " + typeStr + "=?", tel);
 	}
+
 
 }

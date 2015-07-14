@@ -261,8 +261,8 @@ public class AnnouncementsService extends AbstractServcice {
 							uuid);
 
 			for (AnnouncementsTo announcementsTo : list) {
-				PClass p = CommonsCache
-						.getClass(announcementsTo.getClassuuid());
+				PClass p = (PClass) CommonsCache
+						.get(announcementsTo.getClassuuid(),PClass.class);
 				if (p != null) {
 					classuuids += (p.getUuid() + ",");
 					classnames += (p.getName() + ",");

@@ -19,6 +19,7 @@ import com.company.news.entity.Group;
 import com.company.news.entity.Parent;
 import com.company.news.entity.ParentStudentRelation;
 import com.company.news.entity.Student;
+import com.company.news.entity.TelSmsCode;
 import com.company.news.entity.User;
 import com.company.news.entity.UserGroupRelation;
 import com.company.news.form.UserLoginForm;
@@ -105,6 +106,41 @@ public class UserinfoService extends AbstractServcice {
 						parentStudentRelation);
 			}
 		return true;
+	}
+	
+	/**
+	 * 用户注册
+	 * 
+	 * @param entityStr
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	public Parent update(UserRegJsonform userRegJsonform,
+			ResponseMessage responseMessage) throws Exception {
+
+		// name昵称验证
+		if (StringUtils.isBlank(userRegJsonform.getName())
+				|| userRegJsonform.getName().length() > 15) {
+			responseMessage.setMessage("昵称不能为空，且长度不能超过15位！");
+			return null;
+		}
+
+		Parent user = (Parent) this.nSimpleHibernateDao.getObject(Parent.class,
+				userRegJsonform.getUuid());
+		if (user == null) {
+			responseMessage.setMessage("user不存在！");
+			return null;
+		}
+
+		user.setName(userRegJsonform.getName());
+		user.setEmail(userRegJsonform.getEmail());
+
+
+		// 有事务管理，统一在Controller调用时处理异常
+		this.nSimpleHibernateDao.getHibernateTemplate().update(user);
+
+		return user;
 	}
 
 	/**
@@ -211,7 +247,7 @@ public class UserinfoService extends AbstractServcice {
 	 * @param loginname
 	 * @return
 	 */
-	private boolean isExitSameUserByLoginName(String loginname) {
+	public boolean isExitSameUserByLoginName(String loginname) {
 		String attribute = "loginname";
 		Object user = nSimpleHibernateDao.getObjectByAttribute(Parent.class,
 				attribute, loginname);
@@ -290,4 +326,109 @@ public class UserinfoService extends AbstractServcice {
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param disable
+	 * @param useruuid
+	 */
+	public boolean updatePassword(UserRegJsonform userRegJsonform,
+			ResponseMessage responseMessage) {
+		// 更新用户状态
+		// Group_uuid昵称验证
+		if (StringUtils.isBlank(userRegJsonform.getUuid())) {
+			responseMessage.setMessage("useruuid不能为空！");
+			return false;
+		}
+
+		if (StringUtils.isBlank(userRegJsonform.getOldpassword())) {
+			responseMessage.setMessage("Oldpassword不能为空！");
+			return false;
+		}
+
+		if (StringUtils.isBlank(userRegJsonform.getPassword())) {
+			responseMessage.setMessage("Password不能为空！");
+			return false;
+		}
+
+		Parent user = (Parent) this.nSimpleHibernateDao.getObject(Parent.class,
+				userRegJsonform.getUuid());
+		if (user == null) {
+			responseMessage.setMessage("user不存在！");
+			return false;
+		}
+
+		if (!user.getPassword().equals(userRegJsonform.getOldpassword())) {
+			responseMessage.setMessage("Oldpassword不匹配！");
+			return false;
+		}
+
+		this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
+				"update Parent set password=? where uuid =?",
+				userRegJsonform.getPassword(), userRegJsonform.getUuid());
+		return true;
+	}
+
+	/**
+	 * 
+	 * @param disable
+	 * @param useruuid
+	 */
+	public boolean updatePasswordBySms(UserRegJsonform userRegJsonform,
+			ResponseMessage responseMessage) {
+		// 更新用户状态
+		// Group_uuid昵称验证
+		if (StringUtils.isBlank(userRegJsonform.getTel())) {
+			responseMessage.setMessage("Tel不能为空！");
+			return false;
+		}
+
+		if (StringUtils.isBlank(userRegJsonform.getSmscode())) {
+			responseMessage.setMessage("Smscode不能为空！");
+			return false;
+		}
+
+		if (StringUtils.isBlank(userRegJsonform.getPassword())) {
+			responseMessage.setMessage("Password不能为空！");
+			return false;
+		}
+
+		List<TelSmsCode> list=(List<TelSmsCode>) this.nSimpleHibernateDao.getHibernateTemplate().find("from TelSmsCode where tel=? and type=? order by createtime desc", userRegJsonform.getTel(),SmsService.SMS_TYPE_USER);
+		
+		TelSmsCode smsdb;
+		if(list!=null&&list.size()>0)
+			smsdb=list.get(0);
+		else
+		{
+			responseMessage.setMessage("请重发验证码!");
+			return false;
+		}
+		
+		 long timeInterval=TimeUtils.getCurrentTimestamp().getTime()-smsdb.getCreatetime().getTime();
+	      if(timeInterval>SmsService.SMS_TIME_LIMIT){//防止暴力破解.
+	        responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+	        responseMessage.setMessage("验证码已经失效!");
+	        return false;
+	      }
+		// 验证码成功
+		if (smsdb != null
+				&& smsdb.getCode().equals(userRegJsonform.getSmscode())) {
+//			if (!this.isExitSameUserByLoginName(userRegJsonform.getTel())) {
+//				responseMessage
+//						.setStatus(RestConstants.Return_ResponseMessage_failed);
+//				responseMessage.setMessage("电话号码不存在！");
+//				return false;
+//			}
+
+			this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
+					"update Parent set password=? where loginname =?",
+					userRegJsonform.getPassword(), userRegJsonform.getTel());
+			//清除验证码,防止暴力破解.
+			this.nSimpleHibernateDao.delete(smsdb);
+			return true;
+
+		}
+		responseMessage.setMessage("短信验证码不正确！");
+		return false;
+
+	}
 }
