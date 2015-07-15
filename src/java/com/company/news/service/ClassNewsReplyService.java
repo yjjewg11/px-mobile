@@ -19,7 +19,7 @@ import com.company.news.vo.ResponseMessage;
  */
 @Service
 public class ClassNewsReplyService extends AbstractServcice {
-
+	public static final int USER_type_default = 1;// 0:老师
 	/**
 	 * 增加班级
 	 * 
@@ -46,6 +46,7 @@ public class ClassNewsReplyService extends AbstractServcice {
 
 		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
         cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
+        cn.setUsertype(USER_type_default);
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(cn);
 

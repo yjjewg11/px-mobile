@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.entity.Parent;
-import com.company.news.entity.User;
 import com.company.news.jsonform.ClassNewsReplyJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -19,8 +18,8 @@ import com.company.news.service.ClassNewsReplyService;
 import com.company.news.vo.ResponseMessage;
 
 @Controller
-@RequestMapping(value = "/classnewsreply")
-public class ClassNewsReplyController extends AbstractRESTController {
+@RequestMapping(value = "/reply")
+public class ReplyController extends AbstractRESTController {
 
 	@Autowired
 	private ClassNewsReplyService classNewsReplyService;
@@ -105,7 +104,7 @@ public class ClassNewsReplyController extends AbstractRESTController {
 	}
 
 	/**
-	 * 删除回复
+	 * 班级删除
 	 * 
 	 * @param model
 	 * @param request

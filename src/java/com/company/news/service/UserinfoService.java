@@ -87,6 +87,10 @@ public class UserinfoService extends AbstractServcice {
 		parent.setDisable(USER_disable_default);
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 		parent.setTel_verify(USER_tel_verify_default);
+		
+		//当昵称为空时，使用登陆名作为初始昵称
+		if(StringUtils.isBlank(parent.getName()))
+		parent.setName(parent.getLoginname());
 
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
