@@ -66,7 +66,7 @@ public class DianzanController extends AbstractRESTController {
 	}
 
 	@RequestMapping(value = "/getByNewsuuid", method = RequestMethod.GET)
-	public String getDianzanByNewsuuid(ModelMap model,
+	public String getByNewsuuid(ModelMap model,
 			HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
@@ -87,7 +87,7 @@ public class DianzanController extends AbstractRESTController {
 	
 	
 	@RequestMapping(value = "/delete", method = RequestMethod.POST)
-	public String cancelDianzan(ModelMap model, HttpServletRequest request) {
+	public String delete(ModelMap model, HttpServletRequest request) {
 		// 返回消息体
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
