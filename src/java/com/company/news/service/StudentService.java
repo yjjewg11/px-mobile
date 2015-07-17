@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
 import com.company.news.ProjectProperties;
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
 import com.company.news.entity.PClass;
@@ -164,23 +165,26 @@ public class StudentService extends AbstractServcice {
 	public List<Student> getStudentByPhone(String tel, Integer type) {
 		String typeStr = "";
 		switch (type) {
-		case UserinfoService.USER_type_ma:
+		case SystemConstants.USER_type_ma:
 			typeStr = "ma_tel";
 			break;
-		case UserinfoService.USER_type_ba:
+		case SystemConstants.USER_type_ba:
 			typeStr = "ba_tel";
 			break;
-		case UserinfoService.USER_type_ye:
+		case SystemConstants.USER_type_ye:
 			typeStr = "ye_tel";
 			break;
-		case UserinfoService.USER_type_nai:
+		case SystemConstants.USER_type_nai:
 			typeStr = "nai_tel";
 			break;
-		case UserinfoService.USER_type_waipo:
+		case SystemConstants.USER_type_waipo:
 			typeStr = "waipo_tel";
 			break;
-		case UserinfoService.USER_type_waigong:
+		case SystemConstants.USER_type_waigong:
 			typeStr = "waigong_tel";
+			break;
+		case SystemConstants.USER_type_other:
+			typeStr = "other_tel";
 			break;
 		default:
 			typeStr = "ma_tel";
