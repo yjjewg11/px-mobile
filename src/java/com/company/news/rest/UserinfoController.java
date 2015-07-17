@@ -300,10 +300,10 @@ public class UserinfoController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		// 请求消息体
 		String bodyJson = RestUtil.getJsonStringByRequest(request);
-		UserRegJsonform userRegJsonform;
+		ParentRegJsonform parentRegJsonform;
 		try {
-			userRegJsonform = (UserRegJsonform) this.bodyJsonToFormObject(
-					bodyJson, UserRegJsonform.class);
+			parentRegJsonform = (ParentRegJsonform) this.bodyJsonToFormObject(
+					bodyJson, ParentRegJsonform.class);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -311,11 +311,11 @@ public class UserinfoController extends AbstractRESTController {
 			return "";
 		}
 		// 默认注册未普通用户类型
-		userRegJsonform.setUuid(this.getUserInfoBySession(request).getUuid());
+		parentRegJsonform.setUuid(this.getUserInfoBySession(request).getUuid());
 
 		try {
 			boolean flag = userinfoService
-					.updatePassword(userRegJsonform, responseMessage);
+					.updatePassword(parentRegJsonform, responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {
@@ -345,10 +345,10 @@ public class UserinfoController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		// 请求消息体
 		String bodyJson = RestUtil.getJsonStringByRequest(request);
-		UserRegJsonform userRegJsonform;
+		ParentRegJsonform parentRegJsonform;
 		try {
-			userRegJsonform = (UserRegJsonform) this.bodyJsonToFormObject(
-					bodyJson, UserRegJsonform.class);
+			parentRegJsonform = (ParentRegJsonform) this.bodyJsonToFormObject(
+					bodyJson, ParentRegJsonform.class);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -358,7 +358,7 @@ public class UserinfoController extends AbstractRESTController {
 
 		try {
 			boolean flag = userinfoService
-					.updatePasswordBySms(userRegJsonform, responseMessage);
+					.updatePasswordBySms(parentRegJsonform, responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {

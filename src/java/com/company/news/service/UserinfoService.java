@@ -41,6 +41,9 @@ import com.company.web.listener.SessionListener;
 public class UserinfoService extends AbstractServcice {
 	@Autowired
 	private StudentService studentService;
+	@Autowired
+	private SmsService smsService;
+
 	// 20150610 去掉对用户表的TYPE定义，默认都为0
 	public static final int USER_type_ma = 1;// 组织管理员
 	public static final int USER_type_ba = 2;// 老师类型
@@ -75,7 +78,13 @@ public class UserinfoService extends AbstractServcice {
 			responseMessage.setMessage("电话号码已被注册！");
 			return false;
 		}
+		
+		if (!smsService.VerifySmsCode(responseMessage,parentRegJsonform.getTel(),
+				parentRegJsonform.getSmscode())) {
+			return false;
+		}
 
+		//如果没有选择类型，则默认角色为mama
 		if (parentRegJsonform.getType() == null)
 			parentRegJsonform.setType(1);
 
@@ -87,10 +96,10 @@ public class UserinfoService extends AbstractServcice {
 		parent.setDisable(USER_disable_default);
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 		parent.setTel_verify(USER_tel_verify_default);
-		
-		//当昵称为空时，使用登陆名作为初始昵称
-		if(StringUtils.isBlank(parent.getName()))
-		parent.setName(parent.getLoginname());
+
+		// 当昵称为空时，使用登陆名作为初始昵称
+		if (StringUtils.isBlank(parent.getName()))
+			parent.setName(parent.getLoginname());
 
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
@@ -111,7 +120,7 @@ public class UserinfoService extends AbstractServcice {
 			}
 		return true;
 	}
-	
+
 	/**
 	 * 用户注册
 	 * 
@@ -139,7 +148,6 @@ public class UserinfoService extends AbstractServcice {
 
 		user.setName(userRegJsonform.getName());
 		user.setEmail(userRegJsonform.getEmail());
-
 
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().update(user);
@@ -237,7 +245,7 @@ public class UserinfoService extends AbstractServcice {
 
 		session.setAttribute(RestConstants.Session_UserInfo, parent);
 		// 返回客户端用户信息放入Map
-		//putUserInfoReturnToModel(model, request);
+		// putUserInfoReturnToModel(model, request);
 
 		model.put(RestConstants.Return_JSESSIONID, session.getId());
 		// model.put(RestConstants.Return_UserInfo, userInfoReturn);
@@ -335,40 +343,40 @@ public class UserinfoService extends AbstractServcice {
 	 * @param disable
 	 * @param useruuid
 	 */
-	public boolean updatePassword(UserRegJsonform userRegJsonform,
+	public boolean updatePassword(ParentRegJsonform parentRegJsonform,
 			ResponseMessage responseMessage) {
 		// 更新用户状态
 		// Group_uuid昵称验证
-		if (StringUtils.isBlank(userRegJsonform.getUuid())) {
+		if (StringUtils.isBlank(parentRegJsonform.getUuid())) {
 			responseMessage.setMessage("useruuid不能为空！");
 			return false;
 		}
 
-		if (StringUtils.isBlank(userRegJsonform.getOldpassword())) {
+		if (StringUtils.isBlank(parentRegJsonform.getOldpassword())) {
 			responseMessage.setMessage("Oldpassword不能为空！");
 			return false;
 		}
 
-		if (StringUtils.isBlank(userRegJsonform.getPassword())) {
+		if (StringUtils.isBlank(parentRegJsonform.getPassword())) {
 			responseMessage.setMessage("Password不能为空！");
 			return false;
 		}
 
 		Parent user = (Parent) this.nSimpleHibernateDao.getObject(Parent.class,
-				userRegJsonform.getUuid());
+				parentRegJsonform.getUuid());
 		if (user == null) {
 			responseMessage.setMessage("user不存在！");
 			return false;
 		}
 
-		if (!user.getPassword().equals(userRegJsonform.getOldpassword())) {
+		if (!user.getPassword().equals(parentRegJsonform.getOldpassword())) {
 			responseMessage.setMessage("Oldpassword不匹配！");
 			return false;
 		}
 
 		this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
 				"update Parent set password=? where uuid =?",
-				userRegJsonform.getPassword(), userRegJsonform.getUuid());
+				parentRegJsonform.getPassword(), parentRegJsonform.getUuid());
 		return true;
 	}
 
@@ -377,62 +385,30 @@ public class UserinfoService extends AbstractServcice {
 	 * @param disable
 	 * @param useruuid
 	 */
-	public boolean updatePasswordBySms(UserRegJsonform userRegJsonform,
+	public boolean updatePasswordBySms(ParentRegJsonform parentRegJsonform,
 			ResponseMessage responseMessage) {
 		// 更新用户状态
 		// Group_uuid昵称验证
-		if (StringUtils.isBlank(userRegJsonform.getTel())) {
+		if (StringUtils.isBlank(parentRegJsonform.getTel())) {
 			responseMessage.setMessage("Tel不能为空！");
 			return false;
 		}
 
-		if (StringUtils.isBlank(userRegJsonform.getSmscode())) {
-			responseMessage.setMessage("Smscode不能为空！");
-			return false;
-		}
-
-		if (StringUtils.isBlank(userRegJsonform.getPassword())) {
+		if (StringUtils.isBlank(parentRegJsonform.getPassword())) {
 			responseMessage.setMessage("Password不能为空！");
 			return false;
 		}
 
-		List<TelSmsCode> list=(List<TelSmsCode>) this.nSimpleHibernateDao.getHibernateTemplate().find("from TelSmsCode where tel=? and type=? order by createtime desc", userRegJsonform.getTel(),SmsService.SMS_TYPE_USER);
-		
-		TelSmsCode smsdb;
-		if(list!=null&&list.size()>0)
-			smsdb=list.get(0);
-		else
-		{
-			responseMessage.setMessage("请重发验证码!");
+		if (!smsService.VerifySmsCode(responseMessage,parentRegJsonform.getTel(),
+				parentRegJsonform.getSmscode())) {
 			return false;
 		}
-		
-		 long timeInterval=TimeUtils.getCurrentTimestamp().getTime()-smsdb.getCreatetime().getTime();
-	      if(timeInterval>SmsService.SMS_TIME_LIMIT){//防止暴力破解.
-	        responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-	        responseMessage.setMessage("验证码已经失效!");
-	        return false;
-	      }
-		// 验证码成功
-		if (smsdb != null
-				&& smsdb.getCode().equals(userRegJsonform.getSmscode())) {
-//			if (!this.isExitSameUserByLoginName(userRegJsonform.getTel())) {
-//				responseMessage
-//						.setStatus(RestConstants.Return_ResponseMessage_failed);
-//				responseMessage.setMessage("电话号码不存在！");
-//				return false;
-//			}
 
-			this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
-					"update Parent set password=? where loginname =?",
-					userRegJsonform.getPassword(), userRegJsonform.getTel());
-			//清除验证码,防止暴力破解.
-			this.nSimpleHibernateDao.delete(smsdb);
-			return true;
+		this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
+				"update Parent set password=? where loginname =?",
+				parentRegJsonform.getPassword(), parentRegJsonform.getTel());
 
-		}
-		responseMessage.setMessage("短信验证码不正确！");
-		return false;
+		return true;
 
 	}
 }

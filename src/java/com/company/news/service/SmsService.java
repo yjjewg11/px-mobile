@@ -1,10 +1,12 @@
 package com.company.news.service;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
@@ -23,7 +25,7 @@ import com.ucpaas.restDemo.client.JsonReqClient;
 
 @Service
 public class SmsService extends AbstractServcice {
-	public static final int SMS_TYPE_USER = 1;//家长类型
+	public static final int SMS_TYPE_USER = 1;// 家长类型
 	@Autowired
 	private UserinfoService userinfoService;
 
@@ -129,6 +131,56 @@ public class SmsService extends AbstractServcice {
 		// return model;
 		// }
 		return model;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean VerifySmsCode(ResponseMessage responseMessage,String tel, String smscode) {
+		//是否启用短信验证码
+		String isEnableSmsCode = ProjectProperties.getProperty("isEnableSmsCode",
+				"true");		
+		if(isEnableSmsCode.equals("false"))
+			return true;
+		
+		
+		if (StringUtils.isBlank(smscode)) {
+			responseMessage.setMessage("smscode不能为空");
+			return false;
+		}
+
+		List<TelSmsCode> list = (List<TelSmsCode>) this.nSimpleHibernateDao
+				.getHibernateTemplate()
+				.find("from TelSmsCode where tel=? and type=? order by createtime desc",
+						tel, SmsService.SMS_TYPE_USER);
+
+		TelSmsCode smsdb;
+		if (list != null && list.size() > 0)
+			smsdb = list.get(0);
+		else
+		{
+			responseMessage.setMessage("短信验证码失败，请重新发送");
+			return false;
+		}
+
+		long timeInterval = TimeUtils.getCurrentTimestamp().getTime()
+				- smsdb.getCreatetime().getTime();
+		if (timeInterval > SmsService.SMS_TIME_LIMIT) {// 防止暴力破解.
+			responseMessage.setMessage("短信验证码失效，请重新发送");
+			return false;
+		}
+
+		// 验证码成功
+		if (smsdb != null && smsdb.getCode().equals(smscode)) {
+			//清除验证码,验证成功.
+			this.nSimpleHibernateDao.delete(smsdb);
+			return true;
+		} else
+		{
+			responseMessage.setMessage("短信验证码不正确");
+			return false;
+		}
 	}
 
 	@Override
