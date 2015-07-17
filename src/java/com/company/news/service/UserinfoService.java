@@ -14,13 +14,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
 import com.company.news.ProjectProperties;
-import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.Group;
 import com.company.news.entity.Parent;
 import com.company.news.entity.ParentStudentRelation;
 import com.company.news.entity.Student;
 import com.company.news.entity.TelSmsCode;
 import com.company.news.entity.User;
+import com.company.news.entity.UserGroupRelation;
 import com.company.news.form.UserLoginForm;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
@@ -28,6 +29,7 @@ import com.company.news.rest.RestConstants;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
+import com.company.news.vo.UserInfoReturn;
 import com.company.plugin.security.LoginLimit;
 import com.company.web.listener.SessionListener;
 
@@ -39,7 +41,17 @@ import com.company.web.listener.SessionListener;
 public class UserinfoService extends AbstractServcice {
 	@Autowired
 	private StudentService studentService;
-	
+	// 20150610 去掉对用户表的TYPE定义，默认都为0
+	public static final int USER_type_ma = 1;// 组织管理员
+	public static final int USER_type_ba = 2;// 老师类型
+	public static final int USER_type_ye = 3;// 组织管理员
+	public static final int USER_type_nai = 4;// 老师类型
+	public static final int USER_type_waigong = 5;// 组织管理员
+	public static final int USER_type_waipo = 6;// 老师类型
+	public static final int USER_disable_default = 0;// 电话号码，验证。默认0，0:没验证。1:验证，2：提交验证
+	public static final int USER_tel_verify_default = 0;// 是否被管理员封号。0：不封。1：封号，不允许登录。
+	// 用户状态
+	public static final int USER_disable_true = 1;// 禁用
 
 	/**
 	 * 用户注册
@@ -72,9 +84,9 @@ public class UserinfoService extends AbstractServcice {
 		BeanUtils.copyProperties(parent, parentRegJsonform);
 		parent.setLoginname(parentRegJsonform.getTel());
 		parent.setCreate_time(TimeUtils.getCurrentTimestamp());
-		parent.setDisable(SystemConstants.USER_disable_default);
+		parent.setDisable(USER_disable_default);
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
-		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
+		parent.setTel_verify(USER_tel_verify_default);
 		
 		//当昵称为空时，使用登陆名作为初始昵称
 		if(StringUtils.isBlank(parent.getName()))
@@ -303,11 +315,11 @@ public class UserinfoService extends AbstractServcice {
 			return false;
 		}
 
-		int disable_i = SystemConstants.USER_disable_default;
+		int disable_i = USER_disable_default;
 		try {
 			disable_i = Integer.parseInt(disable);
-			if (disable_i != SystemConstants.USER_disable_true)// 不是禁用时，默认都是0
-				disable_i = SystemConstants.USER_disable_default;
+			if (disable_i != USER_disable_true)// 不是禁用时，默认都是0
+				disable_i = USER_disable_default;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -323,7 +335,7 @@ public class UserinfoService extends AbstractServcice {
 	 * @param disable
 	 * @param useruuid
 	 */
-	public boolean updatePassword(UserRegJsonform userRegJsonform,
+	public boolean updatePassword(ParentRegJsonform userRegJsonform,
 			ResponseMessage responseMessage) {
 		// 更新用户状态
 		// Group_uuid昵称验证
@@ -365,7 +377,7 @@ public class UserinfoService extends AbstractServcice {
 	 * @param disable
 	 * @param useruuid
 	 */
-	public boolean updatePasswordBySms(UserRegJsonform userRegJsonform,
+	public boolean updatePasswordBySms(ParentRegJsonform userRegJsonform,
 			ResponseMessage responseMessage) {
 		// 更新用户状态
 		// Group_uuid昵称验证
