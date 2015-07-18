@@ -100,7 +100,7 @@ public class ClassNewsController extends AbstractRESTController {
 	}
 	
 	/**
-	 * 获取我的相关班级信息
+	 * 获取我的孩子相关班级的互动信息
 	 * 
 	 * @param model
 	 * @param request
@@ -113,8 +113,12 @@ public class ClassNewsController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		PaginationData pData = this.getPaginationDataByRequest(request);
 		Parent user = this.getUserInfoBySession(request);
-		PageQueryResult pageQueryResult = classNewsService.query(user,"myByTeacher",
-				request.getParameter("classuuid"), pData);
+		String classuuids=request.getParameter("classuuid");
+		if(StringUtils.isBlank(classuuids)){
+			classuuids=this.getMyChildrenClassuuidsBySession(request);
+		}
+		PageQueryResult pageQueryResult = classNewsService.query(user,"myByParent",
+				classuuids, pData);
 		model.addAttribute(RestConstants.Return_ResponseMessage_list,
 				pageQueryResult);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

@@ -1,37 +1,22 @@
 package com.company.news.service;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
-import org.hibernate.Session;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.ModelMap;
 
-import com.company.news.ProjectProperties;
-import com.company.news.SystemConstants;
-import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.Group;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Student;
+import com.company.news.entity.StudentContactRealation;
 import com.company.news.entity.User;
-import com.company.news.entity.UserGroupRelation;
-import com.company.news.form.UserLoginForm;
 import com.company.news.jsonform.StudentJsonform;
-import com.company.news.jsonform.UserRegJsonform;
-import com.company.news.rest.RestConstants;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
-import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
-import com.company.news.vo.UserInfoReturn;
-import com.company.plugin.security.LoginLimit;
-import com.company.web.listener.SessionListener;
 
 /**
  * 
@@ -148,6 +133,17 @@ public class StudentService extends AbstractServcice {
 	}
 	
 	/**
+	 * 查询所有机构列表
+	 * 
+	 * @return
+	 */
+	public List<Student> listByMyChildren(String uuids) {
+		if(StringUtils.isBlank(uuids))return new ArrayList();
+		String hql="from Student where uuid in ("+DBUtil.stringsToWhereInValue(uuids)+")";
+		return (List<Student>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql,null );
+	}
+	
+	/**
 	 * 
 	 * @param uuid
 	 * @return
@@ -157,41 +153,15 @@ public class StudentService extends AbstractServcice {
 	}
 	
 	/**
-	 * 
+	 * 根据电话号码,获取孩子信息
 	 * @param tel
 	 * @param type
 	 * @return
 	 */
-	public List<Student> getStudentByPhone(String tel, Integer type) {
-		String typeStr = "";
-		switch (type) {
-		case SystemConstants.USER_type_ma:
-			typeStr = "ma_tel";
-			break;
-		case SystemConstants.USER_type_ba:
-			typeStr = "ba_tel";
-			break;
-		case SystemConstants.USER_type_ye:
-			typeStr = "ye_tel";
-			break;
-		case SystemConstants.USER_type_nai:
-			typeStr = "nai_tel";
-			break;
-		case SystemConstants.USER_type_waipo:
-			typeStr = "waipo_tel";
-			break;
-		case SystemConstants.USER_type_waigong:
-			typeStr = "waigong_tel";
-			break;
-		case SystemConstants.USER_type_other:
-			typeStr = "other_tel";
-			break;
-		default:
-			typeStr = "ma_tel";
-			break;
-		}
-		return (List<Student>) this.nSimpleHibernateDao.getHibernateTemplate()
-				.find("from Student where " + typeStr + "=?", tel);
+	public List<StudentContactRealation> getStudentByPhone(String tel) {
+		
+		return (List<StudentContactRealation>) this.nSimpleHibernateDao.getHibernateTemplate()
+				.find("from StudentContactRealation  where tel=?)", tel);
 	}
 
 

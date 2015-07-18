@@ -10,6 +10,8 @@ import com.company.news.entity.Parent;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
+import com.company.news.rest.util.StringOperationUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
@@ -99,12 +101,16 @@ public class ClassNewsService extends AbstractServcice {
 	 */
 	public PageQueryResult query(Parent user ,String type,String classuuid, PaginationData pData) {
 		String hql = "from ClassNews4Q where 1=1";
-		if (StringUtils.isNotBlank(classuuid))
-			hql += " and  classuuid=" + classuuid;
-		
-		if("myByTeacher".equals(type)){
+		if (StringUtils.isNotBlank(classuuid)){
+			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
+		}
+		else if("myByTeacher".equals(type)){
+			hql += " and  classuuid in (select classuuid from UserClassRelation where useruuid='"+ user.getUuid() + "')";
+		}else if("myByParent".equals(type)){
 			hql += " and  classuuid in (select classuuid from UserClassRelation where useruuid='"+ user.getUuid() + "')";
 		}
+		
+		
 		hql += " order by create_time";
 
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao

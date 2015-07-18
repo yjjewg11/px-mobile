@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.entity.Parent;
 import com.company.news.entity.Student;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.StudentService;
 import com.company.news.vo.ResponseMessage;
+import com.company.web.listener.SessionListener;
 
 @Controller
 @RequestMapping(value = "/student")
@@ -41,6 +43,36 @@ public class StudentController extends AbstractRESTController {
 				request.getParameter("groupuuid"));
 		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+
+	
+
+	/**
+	 * 查询我的所有孩子列表
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/listByMyChildren", method = RequestMethod.GET)
+	public String listByMyChildren(ModelMap model,
+			HttpServletRequest request) {
+		Parent parent=SessionListener.getUserInfoBySession(request);
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			List<Student> list = studentService.listByMyChildren(this.getMyChildrenUuidsBySession(request));
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+					.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
 		return "";
 	}
 

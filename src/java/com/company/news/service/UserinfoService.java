@@ -14,14 +14,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
 import com.company.news.ProjectProperties;
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.Group;
 import com.company.news.entity.Parent;
 import com.company.news.entity.ParentStudentRelation;
 import com.company.news.entity.Student;
+import com.company.news.entity.StudentContactRealation;
+import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.TelSmsCode;
 import com.company.news.entity.User;
-import com.company.news.entity.UserGroupRelation;
 import com.company.news.form.UserLoginForm;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
@@ -29,7 +30,6 @@ import com.company.news.rest.RestConstants;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
-import com.company.news.vo.UserInfoReturn;
 import com.company.plugin.security.LoginLimit;
 import com.company.web.listener.SessionListener;
 
@@ -41,18 +41,7 @@ import com.company.web.listener.SessionListener;
 public class UserinfoService extends AbstractServcice {
 	@Autowired
 	private StudentService studentService;
-	// 20150610 去掉对用户表的TYPE定义，默认都为0
-	public static final int USER_type_ma = 1;// 组织管理员
-	public static final int USER_type_ba = 2;// 老师类型
-	public static final int USER_type_ye = 3;// 组织管理员
-	public static final int USER_type_nai = 4;// 老师类型
-	public static final int USER_type_waigong = 5;// 组织管理员
-	public static final int USER_type_waipo = 6;// 老师类型
-	public static final int USER_disable_default = 0;// 电话号码，验证。默认0，0:没验证。1:验证，2：提交验证
-	public static final int USER_tel_verify_default = 0;// 是否被管理员封号。0：不封。1：封号，不允许登录。
-	// 用户状态
-	public static final int USER_disable_true = 1;// 禁用
-
+	
 	/**
 	 * 用户注册
 	 * 
@@ -84,9 +73,9 @@ public class UserinfoService extends AbstractServcice {
 		BeanUtils.copyProperties(parent, parentRegJsonform);
 		parent.setLoginname(parentRegJsonform.getTel());
 		parent.setCreate_time(TimeUtils.getCurrentTimestamp());
-		parent.setDisable(USER_disable_default);
+		parent.setDisable(SystemConstants.USER_disable_default);
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
-		parent.setTel_verify(USER_tel_verify_default);
+		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
 		
 		//当昵称为空时，使用登陆名作为初始昵称
 		if(StringUtils.isBlank(parent.getName()))
@@ -95,16 +84,19 @@ public class UserinfoService extends AbstractServcice {
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
 
-		List<Student> list = studentService.getStudentByPhone(parent.getTel(),
-				parent.getType());
-
+		
+		/**
+		 * 1.根据注册手机,绑定和学生的关联关心.
+		 * 2.更新孩子数据时,也会自动绑定学生和家长的数据.
+		 */
+		List<StudentContactRealation> list = studentService.getStudentByPhone(parent.getTel());
 		if (list != null)
-			for (Student s : list) {
+			for (StudentContactRealation s : list) {
 				// 保存用户机构关联表
 				ParentStudentRelation parentStudentRelation = new ParentStudentRelation();
 				parentStudentRelation.setParentuuid(parent.getUuid());
-				parentStudentRelation.setStudentuuid(s.getUuid());
-				parentStudentRelation.setType(parent.getType());
+				parentStudentRelation.setStudentuuid(s.getStudent_uuid());
+				parentStudentRelation.setType(s.getType());
 				// 有事务管理，统一在Controller调用时处理异常
 				this.nSimpleHibernateDao.getHibernateTemplate().save(
 						parentStudentRelation);
@@ -236,6 +228,9 @@ public class UserinfoService extends AbstractServcice {
 		SessionListener.putSessionByJSESSIONID(session);
 
 		session.setAttribute(RestConstants.Session_UserInfo, parent);
+		List<StudentOfSession>  studentOfSessionlist=this.getStudentOfSessionByParentuuid(parent.getUuid());
+		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
+		
 		// 返回客户端用户信息放入Map
 		//putUserInfoReturnToModel(model, request);
 
@@ -295,6 +290,22 @@ public class UserinfoService extends AbstractServcice {
 
 		return q.list();
 	}
+	/**
+	 * 查询指定机构的用户列表
+	 * 
+	 * @return
+	 */
+	public List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql = "";
+		Query q = s
+				.createSQLQuery(
+						"select {t1.*} from px_parentstudentrelation t0,px_student {t1} where t0.studentuuid={t1}.uuid and t0.parentuuid='"
+								+ uuid + "'").addEntity("t1", StudentOfSession.class);
+
+		return q.list();
+	}
 
 	/**
 	 * 
@@ -315,11 +326,11 @@ public class UserinfoService extends AbstractServcice {
 			return false;
 		}
 
-		int disable_i = USER_disable_default;
+		int disable_i = SystemConstants.USER_disable_default;
 		try {
 			disable_i = Integer.parseInt(disable);
-			if (disable_i != USER_disable_true)// 不是禁用时，默认都是0
-				disable_i = USER_disable_default;
+			if (disable_i != SystemConstants.USER_disable_true)// 不是禁用时，默认都是0
+				disable_i = SystemConstants.USER_disable_default;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
