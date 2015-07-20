@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -75,7 +76,16 @@ public class DianzanController extends AbstractRESTController {
 		List list;
 		try {
 			list = classNewsDianzanService.getDianzanByNewsuuid(newsuuid);
-			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			
+			Boolean canDianzan=true;
+			if(list.size()>0){
+				Parent user = this.getUserInfoBySession(request);
+				canDianzan=classNewsDianzanService.canDianzan(newsuuid,user.getUuid());
+			}
+			model.addAttribute("names", StringUtils.join(list,","));
+			model.addAttribute("canDianzan", canDianzan);
+			model.addAttribute(RestConstants.Return_ResponseMessage_count, list.size());
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

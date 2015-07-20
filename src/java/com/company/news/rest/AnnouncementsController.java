@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.entity.Announcements;
 import com.company.news.entity.User;
 import com.company.news.jsonform.AnnouncementsJsonform;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.AnnouncementsService;
 import com.company.news.vo.AnnouncementsVo;
@@ -51,7 +53,7 @@ public class AnnouncementsController extends AbstractRESTController {
 	
 	
 	/**
-	 * 获取我的通知
+	 * 获取我的通知(无用)
 	 * 
 	 * @param model
 	 * @param request
@@ -63,6 +65,30 @@ public class AnnouncementsController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		List list = announcementsService.queryMyAnnouncements(request.getParameter("type"),request.getParameter("groupuuid"),request.getParameter("classuuid"));
 		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+
+	/**
+	 * 获取我的孩子学校相关的公告
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryMy", method = RequestMethod.GET)
+	public String queryMy(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		PaginationData pData = this.getPaginationDataByRequest(request);
+		String groupuuids=request.getParameter("groupuuids");
+		if(StringUtils.isBlank(groupuuids)){
+			groupuuids=this.getMyChildrenGroupUuidsBySession(request);
+		}
+		PageQueryResult pageQueryResult = announcementsService.query(groupuuids,pData);
+		model.addAttribute(RestConstants.Return_ResponseMessage_list,
+				pageQueryResult);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}
@@ -82,6 +108,8 @@ public class AnnouncementsController extends AbstractRESTController {
 			return "";
 		}
 		model.addAttribute(RestConstants.Return_G_entity,a);
+		//定义接口,返回浏览总数.
+		model.addAttribute(RestConstants.Return_ResponseMessage_count, Integer.valueOf(0));
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}

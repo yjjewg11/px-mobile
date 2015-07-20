@@ -14,8 +14,12 @@ import com.company.news.entity.Announcements;
 import com.company.news.entity.Announcements4Q;
 import com.company.news.entity.AnnouncementsTo;
 import com.company.news.entity.PClass;
+import com.company.news.entity.Parent;
 import com.company.news.entity.User;
 import com.company.news.jsonform.AnnouncementsJsonform;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.AnnouncementsVo;
 import com.company.news.vo.ResponseMessage;
@@ -212,6 +216,24 @@ public class AnnouncementsService extends AbstractServcice {
 
 	}
 
+	
+	/**
+	 * 查询我公告
+	 * 
+	 * @return
+	 */
+	public PageQueryResult query(String groupuuid, PaginationData pData) {
+		String hql = "from Announcements4Q where type=0";
+		if (StringUtils.isNotBlank(groupuuid)){
+			hql += " and  groupuuid in("+DBUtil.stringsToWhereInValue(groupuuid)+")";
+		}
+		hql += " order by create_time desc";
+		
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+		return pageQueryResult;
+
+	}
 	/**
 	 * 删除 支持多个，用逗号分隔
 	 * 

@@ -100,7 +100,7 @@ public class ClassNewsService extends AbstractServcice {
 	 * @return
 	 */
 	public PageQueryResult query(Parent user ,String type,String classuuid, PaginationData pData) {
-		String hql = "from ClassNews4Q where 1=1";
+		String hql = "from ClassNews where 1=1";
 		if (StringUtils.isNotBlank(classuuid)){
 			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
 		}
@@ -109,10 +109,7 @@ public class ClassNewsService extends AbstractServcice {
 		}else if("myByParent".equals(type)){
 			hql += " and  classuuid in (select classuuid from UserClassRelation where useruuid='"+ user.getUuid() + "')";
 		}
-		
-		
-		hql += " order by create_time";
-
+		hql += " order by create_time desc";
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
 
