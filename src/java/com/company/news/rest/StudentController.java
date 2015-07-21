@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.entity.Parent;
 import com.company.news.entity.Student;
+import com.company.news.jsonform.StudentJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.StudentService;
 import com.company.news.vo.ResponseMessage;
@@ -97,5 +99,52 @@ public class StudentController extends AbstractRESTController {
 		return "";
 	}
 
+	
+	/**
+	 * 添加用户
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/save", method = RequestMethod.POST)
+	public String save(ModelMap model, HttpServletRequest request) {
+		// 返回消息体
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		// 请求消息体
+		String bodyJson = RestUtil.getJsonStringByRequest(request);
+		StudentJsonform studentJsonform;
+		try {
+			studentJsonform = (StudentJsonform) this.bodyJsonToFormObject(
+					bodyJson, StudentJsonform.class);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage(error_bodyJsonToFormObject);
+			return "";
+		}
+
+		try {
+			boolean flag;
+			if (StringUtils.isBlank(studentJsonform.getUuid()))
+				flag = studentService.add(studentJsonform, responseMessage);
+			else
+				flag = studentService.update(studentJsonform, responseMessage);
+			if (!flag)// 请求服务返回失败标示
+				return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+					.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("增加成功");
+		return "";
+	}
 
 }

@@ -88,20 +88,21 @@ public class NSimpleHibernateDao extends HibernateDaoSupport {
     this.logger.info("findByPaginationToHql list  count time(ms)="+endTime);
    
     long total = 0;
-    
-    if(pData.getPageNo()==1){//效率优化,只有第一页查询时,返回总数,其他的时候不在查询总数
-      if (list.size() < pData.getPageSize()) {// 小于当前页,就不用单独计算总数.
-        total = list.size();
-      } else {
-        startTime = System.currentTimeMillis();
-        total =
-          Long.valueOf(this.getSession().createQuery("select count(*) " + hql).uniqueResult()
-            .toString());
-        this.logger.info("findByPaginationToHql total  count time(ms)="+endTime);
-      }
-    }else{
-      total=999999;
-    }
+    //效率优化,不查询总数
+//    
+//    if(pData.getPageNo()==1){//效率优化,只有第一页查询时,返回总数,其他的时候不在查询总数
+//      if (list.size() < pData.getPageSize()) {// 小于当前页,就不用单独计算总数.
+//        total = list.size();
+//      } else {
+//        startTime = System.currentTimeMillis();
+//        total =
+//          Long.valueOf(this.getSession().createQuery("select count(*) " + hql).uniqueResult()
+//            .toString());
+//        this.logger.info("findByPaginationToHql total  count time(ms)="+endTime);
+//      }
+//    }else{
+//      total=999999;
+//    }
     endTime = System.currentTimeMillis() - startTime;
    
     return new PageQueryResult(pData.getPageSize(), pData.getPageNo(), list, total);

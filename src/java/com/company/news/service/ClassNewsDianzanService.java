@@ -37,12 +37,7 @@ public class ClassNewsDianzanService extends AbstractServcice {
 			responseMessage.setMessage("Newsuuid不能为空！");
 			return false;
 		}
-
-		List list = this.nSimpleHibernateDao.getHibernateTemplate().find(
-				"from ClassNewsDianzan where newsuuid=? and create_useruuid=?",
-				classNewsDianzanJsonform.getNewsuuid(),
-				classNewsDianzanJsonform.getCreate_useruuid());
-		if (list != null && list.size() > 0) {
+		if (canDianzan(classNewsDianzanJsonform.getNewsuuid(),classNewsDianzanJsonform.getCreate_useruuid())) {
 			responseMessage.setMessage("不能重复点赞！");
 			return false;
 		} else {
@@ -56,6 +51,24 @@ public class ClassNewsDianzanService extends AbstractServcice {
 		return true;
 	}
 
+	
+	/**
+	 * 判断是否能点赞
+	 * @param classNewsDianzanJsonform
+	 * @param responseMessage
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean canDianzan(String newsuuid,String create_useruuid) throws Exception {
+
+		List list = this.nSimpleHibernateDao.getHibernateTemplate().find(
+				"select newsuuid from ClassNewsDianzan where newsuuid=? and create_useruuid=?",
+				newsuuid,create_useruuid);
+		if (list != null && list.size() > 0) {
+			return false;
+		}
+		return true;
+	}
 	/**
 	 * 
 	 * @param classNewsDianzanJsonform
@@ -69,7 +82,7 @@ public class ClassNewsDianzanService extends AbstractServcice {
 		}
 
 		return this.nSimpleHibernateDao.getHibernateTemplate().find(
-				"from ClassNewsDianzanOfShow where newsuuid=?", newsuuid);
+				"select create_user from ClassNewsDianzanOfShow where newsuuid=?", newsuuid);
 	}
 
 	/**
