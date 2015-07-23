@@ -40,6 +40,7 @@ public class StudentController extends AbstractRESTController {
 			HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
+		if(true)	return "";
 		List<Student> list = studentService.query(
 				request.getParameter("classuuid"),
 				request.getParameter("groupuuid"));

@@ -18,6 +18,8 @@ import com.company.news.entity.PClass;
 import com.company.news.entity.User;
 import com.company.news.jsonform.AnnouncementsJsonform;
 import com.company.news.jsonform.MessageJsonform;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.AnnouncementsVo;
 import com.company.news.vo.ResponseMessage;
@@ -44,9 +46,8 @@ public class MessageService extends AbstractServcice {
 	 */
 	public boolean add(MessageJsonform messageJsonform,
 			ResponseMessage responseMessage) throws Exception {
-		if (StringUtils.isBlank(messageJsonform.getTitle())
-				|| messageJsonform.getTitle().length() > 45) {
-			responseMessage.setMessage("Title不能为空！，且长度不能超过45位！");
+		if (StringUtils.isBlank(messageJsonform.getMessage())) {
+			responseMessage.setMessage("内容不能为空!");
 			return false;
 		}
 
@@ -81,7 +82,7 @@ public class MessageService extends AbstractServcice {
 	 * 
 	 * @return
 	 */
-	public List query(String type, String useruuid) {
+	public PageQueryResult query(String type, String useruuid,PaginationData pData) {
 
 		String hql = "from Message where isdelete=" + announcements_isdelete_no;
 		if (StringUtils.isNotBlank(type))
@@ -89,7 +90,11 @@ public class MessageService extends AbstractServcice {
 		if (StringUtils.isNotBlank(useruuid))
 			hql += " and revice_useruuid='" + useruuid + "'";
 		hql += " order by create_time desc";
-		return (List) this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
+		
+		
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+		return pageQueryResult;
 	}
 
 	/**
@@ -157,10 +162,28 @@ public class MessageService extends AbstractServcice {
 		return true;
 	}
 
+	
+	/**
+	 * 查询我(家长)和老师所有信件
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryMessageByTeacher(String useruuid,String parentuuid,PaginationData pData) {
+		String hql = "from Message where isdelete=" + announcements_isdelete_no;
+		hql += " and type=1" ;
+		hql += " and (" ;
+			hql += "  (revice_useruuid='" + useruuid + "' and send_useruuid='" + parentuuid + "')";//家长发给我的.
+			hql += " or (send_useruuid='" + useruuid + "' and revice_useruuid='" + parentuuid + "')";//我发给家长的.
+		hql += "  )" ;
+	hql += " order by create_time desc";
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+		return pageQueryResult;
+	}
+	
 	@Override
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
 		return User.class;
 	}
-
 }

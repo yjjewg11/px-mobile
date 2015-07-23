@@ -42,6 +42,9 @@ public class UserinfoService extends AbstractServcice {
 	@Autowired
 	private StudentService studentService;
 	
+	
+	@Autowired
+	private SmsService smsService;
 	/**
 	 * 用户注册
 	 * 
@@ -64,6 +67,12 @@ public class UserinfoService extends AbstractServcice {
 			responseMessage.setMessage("电话号码已被注册！");
 			return false;
 		}
+		
+		if(!smsService.VerifySmsCode(responseMessage, parentRegJsonform.getTel(), parentRegJsonform.getSmscode())){
+			return false;
+		}
+		
+		
 
 		if (parentRegJsonform.getType() == null)
 			parentRegJsonform.setType(1);
@@ -98,6 +107,9 @@ public class UserinfoService extends AbstractServcice {
 				parentStudentRelation.setStudentuuid(s.getStudent_uuid());
 				parentStudentRelation.setType(s.getType());
 				// 有事务管理，统一在Controller调用时处理异常
+				s.setIsreg(SystemConstants.USER_isreg_1);
+				this.nSimpleHibernateDao.getHibernateTemplate().save(
+						s);
 				this.nSimpleHibernateDao.getHibernateTemplate().save(
 						parentStudentRelation);
 			}
@@ -445,5 +457,26 @@ public class UserinfoService extends AbstractServcice {
 		responseMessage.setMessage("短信验证码不正确！");
 		return false;
 
+	}
+
+	public StudentService getStudentService() {
+		return studentService;
+	}
+
+	public void setStudentService(StudentService studentService) {
+		this.studentService = studentService;
+	}
+
+	public SmsService getSmsService() {
+		return smsService;
+	}
+
+	public void setSmsService(SmsService smsService) {
+		this.smsService = smsService;
+	}
+
+	public List getDynamicMenu() {
+		return  this.nSimpleHibernateDao.getHibernateTemplate()
+				.find("from DynamicMenu where enable=1 and type=1 order by index", null);
 	}
 }

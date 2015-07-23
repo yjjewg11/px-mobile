@@ -372,4 +372,21 @@ public class UserinfoController extends AbstractRESTController {
 		responseMessage.setMessage("修改成功");
 		return "";
 	}
+	
+	/**
+	 * 获取家长版本动态数据
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getDynamicMenu", method = RequestMethod.GET)
+	public String getDynamicMenu(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		List list = userinfoService.getDynamicMenu();
+		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
 }
