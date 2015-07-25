@@ -1,17 +1,19 @@
 package com.company.news.service;
 
+import java.util.List;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Parent;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
-import com.company.news.rest.util.StringOperationUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
@@ -106,13 +108,14 @@ public class ClassNewsService extends AbstractServcice {
 		}
 		else if("myByTeacher".equals(type)){
 			hql += " and  classuuid in (select classuuid from UserClassRelation where useruuid='"+ user.getUuid() + "')";
-		}else if("myByParent".equals(type)){
-			hql += " and  classuuid in (select classuuid from UserClassRelation where useruuid='"+ user.getUuid() + "')";
 		}
 		hql += " order by create_time desc";
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
-
+		List<ClassNews> list=pageQueryResult.getData();
+		for(ClassNews o:list){
+			o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
+		}
 		return pageQueryResult;
 
 	}
@@ -149,11 +152,11 @@ public class ClassNewsService extends AbstractServcice {
 				ClassNews.class, uuid);
 		ClassNewsJsonform cnjf = new ClassNewsJsonform();
 		BeanUtils.copyProperties(cnjf, cn);
-
-		// 计数
-		cnjf.setCount(countService.count(uuid,
-				countService.count_type_classnews));
-
+//
+//		// 计数
+//		cnjf.setCount(countService.count(uuid,
+//				countService.count_type_classnews));
+		cnjf.setShare_url(PxStringUtil.getClassNewsByUuid(uuid));
 		return cnjf;
 
 	}

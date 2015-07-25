@@ -9,6 +9,7 @@ import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
@@ -90,7 +91,7 @@ public class StudentService extends AbstractServcice {
 			BeanUtils.copyProperties(student, studentJsonform);
 			//设置不能被修改的字段
 			student.setUuid(old_student.getUuid());
-			student.setName(old_student.getName());
+			//student.setName(old_student.getName());
 			student.setClassuuid(old_student.getClassuuid());
 			student.setGroupuuid(old_student.getGroupuuid());
 			student.setCreate_time(old_student.getCreate_time());
@@ -140,7 +141,14 @@ public class StudentService extends AbstractServcice {
 	public List<Student> listByMyChildren(String uuids) {
 		if(StringUtils.isBlank(uuids))return new ArrayList();
 		String hql="from Student where uuid in ("+DBUtil.stringsToWhereInValue(uuids)+")";
-		return (List<Student>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql,null );
+		
+		
+		List<Student> list=(List<Student>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql,null );
+		this.nSimpleHibernateDao.getHibernateTemplate().clear();
+		for(Student o:list){
+			o.setHeadimg(PxStringUtil.imgUrlByUuid(o.getHeadimg()));
+		}
+		return list;
 	}
 	
 	/**
@@ -149,7 +157,10 @@ public class StudentService extends AbstractServcice {
 	 * @return
 	 */
 	public Student get(String uuid)throws Exception{
-		return (Student) this.nSimpleHibernateDao.getObjectById(Student.class, uuid);
+		Student o= (Student) this.nSimpleHibernateDao.getObjectById(Student.class, uuid);
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+			o.setHeadimg(PxStringUtil.imgUrlByUuid(o.getHeadimg()));
+		return o;
 	}
 	
 	/**

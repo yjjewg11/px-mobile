@@ -1,6 +1,7 @@
 package com.company.news.service;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -129,12 +130,39 @@ public class CookbookPlanService extends AbstractServcice {
 			c.setTime_2(this.makeCookbookName(c.getTime_2()));
 			c.setTime_3(this.makeCookbookName(c.getTime_3()));
 			c.setTime_4(this.makeCookbookName(c.getTime_4()));
-			c.setTime_5(this.makeCookbookName(c.getTime_5()));			
+			c.setTime_5(this.makeCookbookName(c.getTime_5()));		
+			
+
+			c.setList_time_1(this.getCookbookList(c.getTime_1()));
+			c.setList_time_2(this.getCookbookList(c.getTime_2()));
+			c.setList_time_3(this.getCookbookList(c.getTime_3()));
+			c.setList_time_4(this.getCookbookList(c.getTime_4()));
+			c.setList_time_5(this.getCookbookList(c.getTime_5()));
+
 		}
 		
 		return list;
 	}
 
+	/**
+	 * 
+	 * @param uuids
+	 * @return
+	 * 食材uuid$图片uuid$食材名字
+	 */
+	private List getCookbookList(String uuids) {
+		List list=new ArrayList();
+		if (StringUtils.isNotBlank(uuids)) {
+			String[] uuid = uuids.split(",");
+			for (String s : uuid) {
+				Cookbook cb = (Cookbook) CommonsCache.get(s,Cookbook.class);
+				list.add(cb);
+
+			}
+		}
+		return list;
+
+	}
 	/**
 	 * 
 	 * @param uuid
@@ -150,6 +178,15 @@ public class CookbookPlanService extends AbstractServcice {
 			c.setTime_3(this.makeCookbookName(c.getTime_3()));
 			c.setTime_4(this.makeCookbookName(c.getTime_4()));
 			c.setTime_5(this.makeCookbookName(c.getTime_5()));
+			
+			
+
+			c.setList_time_1(this.getCookbookList(c.getTime_1()));
+			c.setList_time_2(this.getCookbookList(c.getTime_2()));
+			c.setList_time_3(this.getCookbookList(c.getTime_3()));
+			c.setList_time_4(this.getCookbookList(c.getTime_4()));
+			c.setList_time_5(this.getCookbookList(c.getTime_5()));
+
 
 		}
 		return c;
@@ -169,7 +206,7 @@ public class CookbookPlanService extends AbstractServcice {
 			for (String s : uuid) {
 				Cookbook cb = (Cookbook) CommonsCache.get(s,Cookbook.class);
 				if (cb != null)
-					rs += (s+"$"+cb.getImg() + "$" + cb.getName() + ",");
+					rs += (s+"$"+PxStringUtil.imgUrlByUuid(cb.getImg()) + "$" + cb.getName() + ",");
 
 			}
 

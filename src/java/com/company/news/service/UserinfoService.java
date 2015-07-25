@@ -108,6 +108,7 @@ public class UserinfoService extends AbstractServcice {
 				parentStudentRelation.setType(s.getType());
 				// 有事务管理，统一在Controller调用时处理异常
 				s.setIsreg(SystemConstants.USER_isreg_1);
+				s.setParent_uuid(parent.getUuid());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(
 						s);
 				this.nSimpleHibernateDao.getHibernateTemplate().save(
@@ -299,8 +300,12 @@ public class UserinfoService extends AbstractServcice {
 				.createSQLQuery(
 						"select {t1.*} from px_parentstudentrelation t0,px_student {t1} where t0.studentuuid={t1}.uuid and t0.parentuuid='"
 								+ uuid + "'").addEntity("t1", Student.class);
-
-		return q.list();
+		List<Student> list=q.list();
+		s.clear();
+		for(Student o:list){
+			o.setHeadimg(PxStringUtil.imgUrlByUuid(o.getHeadimg()));
+		}
+		return list;
 	}
 	/**
 	 * 查询指定机构的用户列表

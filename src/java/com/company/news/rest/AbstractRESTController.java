@@ -15,6 +15,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.ui.ModelMap;
 
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
 import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User;
@@ -38,9 +39,11 @@ public class AbstractRESTController   {
 	    UserInfoReturn userInfoReturn = new UserInfoReturn();
 	    try {
 	      BeanUtils.copyProperties(userInfoReturn, user);
+	      userInfoReturn.setImg(PxStringUtil.imgUrlByUuid(userInfoReturn.getImg()));
 	    } catch (Exception e) {
 	      e.printStackTrace();
 	    }
+	   
 	    model.addAttribute(RestConstants.Return_UserInfo,userInfoReturn);
 	  }
 	  

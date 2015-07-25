@@ -11,11 +11,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.CookbookPlan;
 import com.company.news.jsonform.ClassRegJsonform;
 import com.company.news.jsonform.CookbookPlanJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.CookbookPlanService;
+import com.company.news.service.CountService;
 import com.company.news.vo.ResponseMessage;
 
 @Controller
@@ -38,28 +41,49 @@ public class CookbookPlanController extends AbstractRESTController {
 	public String list(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
+		try {
+			List<CookbookPlan> list = cookbookPlanService.query(
+					request.getParameter("begDateStr"),
+					request.getParameter("endDateStr"),
+					request.getParameter("groupuuid"));
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 
-		List<CookbookPlan> list = cookbookPlanService.query(
-				request.getParameter("begDateStr"),
-				request.getParameter("endDateStr"),
-				request.getParameter("groupuuid"));
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
-
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		return "";
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+	
 	}
 
-
+	@Autowired
+	private CountService countService;
 	
 	@RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
 	public String get(@PathVariable String uuid,ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		CookbookPlan c = cookbookPlanService.get(uuid);
+		try {
+			CookbookPlan c = cookbookPlanService.get(uuid);
+			//定义接口,返回浏览总数.
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_shipu));
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getCookbookPlanByUuid(uuid));
+
+			model.addAttribute(RestConstants.Return_G_entity,c);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
 		
-		model.addAttribute(RestConstants.Return_G_entity,c);
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		return "";
 	}
 
 }

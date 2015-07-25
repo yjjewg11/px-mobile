@@ -12,26 +12,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Announcements;
-import com.company.news.entity.User;
-import com.company.news.jsonform.AnnouncementsJsonform;
+import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.AnnouncementsService;
+import com.company.news.service.CountService;
 import com.company.news.vo.AnnouncementsVo;
 import com.company.news.vo.ResponseMessage;
 
 @Controller
 @RequestMapping(value = "/announcements")
 public class AnnouncementsController extends AbstractRESTController {
-
+	@Autowired
+	private CountService countService;
 	@Autowired
 	private AnnouncementsService announcementsService;
-
-
-
-
 	/**
 	 * 根据分类获取所有，管理员用
 	 * 
@@ -100,6 +97,11 @@ public class AnnouncementsController extends AbstractRESTController {
 		AnnouncementsVo a;
 		try {
 			a = announcementsService.get(uuid);
+
+			//定义接口,返回浏览总数.
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_gonggao));
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getAnnByUuid(uuid));
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -108,8 +110,7 @@ public class AnnouncementsController extends AbstractRESTController {
 			return "";
 		}
 		model.addAttribute(RestConstants.Return_G_entity,a);
-		//定义接口,返回浏览总数.
-		model.addAttribute(RestConstants.Return_ResponseMessage_count, Integer.valueOf(0));
+	
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}

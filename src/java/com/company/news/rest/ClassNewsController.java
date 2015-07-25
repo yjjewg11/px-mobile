@@ -10,12 +10,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.ClassNewsService;
+import com.company.news.service.CountService;
 import com.company.news.vo.ResponseMessage;
 
 @Controller
@@ -155,7 +158,8 @@ public class ClassNewsController extends AbstractRESTController {
 		responseMessage.setMessage("删除成功");
 		return "";
 	}
-
+	@Autowired
+	private CountService countService;
 	@RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
 	public String get(@PathVariable String uuid, ModelMap model,
 			HttpServletRequest request) {
@@ -164,6 +168,11 @@ public class ClassNewsController extends AbstractRESTController {
 		ClassNewsJsonform c;
 		try {
 			c = classNewsService.get(uuid);
+			
+			//定义接口,返回浏览总数.
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_hudong));
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getClassNewsByUuid(uuid));
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -227,8 +227,6 @@ public class UserinfoController extends AbstractRESTController {
 			return false;
 		}
 		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
-
-		
 		HttpSession session = SessionListener.getSession(request);
 		// 返回用户信息
 		this.putUserInfoReturnToModel(model, request);
