@@ -1,27 +1,18 @@
 package com.company.news.service;
 
-import java.util.List;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
-import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
-import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.Announcements;
-import com.company.news.entity.Announcements4Q;
-import com.company.news.entity.AnnouncementsTo;
+import com.company.news.entity.Group;
 import com.company.news.entity.Message;
-import com.company.news.entity.PClass;
 import com.company.news.entity.User;
-import com.company.news.jsonform.AnnouncementsJsonform;
 import com.company.news.jsonform.MessageJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.TimeUtils;
-import com.company.news.vo.AnnouncementsVo;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -56,17 +47,24 @@ public class MessageService extends AbstractServcice {
 			return false;
 		}
 
-		User user = (User) CommonsCache.get(messageJsonform.getRevice_useruuid(),User.class);
-		if (user == null) {
-			responseMessage.setMessage("user 不存在！");
-			return false;
+		
+		if(SystemConstants.Message_type_2.equals(messageJsonform.getRevice_useruuid())){
+			Group user = (Group) CommonsCache.get(messageJsonform.getRevice_useruuid(),Group.class);
+			if (user == null) {
+				responseMessage.setMessage("user 不存在！");
+				return false;
+			}
+			messageJsonform.setRevice_user(user.getBrand_name()+"园长");
+		}else{
+			User user = (User) CommonsCache.get(messageJsonform.getRevice_useruuid(),User.class);
+			if (user == null) {
+				responseMessage.setMessage("user 不存在！");
+				return false;
+			}
+			messageJsonform.setRevice_user(user.getName());
 		}
-		messageJsonform.setRevice_user(user.getName());
-
 		Message message = new Message();
-
 		BeanUtils.copyProperties(message, messageJsonform);
-
 		message.setCreate_time(TimeUtils.getCurrentTimestamp());
 		message.setIsread(announcements_isread_no);
 		message.setIsdelete(announcements_isdelete_no);
@@ -170,7 +168,7 @@ public class MessageService extends AbstractServcice {
 	 */
 	public PageQueryResult queryMessageByTeacher(String useruuid,String parentuuid,PaginationData pData) {
 		String hql = "from Message where isdelete=" + announcements_isdelete_no;
-		hql += " and type=1" ;
+		hql += " and type=1 " ;
 		hql += " and (" ;
 			hql += "  (revice_useruuid='" + useruuid + "' and send_useruuid='" + parentuuid + "')";//家长发给我的.
 			hql += " or (send_useruuid='" + useruuid + "' and revice_useruuid='" + parentuuid + "')";//我发给家长的.
@@ -180,7 +178,23 @@ public class MessageService extends AbstractServcice {
 				.findByPaginationToHql(hql, pData);
 		return pageQueryResult;
 	}
-	
+	/**
+	 * 查询我(家长)和园长所有信件
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryByLeader(String useruuid,String parentuuid,PaginationData pData) {
+		String hql = "from Message where isdelete=" + announcements_isdelete_no;
+		hql += " and type=2 " ;
+		hql += " and (" ;
+			hql += "  (revice_useruuid='" + useruuid + "' and send_useruuid='" + parentuuid + "')";//家长发给我的.
+			hql += " or (send_useruuid='" + useruuid + "' and revice_useruuid='" + parentuuid + "')";//我发给家长的.
+		hql += "  )" ;
+	hql += " order by create_time desc";
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+		return pageQueryResult;
+	}
 	@Override
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub

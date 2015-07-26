@@ -57,7 +57,7 @@ public class StudentService extends AbstractServcice {
 			return false;
 		}
 
-
+		studentJsonform.setHeadimg(PxStringUtil.imgUrlToUuid(studentJsonform.getHeadimg()));
 		Student student = new Student();
 
 		BeanUtils.copyProperties(student, studentJsonform);
@@ -82,7 +82,7 @@ public class StudentService extends AbstractServcice {
 
 		Student student = (Student) this.nSimpleHibernateDao.getObjectById(
 				Student.class, studentJsonform.getUuid());
-		
+		studentJsonform.setHeadimg(PxStringUtil.imgUrlToUuid(studentJsonform.getHeadimg()));
 		Student old_student=new Student();
 		ConvertUtils.register(new DateConverter(null), java.util.Date.class); 
 		BeanUtils.copyProperties(old_student, student);

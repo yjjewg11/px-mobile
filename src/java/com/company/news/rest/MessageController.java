@@ -36,7 +36,58 @@ public class MessageController extends AbstractRESTController {
 	private MessageService messageService;
 
 	
+	/**
+	 * 给园长写信
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/saveToLeader", method = RequestMethod.POST)
+	public String saveToLeader(ModelMap model, HttpServletRequest request) {
+		
+		
+		// 返回消息体
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		// 请求消息体
+		String bodyJson = RestUtil.getJsonStringByRequest(request);
+		MessageJsonform messageJsonform;
+		try {
+			messageJsonform = (MessageJsonform) this.bodyJsonToFormObject(
+					bodyJson, MessageJsonform.class);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage(error_bodyJsonToFormObject);
+			return "";
+		}
+		
+		//设置当前用户
+		Parent user=this.getUserInfoBySession(request);
+		messageJsonform.setSend_user(user.getName());
+		messageJsonform.setSend_useruuid(user.getUuid());
+		messageJsonform.setType(SystemConstants.Message_type_2);//给园长写信时,revice_user是幼儿园uuid.
+		
+		try {
+			boolean flag;
+			    flag = messageService.add(messageJsonform, responseMessage);
 
+			if (!flag)// 请求服务返回失败标示
+				return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("修改成功");
+		return "";
+	}
 	/**
 	 * 给老师写信
 	 * 
@@ -109,7 +160,30 @@ public class MessageController extends AbstractRESTController {
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}
-	
+	/**
+	 * 查询我(家长)和园长的信件
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryByLeader", method = RequestMethod.GET)
+	public String queryByLeader(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		//设置当前用户
+		Parent user=this.getUserInfoBySession(request);
+		String parent_uuid=request.getParameter("uuid");
+		if(StringUtils.isBlank(parent_uuid)){
+			responseMessage.setMessage("参数必填:uuid");
+			return "";
+		}
+		PaginationData pData = this.getPaginationDataByRequest(request);
+		PageQueryResult pageQueryResult= messageService.queryByLeader(user.getUuid(),parent_uuid,pData);
+		model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
 	/**
 	 * 查询我(家长)和老师的信件
 	 * 
