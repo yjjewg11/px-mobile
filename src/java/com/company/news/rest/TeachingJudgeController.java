@@ -1,8 +1,9 @@
 package com.company.news.rest;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.entity.Parent;
 import com.company.news.entity.TeacherJudge;
-import com.company.news.jsonform.ClassNewsJsonform;
+import com.company.news.entity.User;
 import com.company.news.jsonform.TeachingJudgeJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.rest.util.TimeUtils;
@@ -88,6 +89,36 @@ public class TeachingJudgeController extends AbstractRESTController {
 		model.addAttribute(RestConstants.Return_G_entity, t);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
+	}
+	
+	
+
+	/**
+	 * 获取我孩子相关老师列表及老师评价列表
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getTeachersAndJudges", method = RequestMethod.GET)
+	public String getTeachersAndJudges(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			Parent user=this.getUserInfoBySession(request);	
+			String class_uuids=this.getMyChildrenClassuuidsBySession(request);
+			
+			 teachingJudgeService.getTeachersAndJudges(user.getUuid(),class_uuids,model);
+			 
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
 	}
 
 }

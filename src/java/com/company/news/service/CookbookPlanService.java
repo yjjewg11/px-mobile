@@ -12,6 +12,7 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Cookbook;
@@ -101,9 +102,10 @@ public class CookbookPlanService extends AbstractServcice {
 	 * 查询所有班级
 	 * 
 	 * @return
+	 * @throws Exception 
 	 */
 	public List<CookbookPlan> query(String begDateStr, String endDateStr,
-			String groupuuid) {
+			String groupuuid)  throws Exception{
 		if (StringUtils.isBlank(groupuuid)) {
 			return null;
 		}
@@ -126,13 +128,19 @@ public class CookbookPlanService extends AbstractServcice {
 						groupuuid, endDate, begDate);
 		this.nSimpleHibernateDao.getHibernateTemplate().clear();
 		for(CookbookPlan c:list){
-			c.setTime_1(this.makeCookbookName(c.getTime_1()));
-			c.setTime_2(this.makeCookbookName(c.getTime_2()));
-			c.setTime_3(this.makeCookbookName(c.getTime_3()));
-			c.setTime_4(this.makeCookbookName(c.getTime_4()));
-			c.setTime_5(this.makeCookbookName(c.getTime_5()));		
-			
-
+//			c.setTime_1(this.makeCookbookName(c.getTime_1()));
+//			c.setTime_2(this.makeCookbookName(c.getTime_2()));
+//			c.setTime_3(this.makeCookbookName(c.getTime_3()));
+//			c.setTime_4(this.makeCookbookName(c.getTime_4()));
+//			c.setTime_5(this.makeCookbookName(c.getTime_5()));		
+//			
+			c.setShare_url(PxStringUtil.getCookbookPlanByUuid(c.getUuid()));
+			try {
+				c.setCount(countService.count(c.getUuid(), SystemConstants.common_type_shipu));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			c.setList_time_1(this.getCookbookList(c.getTime_1()));
 			c.setList_time_2(this.getCookbookList(c.getTime_2()));
 			c.setList_time_3(this.getCookbookList(c.getTime_3()));
@@ -143,6 +151,8 @@ public class CookbookPlanService extends AbstractServcice {
 		
 		return list;
 	}
+	 @Autowired
+     private CountService countService ;
 
 	/**
 	 * 

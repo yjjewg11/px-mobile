@@ -1,5 +1,6 @@
 package com.company.news.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,7 +16,10 @@ import org.springframework.ui.ModelMap;
 
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
+import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.Group;
+import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.ParentStudentRelation;
 import com.company.news.entity.Student;
@@ -27,9 +31,11 @@ import com.company.news.form.UserLoginForm;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
 import com.company.news.rest.RestConstants;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
+import com.company.news.vo.TeacherPhone;
 import com.company.plugin.security.LoginLimit;
 import com.company.web.listener.SessionListener;
 
@@ -463,6 +469,49 @@ public class UserinfoService extends AbstractServcice {
 		return false;
 
 	}
+	
+	/**
+	 * 获取园长通信录
+	 * @param group_uuids
+	 * @return
+	 */
+	public List getKDTeacherPhoneList(String group_uuids) {
+		List list=new ArrayList();
+		if (StringUtils.isNotBlank(group_uuids)) {
+			String[] uuid = group_uuids.split(",");
+			for (String s : uuid) {
+				Group cb = (Group) CommonsCache.get(s,Group.class);
+				if(cb==null)continue;
+				TeacherPhone teacherPhone=new TeacherPhone();
+				teacherPhone.setType(SystemConstants.TeacherPhone_type_0);
+				teacherPhone.setTeacher_uuid(s);
+				teacherPhone.setName(cb.getBrand_name()+"园长");
+				teacherPhone.setTel("");
+				list.add(teacherPhone);
+			}
+		}
+		return list;
+	}
+	/**
+	 * 获取关联老师通信录
+	 * @param group_uuids
+	 * @return
+	 */
+	public List getTeacherPhoneList(String class_uuids) {
+		
+		String hql = "from User where uuid in (select useruuid from UserClassRelation where classuuid in("+DBUtil.stringsToWhereInValue(class_uuids)+"))";
+		List<User> userList=(List<User> )this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
+		List list=new ArrayList();
+		for (User user : userList) {
+			TeacherPhone teacherPhone=new TeacherPhone();
+			teacherPhone.setType(SystemConstants.TeacherPhone_type_1);
+			teacherPhone.setTeacher_uuid(user.getUuid());
+			teacherPhone.setName(user.getName());
+			teacherPhone.setTel(user.getTel());
+			list.add(teacherPhone);
+		}
+		return list;
+	}
 
 	public StudentService getStudentService() {
 		return studentService;
@@ -484,4 +533,6 @@ public class UserinfoService extends AbstractServcice {
 		return  this.nSimpleHibernateDao.getHibernateTemplate()
 				.find("from DynamicMenu where enable=1 and type=1 order by index", null);
 	}
+
+
 }

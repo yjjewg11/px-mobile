@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Parent;
@@ -115,6 +116,12 @@ public class ClassNewsService extends AbstractServcice {
 		List<ClassNews> list=pageQueryResult.getData();
 		for(ClassNews o:list){
 			o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
+			try {
+				o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return pageQueryResult;
 

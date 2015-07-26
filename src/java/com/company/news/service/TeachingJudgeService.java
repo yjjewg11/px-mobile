@@ -1,17 +1,23 @@
 package com.company.news.service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.ModelMap;
 
 import com.company.news.entity.TeacherJudge;
+import com.company.news.entity.User;
 import com.company.news.jsonform.TeachingJudgeJsonform;
+import com.company.news.rest.RestConstants;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
+import com.company.news.vo.TeacherPhone;
 
 /**
  * 
@@ -139,6 +145,34 @@ public class TeachingJudgeService extends AbstractServcice {
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
 		return TeacherJudge.class;
+	}
+
+
+	public void getTeachersAndJudges(String user_uuid,String class_uuids,ModelMap model) {
+		String hql = "from User where uuid in (select useruuid from UserClassRelation where classuuid in("+DBUtil.stringsToWhereInValue(class_uuids)+"))";
+		List<User> userList=(List<User> )this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
+		List list=new ArrayList();
+		String users="";
+		for (User user : userList) {
+			users+=user.getUuid()+",";
+			TeacherPhone teacherPhone=new TeacherPhone();
+			teacherPhone.setTeacher_uuid(user.getUuid());
+			teacherPhone.setName(user.getName());
+			
+			list.add(teacherPhone);
+		}
+		
+		Timestamp create_time=TimeUtils.getDefaultTimestamp();
+			Date lastdate=TimeUtils.getLastDayOfMonth(create_time);
+		
+		Date Firstdate=TimeUtils.getFirstDayOfMonth(create_time);
+		
+		List<TeacherJudge> list1=(List<TeacherJudge>) this.nSimpleHibernateDao.getHibernateTemplate().find(
+				"from TeacherJudge where teacheruuid=? and create_useruuid=? and create_time<=? and create_time >=?",
+				 user_uuid,lastdate,Firstdate);
+		
+		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		model.addAttribute("list_judge", list1);
 	}
 
 }

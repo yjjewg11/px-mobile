@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -382,9 +383,51 @@ public class UserinfoController extends AbstractRESTController {
 	public String getDynamicMenu(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		List list = userinfoService.getDynamicMenu();
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		return "";
+		
+		try {
+			List list = userinfoService.getDynamicMenu();
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
+		
 	}
+	
+	/**
+	 * 查询我孩子相关老师和园长通信录列表
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getTeacherPhoneBook", method = RequestMethod.GET)
+	public String getTeacherPhoneBook(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			String group_uuids=this.getMyChildrenGroupUuidsBySession(request);
+			String class_uuids=this.getMyChildrenClassuuidsBySession(request);
+			
+			List listKD = userinfoService.getKDTeacherPhoneList(group_uuids);
+			List list = userinfoService.getTeacherPhoneList(class_uuids);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			model.addAttribute("listKD", listKD);
+			
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
+	}
+	
+	
 }
