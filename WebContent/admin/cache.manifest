@@ -1,0 +1,23 @@
+CACHE MANIFEST
+#v0.05
+
+CACHE:
+
+http://cdn.amazeui.org/amazeui/2.4.1/css/amazeui.min.css
+../assets/css/app.css
+../w/cropbox/style.css
+
+http://libs.baidu.com/jquery/2.1.4/jquery.min.js
+http://cdn.amazeui.org/amazeui/2.4.1/js/amazeui.min.js
+http://cdn.amazeui.org/react/0.13.3/react.min.js
+http://cdn.amazeui.org/amazeui-react/1.0.0-beta1/amazeui.react.min.js
+../w/jQuery.md5.js
+../w/xheditor/xheditor-1.2.2.min.js
+../w/xheditor/zh-cn.js
+../w/cropbox/cropbox-min.js
+
+NETWORK:
+*
+
+FALLBACK:
+/ offline.html

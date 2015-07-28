@@ -12,6 +12,9 @@ import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
+import org.apache.commons.beanutils.converters.SqlTimestampConverter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.ui.ModelMap;
 
@@ -27,6 +30,11 @@ import com.company.web.listener.SessionListener;
 
 
 public class AbstractRESTController   {
+	static{
+		ConvertUtils.register(new DateConverter(null), java.util.Date.class); 
+		ConvertUtils.register(new SqlTimestampConverter(), java.sql.Timestamp.class);
+		ConvertUtils.register(new SqlTimestampConverter(null), java.sql.Timestamp.class);
+	}
 	protected static final String error_bodyJsonToFormObject="请求协议不匹配";//JSON对象解析失败
 	  /**
 	   * 返回客户端用户信息放入Map

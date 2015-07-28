@@ -23,5 +23,37 @@
 <body>
  <h1>特长课程</h1>
   <h1> </h1>
+  <button onclick="call_testFun();">调用IOS_App方法testFun()</button><br/>
+  <button onclick="call_testFun();">调用IOS_App方法testFun1(1)</button><br/>
+  
+  提供js调用方法:call_alert(fx);调用成功会弹出alert("call_alert(fx),fx="+fx);
+  <script type="text/javascript">
+  	function call_testFun(){
+  		try{
+  			window.testFun();
+  		}catch(e){
+  			
+  			alert("window.testFun(); 调用失败");
+  		}
+  	}
+  	function call_testFun(){
+  		try{
+  			window.testFun1(1);
+  		}catch(e){
+  			
+  			alert("window.testFun1(1); 调用失败");
+  		}
+  	}
+  	
+  	
+	function call_alert(fx){
+  		try{
+		alert("call_alert(fx),fx="+fx);
+  		}catch(e){
+  			alert("call_alert; 调用失败");
+  		}
+  	}
+  	
+  </script>
 </body>
 </html>

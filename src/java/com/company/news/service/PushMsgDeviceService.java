@@ -32,19 +32,28 @@ public class PushMsgDeviceService extends AbstractServcice {
 			responseMessage.setMessage("User_uuid");
 			return false;
 		}
-		
-		String hql = "from PushMsgDevice where device_type='" + jsonform.getDevice_type()+"'";
-		hql += " and type="+jsonform.getType() ;
-		List  list= this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
-		PushMsgDevice message=null;
-		if(list.size()==0){
-			message = new PushMsgDevice();
-		}else{
-			message=(PushMsgDevice)list.get(0);
+		String group_uuids=jsonform.getGroup_uuid();
+		if(group_uuids==null)group_uuids="";
+		String[] group_uuidsArr= group_uuids.split(",");
+		for(String o :group_uuidsArr){
+			String hql = "from PushMsgDevice where device_type='" + jsonform.getDevice_type()+"'";
+			hql += " and type="+jsonform.getType() ;
+			hql += " and device_id="+jsonform.getDevice_id();
+			hql += " and group_uuid="+o;
+			
+			List  list= this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
+			PushMsgDevice message=null;
+			if(list.size()==0){
+				message = new PushMsgDevice();
+			}else{
+				message=(PushMsgDevice)list.get(0);
+			}
+			BeanUtils.copyProperties(message, jsonform);
+			message.setGroup_uuid(o);
+			// 有事务管理，统一在Controller调用时处理异常
+			this.nSimpleHibernateDao.getHibernateTemplate().save(message);
 		}
-		BeanUtils.copyProperties(message, jsonform);
-		// 有事务管理，统一在Controller调用时处理异常
-		this.nSimpleHibernateDao.getHibernateTemplate().save(message);
+		
 
 		return true;
 	}
