@@ -56,16 +56,17 @@ public class AnnouncementsController extends AbstractRESTController {
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/queryMyAnnouncements", method = RequestMethod.GET)
-	public String queryMyAnnouncements(ModelMap model, HttpServletRequest request) {
-		ResponseMessage responseMessage = RestUtil
-				.addResponseMessageForModelMap(model);
-		List list = announcementsService.queryMyAnnouncements(request.getParameter("type"),request.getParameter("groupuuid"),request.getParameter("classuuid"));
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		return "";
-	}
-	
+//	@Deprecated
+//	@RequestMapping(value = "/queryMyAnnouncements", method = RequestMethod.GET)
+//	public String queryMyAnnouncements(ModelMap model, HttpServletRequest request) {
+//		ResponseMessage responseMessage = RestUtil
+//				.addResponseMessageForModelMap(model);
+//		List list = announcementsService.queryMyAnnouncements(request.getParameter("type"),request.getParameter("groupuuid"),request.getParameter("classuuid"));
+//		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+//		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+//		return "";
+//	}
+//	
 
 	/**
 	 * 获取我的孩子学校相关的公告

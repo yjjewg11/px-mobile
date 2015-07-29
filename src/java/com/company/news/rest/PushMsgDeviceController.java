@@ -66,6 +66,7 @@ public class PushMsgDeviceController extends AbstractRESTController {
 			return "";
 		}
 		
+		jsonform.setGroup_uuid(this.getMyChildrenGroupUuidsBySession(request));
 		try {
 			boolean flag;
 			    flag = pushMsgDeviceService.save(jsonform, responseMessage);

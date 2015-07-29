@@ -1,0 +1,88 @@
+.G_div_msg_pop{
+position:absolute; 
+height:60px; 
+width:200px; 
+margin:-100px 0px 0px -100px; 
+top: 80%; 
+left: 50%; 
+text-align: center; 
+padding: 0px; 
+background-color: #E0690C; 
+color: #fff;
+overflow: auto;
+display: none;
+z-index: 9999;
+}
+
+.header {
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 120%;
+      color: #333;
+      margin-top: 2px;
+    }
+    .header p {
+      font-size: 14px;
+    }
+    
+    .px_disable_0{
+    
+    }
+    .px_disable_1{
+   		 color:red;
+    	background-color: silver;
+    }
+    
+    
+    .G_img_down404{
+   	 background-color: silver;
+    width: 100px;
+    height: 100px;
+    }
+    
+      .G_img_header{
+   	 background-color: silver;
+    width: 200px;
+    height: 200px;
+    }
+    
+
+    .G_ch_cook_item{
+    float: left;
+    margin-left: 15px;
+    position:relative;
+    cursor: pointer;
+    margin-top: 5px;
+    border:1px solid #FFFFFF;
+     width: 134px; height: 122px;
+     text-align: center;
+    }
+    .G_ch_cook_item img{width: 134px;height: 100px;}
+  
+    .G_ch_cook_item_checked{
+    float: left;margin-left: 15px;position:relative;cursor: pointer;
+    margin-top: 5px;border:1px solid #FF0033; width: 134px; height: 122px;
+    text-align: center;
+    }
+       .G_ch_cook_item_checked img{width: 134px;height: 100px;}
+       
+    .G_ch_cook_item span{width: 134px;height: 22px;color: #000000;font-size: 14px;}
+   .G_ch_cook_item_checked span{width: 134px;height: 22px;color: #000000;font-size: 14px;}
+    
+			
+			
+	
+.G_cookplan_Img{width:135px; height:100px; position:relative; margin:0px 10px 10px 0px; float:left;}
+.G_cookplan_Img_img{width: 134px;height: 100px;}
+.G_cookplan_Img_close{position:absolute; top:0px; right:0px;cursor: pointer;}
+
+.cls{clear:both;height:0px;}
+
+
+/*ÆÀÂÛ*/
+.G_reply h4{ height:24px; color:#e6268c; border-bottom:1px solid #000;}
+
+.G_reply strong{ display: block;line-height:1.5;font-size:1.2rem; color:#999;}
+
+.G_reply .event{border-bottom:1px solid #9a9a9a;}
