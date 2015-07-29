@@ -10,6 +10,8 @@ var G_upload_img_Div=<AMR_Input type= "file" label="上传图片" id="file_img_u
 if(window.JavaScriptCall){
 	G_upload_img_Div=<AMR_Button amStyle="primary"  id="file_img_upload" round>上传图片</AMR_Button>
 }
+
+
 //userinfo
 var Userinfo_EventRow = React.createClass({ 
   render: function() {
@@ -577,18 +579,27 @@ var Common_Classnewsreply_listshow = React.createClass({
 	
 render: function() {
   return (
-		  <div>
+		  <ul className="am-comments-list am-comments-list-flip">
+		 
 		  {this.props.events.data.map(function(event) {
 		      return (
-		    		  <div className="event">
-		  		 <div  dangerouslySetInnerHTML={{__html: event.content}}></div>
-		  		 <strong>{event.create_user+" | "+event.update_time}</strong>
-		  		 </div>
+		    		  <li className="am-comment">
+
+		    		  <div className="am-comment-main">
+		    		    <header className="am-comment-hd">
+		    		      <div className="am-comment-meta">
+		    		        <a href="#link-to-user" className="am-comment-author">{event.create_user}</a>
+		    		        评论于 <time datetime={event.update_time} title={event.update_time}>{event.update_time}</time>
+		    		      </div>
+		    		    </header>
+
+		    		    <div className="am-comment-bd"  dangerouslySetInnerHTML={{__html: event.content}}>
+		    		    </div>
+		    		  </div>
+		  		  </li>
 		    		  )
 		  })}
-		
-		    </div>
-		   
+		</ul>
   );
 }
 }); 
@@ -596,7 +607,7 @@ render: function() {
 var Common_reply_list = React.createClass({ 
 	load_more_btn_id:"load_more_",
 	pageNo:1,
-	classnewsreply_list_div:"classnewsreply_list_div",
+	classnewsreply_list_div:"reply_list_div",
 	componentWillReceiveProps:function(){
 		this.load_more_data();
 	},
@@ -616,6 +627,7 @@ var Common_reply_list = React.createClass({
 		this.forceUpdate();
 	},
 render: function() {
+	this.classnewsreply_list_div="reply_list_div"+this.props.uuid;
 	this.load_more_btn_id="load_more_"+this.props.uuid;
   return (
 		  <div className="G_reply">

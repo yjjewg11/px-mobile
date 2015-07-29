@@ -11,6 +11,7 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Cookbook;
@@ -122,12 +123,27 @@ public class TeachingPlanService extends AbstractServcice {
 
 		Date endDate = TimeUtils.string2Timestamp(null, endDateStr);
 
-		return (List<Teachingplan>) this.nSimpleHibernateDao
+	
+				List<Teachingplan> list=(List<Teachingplan>) this.nSimpleHibernateDao
 				.getHibernateTemplate()
 				.find("from Teachingplan where classuuid=? and plandate<=? and plandate >=?  order by plandate asc",
 						classuuid, endDate, begDate);
+		
+		for(Teachingplan c:list)
+		{
+			try {
+				c.setCount(countService.count(c.getUuid(), SystemConstants.common_type_jiaoxuejihua));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+		return list;
 	}
-
+	 @Autowired
+     private CountService countService ;
 	/**
 	 * 
 	 * @param uuid

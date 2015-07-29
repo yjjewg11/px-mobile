@@ -1,3 +1,4 @@
+
 /**
  * 公布接口,给手机调用
  * 调用选择头像图片,裁剪和调整方向,回调方法.
@@ -7,7 +8,12 @@
  * G_jsCallBack.ajax_uploadByphone(base64);
  */
 var G_jsCallBack={
-	
+		/**
+		 * 
+		 */
+		phone_myclassNews:function(){
+			menu_classnews_getClassNewsByMy_fn();
+		},
 		/**
 		 * 调用选择头像图片,裁剪和调整方向,回调方法.
 		 * @param base64

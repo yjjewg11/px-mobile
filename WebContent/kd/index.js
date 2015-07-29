@@ -9,12 +9,25 @@ function menu_userinfo_login_fn(){
 	var pw_checked = getCookie("pw_checked");
 	
 	React.render(React.createElement(Div_login,{loginname:loginname,password:password,pw_checked:pw_checked})
-			, document.getElementById('div_seesion_body'));
+			, document.getElementById('div_body'));
 }
+
+
 
 function menu_body_fn (){
 	login_affter_init();
-	menu_dohome();
+	$("#div_body").html("<div>welcome!</div>")
+	var fn=$.getUrlParam("fn");
+	if(fn){
+		try{
+			G_jsCallBack[fn]();
+		}catch(e){
+			alert("调用方法失败,参数fn="+fn);
+		    console.log('调用方法失败,参数fn=', e);
+		}
+		
+	}
+	//menu_classnews_getClassNewsByMy_fn();
 }
 
 function index_init(){

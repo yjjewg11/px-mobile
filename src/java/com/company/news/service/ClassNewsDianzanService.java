@@ -37,7 +37,7 @@ public class ClassNewsDianzanService extends AbstractServcice {
 			responseMessage.setMessage("Newsuuid不能为空！");
 			return false;
 		}
-		if (canDianzan(classNewsDianzanJsonform.getNewsuuid(),classNewsDianzanJsonform.getCreate_useruuid())) {
+		if (!canDianzan(classNewsDianzanJsonform.getNewsuuid(),classNewsDianzanJsonform.getCreate_useruuid())) {
 			responseMessage.setMessage("不能重复点赞！");
 			return false;
 		} else {

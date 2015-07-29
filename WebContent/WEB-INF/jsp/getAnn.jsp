@@ -1,8 +1,10 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head lang="en">
   <meta charset="UTF-8">
-  <title>问界互动家园</title>
+  <title>${group.brand_name}-${data.title}</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
  
@@ -21,13 +23,10 @@
   </style>
 </head>
 <body>
-<h1>问界互动家园 欢迎你访问!</h1>
-<hr/>
-<div style="text-align: center;">
-  <p>合作幼儿园:<a  href="###" >成都金太阳幼儿园</a>|<a  href="###" >晨钟教育</a></p>
-     <p><a  href="###" >联系我们</a></p>
- 	  <p>© 2015 成都问界科技有限公司  | 蜀ICP备15021053号-1</p>
-</div>
-  
+ 
+ <h1>${data.title}</h1>
+  <h2> ${group.brand_name}|${group.link_tel}|${group.address}</h2>
+  <h3>作者:${data.create_user},发布时间:${data.create_time}, 浏览${count}次</h3>
+  <div>${data.message}</div>
 </body>
 </html>

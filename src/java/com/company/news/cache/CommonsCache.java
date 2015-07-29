@@ -23,9 +23,10 @@ public class CommonsCache{
 		Element e = dbDataCache.get(uuid);
 
 		if (e != null)
-			return (User) e.getObjectValue();
+			return  e.getObjectValue();
 		else {
 			Object object =nSimpleHibernateDao.getObject(clazz, uuid);
+			nSimpleHibernateDao.getHibernateTemplate().evict(object);
 			if (object != null)
 				put(uuid, object);
 			return object;
