@@ -1,5 +1,7 @@
 package com.company.news.rest;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
@@ -12,11 +14,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
+import com.company.news.right.RightConstants;
+import com.company.news.right.RightUtils;
 import com.company.news.service.ClassNewsService;
 import com.company.news.service.CountService;
 import com.company.news.vo.ResponseMessage;
@@ -124,6 +129,32 @@ public class ClassNewsController extends AbstractRESTController {
 				classuuids, pData);
 		model.addAttribute(RestConstants.Return_ResponseMessage_list,
 				pageQueryResult);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+	/**
+	 * 获取班级信息
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	public String list(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		
+		String groupuuid=request.getParameter("groupuuid");
+		if(StringUtils.isBlank(groupuuid)){//查询全部班级时,只有管理员可以.
+			if(!RightUtils.isAdmin(request)){
+				responseMessage.setMessage(RightConstants.Return_msg);
+				return "";
+			}
+		}
+		List<PClass> list = classService.query(request.getParameter("groupuuid"));
+		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}

@@ -19,14 +19,18 @@ import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.Announcements;
+import com.company.news.entity.Announcements4Q;
 import com.company.news.entity.BaseDataList;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
 import com.company.news.entity.CookbookPlan;
 import com.company.news.entity.Group;
 import com.company.news.entity.PClass;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.service.AnnouncementsService;
 import com.company.news.service.CountService;
 import com.company.news.vo.ResponseMessage;
 
@@ -112,6 +116,97 @@ public class ShareController extends AbstractRESTController {
 		model.addAttribute(RestConstants.Return_G_entity,a);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "/getAnn";
+	}
+	
+	/**
+	 * 获取精品文章列表
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/articleList", method = RequestMethod.GET)
+	public String list(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		PaginationData pData = this.getPaginationDataByRequest(request);
+		
+		String hql = "from Announcements4Q where type="+SystemConstants.common_type_jingpinwenzhang;
+		hql += " order by create_time desc";
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+
+		model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	/**
+	 * 获取精品文章详细
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getArticleJSON", method = RequestMethod.GET)
+	public String getArticleJSON(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String uuid=request.getParameter("uuid");
+		Announcements a;
+		try {
+			a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
+			if(a==null){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("数据不存在.");
+				return "";
+			}
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,a);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+	/**
+	 * 获取精品文章详细
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getArticle", method = RequestMethod.GET)
+	public String getArticle(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String uuid=request.getParameter("uuid");
+		Announcements a;
+		try {
+			a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
+			if(a==null){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("数据不存在.");
+				return "/404";
+			}
+			model.put("group",CommonsCache.get(a.getGroupuuid(), Group.class));
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "/404";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,a);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "/getArticle";
 	}
 	
 

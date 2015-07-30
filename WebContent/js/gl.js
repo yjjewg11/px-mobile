@@ -22,7 +22,17 @@ return serializeObj;
 };
 })(jQuery);
 
-var hostUrl='/px-rest/';
+
+(function ($) {
+    $.getUrlParam = function (name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]); return null;
+    }
+})(jQuery);
+
+
+var hostUrl='/px-mobile/';
 var G_def_headImgPath=hostUrl+"i/header.png";
 var G_imgPath=hostUrl+"rest/uploadFile/getImgFile.json?uuid=";
 

@@ -123,22 +123,25 @@ function ajax_getUserinfo(isInit) {
 //userinfo end
 
 
-
-function menu_classnewsbyMy_list_fn() {
-	Queue.push(menu_classnewsbyMy_list_fn);
-	g_classnews_url=hostUrl + "rest/classnews/getClassNewsByMy.json";
-	g_classnews_class_list=Store.getMyClassList();
-	ajax_classnews_list();
+/**
+ * 1.我的互动班级入口.
+ */
+function menu_classnews_getClassNewsByMy_fn() {
+	Queue.push(menu_classnews_getClassNewsByMy_fn);
+	React.render(React.createElement(Classnews_getClassNewsByMy_fenye_show, {
+		responsive: true, bordered: true, striped :true,hover:true,striped:true
+		}), document.getElementById('div_body'));
 };
 
 
-//
-
-function commons_ajax_reply_list(newsuuid,list_div,pageNo){
+/**
+ * 1.1.我的互动班级每页数据加载.
+ */
+function ajax_classnews_getClassNewsByMy_list(newsuuid,list_div,pageNo){
 	var re_data=null;
 	 if(!pageNo)pageNo=1;
 	$.AMUI.progress.start();
-	var url = hostUrl + "rest/reply/getReplyByNewsuuid.json?newsuuid="+newsuuid+"&pageNo="+pageNo;
+	var url = hostUrl + "rest/classnews/getClassNewsByMy.json?pageNo="+pageNo;
 	$.ajax({
 		type : "GET",
 		url : url,
@@ -147,9 +150,8 @@ function commons_ajax_reply_list(newsuuid,list_div,pageNo){
 		success : function(data) {
 			$.AMUI.progress.done();
 			if (data.ResMsg.status == "success") {
-				React.render(React.createElement(Common_Classnewsreply_listshow, {
+				React.render(React.createElement(ClassnewsList_Page_show, {
 					events: data.list,
-					newsuuid:newsuuid,
 					responsive: true, bordered: true, striped :true,hover:true,striped:true
 					}), document.getElementById(list_div));
 				re_data=data.list;
@@ -166,48 +168,6 @@ function commons_ajax_reply_list(newsuuid,list_div,pageNo){
 		}
 	});
 	return re_data;
-};
-//记录当前翻页
-var g_classnews_pageNo_point=1;
-var g_classnews_classuuid=null;
-var g_classnews_url=null;
-function ajax_classnews_list(classuuid,pageNo) {
-	if(!classuuid)classuuid=g_classnews_classuuid;
-	else g_classnews_classuuid=classuuid;
-	if(!pageNo)pageNo=1;
-	g_classnews_pageNo_point=pageNo;
-	if(!g_classnews_url){
-		alert("ajax_classnews_list 缺少参数:g_classnews_url");
-		return;
-	}
-	$.AMUI.progress.start();
-	var url = g_classnews_url+"?uuid="+classuuid+"&pageNo="+pageNo;
-	$.ajax({
-		type : "GET",
-		url : url,
-		dataType : "json",
-		success : function(data) {
-			$.AMUI.progress.done();
-			if (data.ResMsg.status == "success") {
-				React.render(React.createElement(Classnews_EventsTable, {
-					events: data.list,
-					class_list:g_classnews_class_list,
-					handleClick:btn_click_classnews,
-					responsive: true, bordered: true, striped :true,hover:true,striped:true
-					}), document.getElementById('div_body'));
-				
-			} else {
-				alert(data.ResMsg.message);
-			}
-		},
-		error : function( obj, textStatus, errorThrown ){
-			$.AMUI.progress.done();
-			alert(url+","+textStatus+"="+errorThrown);
-			 console.log(url+',error：', obj);
-			 console.log(url+',error：', textStatus);
-			 console.log(url+',error：', errorThrown);
-		}
-	});
 };
 
 //classnews end

@@ -10,6 +10,8 @@ var G_upload_img_Div=React.createElement(AMR_Input, {type: "file", label: "上�
 if(window.JavaScriptCall){
 	G_upload_img_Div=React.createElement(AMR_Button, {amStyle: "primary", id: "file_img_upload", round: true}, "上传图片")
 }
+
+
 //userinfo
 var Userinfo_EventRow = React.createClass({displayName: "Userinfo_EventRow", 
   render: function() {
@@ -577,18 +579,27 @@ var Common_Classnewsreply_listshow = React.createClass({displayName: "Common_Cla
 	
 render: function() {
   return (
-		  React.createElement("div", null, 
+		  React.createElement("ul", {className: "am-comments-list am-comments-list-flip"}, 
+		 
 		  this.props.events.data.map(function(event) {
 		      return (
-		    		  React.createElement("div", {className: "event"}, 
-		  		 React.createElement("div", {dangerouslySetInnerHTML: {__html: event.content}}), 
-		  		 React.createElement("strong", null, event.create_user+" | "+event.update_time)
-		  		 )
+		    		  React.createElement("li", {className: "am-comment"}, 
+
+		    		  React.createElement("div", {className: "am-comment-main"}, 
+		    		    React.createElement("header", {className: "am-comment-hd"}, 
+		    		      React.createElement("div", {className: "am-comment-meta"}, 
+		    		        React.createElement("a", {href: "#link-to-user", className: "am-comment-author"}, event.create_user), 
+		    		        "评论于 ", React.createElement("time", {datetime: event.update_time, title: event.update_time}, event.update_time)
+		    		      )
+		    		    ), 
+
+		    		    React.createElement("div", {className: "am-comment-bd", dangerouslySetInnerHTML: {__html: event.content}}
+		    		    )
+		    		  )
+		  		  )
 		    		  )
 		  })
-		
-		    )
-		   
+		)
   );
 }
 }); 
@@ -596,7 +607,7 @@ render: function() {
 var Common_reply_list = React.createClass({displayName: "Common_reply_list", 
 	load_more_btn_id:"load_more_",
 	pageNo:1,
-	classnewsreply_list_div:"classnewsreply_list_div",
+	classnewsreply_list_div:"reply_list_div",
 	componentWillReceiveProps:function(){
 		this.load_more_data();
 	},
@@ -616,6 +627,7 @@ var Common_reply_list = React.createClass({displayName: "Common_reply_list",
 		this.forceUpdate();
 	},
 render: function() {
+	this.classnewsreply_list_div="reply_list_div"+this.props.uuid;
 	this.load_more_btn_id="load_more_"+this.props.uuid;
   return (
 		  React.createElement("div", {className: "G_reply"}, 
