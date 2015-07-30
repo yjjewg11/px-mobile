@@ -19,9 +19,7 @@ import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
-import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
-import com.company.news.entity.ParentStudentRelation;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
 import com.company.news.entity.StudentOfSession;
@@ -107,18 +105,12 @@ public class UserinfoService extends AbstractServcice {
 		List<StudentContactRealation> list = studentService.getStudentByPhone(parent.getTel());
 		if (list != null)
 			for (StudentContactRealation s : list) {
-				// 保存用户机构关联表
-				ParentStudentRelation parentStudentRelation = new ParentStudentRelation();
-				parentStudentRelation.setParentuuid(parent.getUuid());
-				parentStudentRelation.setStudentuuid(s.getStudent_uuid());
-				parentStudentRelation.setType(s.getType());
+
 				// 有事务管理，统一在Controller调用时处理异常
 				s.setIsreg(SystemConstants.USER_isreg_1);
 				s.setParent_uuid(parent.getUuid());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(
 						s);
-				this.nSimpleHibernateDao.getHibernateTemplate().save(
-						parentStudentRelation);
 			}
 		return true;
 	}
@@ -318,13 +310,13 @@ public class UserinfoService extends AbstractServcice {
 	 * 
 	 * @return
 	 */
-	public List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
+	private List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
 		String sql = "";
 		Query q = s
 				.createSQLQuery(
-						"select {t1.*} from px_parentstudentrelation t0,px_student {t1} where t0.studentuuid={t1}.uuid and t0.parentuuid='"
+						"select {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
 								+ uuid + "'").addEntity("t1", StudentOfSession.class);
 
 		return q.list();
