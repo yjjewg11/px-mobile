@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.entity.PushMsgDevice;
 import com.company.news.jsonform.PushMsgDeviceJsonform;
+import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -38,8 +39,8 @@ public class PushMsgDeviceService extends AbstractServcice {
 		for(String o :group_uuidsArr){
 			String hql = "from PushMsgDevice where device_type='" + jsonform.getDevice_type()+"'";
 			hql += " and type="+jsonform.getType() ;
-			hql += " and device_id="+jsonform.getDevice_id();
-			hql += " and group_uuid="+o;
+			hql += " and device_id='"+jsonform.getDevice_id()+"'";
+			hql += " and group_uuid='"+o+"'";
 			
 			List  list= this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
 			PushMsgDevice message=null;
@@ -50,6 +51,7 @@ public class PushMsgDeviceService extends AbstractServcice {
 			}
 			BeanUtils.copyProperties(message, jsonform);
 			message.setGroup_uuid(o);
+			message.setUpdate_time(TimeUtils.getCurrentTimestamp());
 			// 有事务管理，统一在Controller调用时处理异常
 			this.nSimpleHibernateDao.getHibernateTemplate().save(message);
 		}

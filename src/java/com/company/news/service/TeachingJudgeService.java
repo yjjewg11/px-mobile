@@ -168,8 +168,8 @@ public class TeachingJudgeService extends AbstractServcice {
 		Date Firstdate=TimeUtils.getFirstDayOfMonth(create_time);
 		
 		List<TeacherJudge> list1=(List<TeacherJudge>) this.nSimpleHibernateDao.getHibernateTemplate().find(
-				"from TeacherJudge where teacheruuid=? and create_useruuid=? and create_time<=? and create_time >=?",
-				 user_uuid,lastdate,Firstdate);
+				"from TeacherJudge where teacheruuid in(?) and create_useruuid=? and create_time<=? and create_time >=?",
+				users,user_uuid,lastdate,Firstdate);
 		
 		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 		model.addAttribute("list_judge", list1);

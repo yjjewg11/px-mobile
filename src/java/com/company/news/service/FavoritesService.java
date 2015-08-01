@@ -129,6 +129,7 @@ public class FavoritesService extends AbstractServcice {
 	 * @return
 	 */
 	private boolean isExitFavorites(String user_uuid,String reluuid) {
+		if(StringUtils.isBlank(reluuid))return false;
 		List list = nSimpleHibernateDao.getHibernateTemplate().find("from Favorites where reluuid=? and user_uuid=?", reluuid,user_uuid);
 
 		if (list != null&&list.size()>0)// 已被占用
