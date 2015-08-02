@@ -111,6 +111,7 @@
 </aop:config>  
 
 <bean class="com.company.common.SpringContextHolder" lazy-init="false"></bean>
+<bean class="com.company.news.commons.util.MyUbbUtils" lazy-init="false"></bean>
 
 
  	<!-- ====================== 缓存 ======================= -->

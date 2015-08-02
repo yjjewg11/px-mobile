@@ -9,6 +9,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.entity.Parent;
 import com.company.news.jsonform.ClassNewsReplyJsonform;
 import com.company.news.query.PageQueryResult;
@@ -53,7 +54,9 @@ public class ReplyController extends AbstractRESTController {
 		Parent user=this.getUserInfoBySession(request);
 		classNewsReplyJsonform.setCreate_user(user.getName());
 		classNewsReplyJsonform.setCreate_useruuid(user.getUuid());
-		
+		//转换特定格式.
+		classNewsReplyJsonform.setContent(MyUbbUtils.htmlToMyUbb(classNewsReplyJsonform.getContent()));
+
 		try {
 			boolean flag;
 			if(StringUtils.isEmpty(classNewsReplyJsonform.getUuid()))

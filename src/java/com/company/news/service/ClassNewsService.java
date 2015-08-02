@@ -84,6 +84,7 @@ public class ClassNewsService extends AbstractServcice {
 				ClassNews.class, classNewsJsonform.getUuid());
 
 		if (cn != null) {
+			cn.setImgs(classNewsJsonform.getImgs());
 			cn.setContent(classNewsJsonform.getContent());
 			cn.setTitle(classNewsJsonform.getTitle());
 			cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
@@ -115,6 +116,7 @@ public class ClassNewsService extends AbstractServcice {
 				.findByPaginationToHql(hql, pData);
 		List<ClassNews> list=pageQueryResult.getData();
 		for(ClassNews o:list){
+			o.setImgsList(PxStringUtil.uuids_to_imgurlList(o.getImgs()));
 			o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
 			try {
 				o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));

@@ -67,7 +67,7 @@ public class ShareController extends AbstractRESTController {
 								"from BaseDataList where typeuuid='emot' and enable=1 order by datakey asc");
 				this.nSimpleHibernateDao
 				.getHibernateTemplate().clear();
-				String share_url_getEmot=ProjectProperties.getProperty("share_url_getEmot", "http://120.25.248.31/px-rest/w/xheditor/xheditor_emot/default/");
+				String share_url_getEmot=ProjectProperties.getProperty("share_url_getEmot", "http://jz.wenjienet.com/px-rest/i/emoji/");
 				for(BaseDataList o:list){
 					//o.getDescription()=laugh.gif
 					o.setDescription(share_url_getEmot+o.getDescription());

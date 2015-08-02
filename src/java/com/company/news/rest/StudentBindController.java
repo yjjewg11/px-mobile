@@ -74,7 +74,6 @@ public class StudentBindController extends AbstractRESTController {
 	@RequestMapping(value = "/query", method = RequestMethod.GET)
 	public String query(ModelMap model,
 			HttpServletRequest request) {
-		Parent parent=SessionListener.getUserInfoBySession(request);
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {

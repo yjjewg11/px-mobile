@@ -26,10 +26,11 @@ public class StudentSignRecordService extends AbstractServcice {
 
 	public PageQueryResult query(String student_uuid, PaginationData pData) {
 		String hql = "from StudentSignRecord where ";
-		if (StringUtils.isNotBlank(student_uuid)){
-			hql += "  studentuuid in("+DBUtil.stringsToWhereInValue(DBUtil.stringsToWhereInValue(student_uuid))+")";
-		}
-		hql += " order by sign_time desc";
+		//if (StringUtils.isNotBlank(student_uuid)){
+			hql += "  studentuuid in("+DBUtil.stringsToWhereInValue(student_uuid)+")";
+		//}
+		pData.setOrderType("desc");
+		pData.setOrderFiled("sign_time");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
 				List<DoorRecord> list=pageQueryResult.getData();
 
