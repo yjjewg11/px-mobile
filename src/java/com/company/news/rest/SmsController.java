@@ -29,10 +29,19 @@ public class SmsController extends AbstractRESTController{
   //@RequestParam("md5") String md5,@PathVariable("uuid") String uuid
   @RequestMapping(value = "/sendCode", method = RequestMethod.GET)
   public String sendCode(ModelMap model, HttpServletRequest request,@RequestParam("tel") String tel,@RequestParam("type") Integer type) {
-
-      // 清除原输入参数MAP
-      model.clear();
-      smsService.sendCode(model, request,tel,type);
+	  ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+      try {
+		// 清除原输入参数MAP
+		  model.clear();
+		  smsService.sendCode(model, request,tel,type);
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+		responseMessage.setMessage("服务器异常:"+e.getMessage());
+		return "";
+	}
       return "";
   }
 }

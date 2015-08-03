@@ -110,7 +110,7 @@ public class UploadFileController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -144,7 +144,7 @@ public class UploadFileController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

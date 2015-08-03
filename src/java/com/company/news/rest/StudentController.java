@@ -73,7 +73,7 @@ public class StudentController extends AbstractRESTController {
 			e.printStackTrace();
 			responseMessage
 					.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 		return "";
@@ -92,7 +92,7 @@ public class StudentController extends AbstractRESTController {
 			e.printStackTrace();
 			responseMessage
 					.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 		model.addAttribute(RestConstants.Return_G_entity, s);
@@ -122,7 +122,7 @@ public class StudentController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(error_bodyJsonToFormObject);
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
 
@@ -139,7 +139,7 @@ public class StudentController extends AbstractRESTController {
 			e.printStackTrace();
 			responseMessage
 					.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 

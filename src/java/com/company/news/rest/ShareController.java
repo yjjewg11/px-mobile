@@ -80,7 +80,7 @@ public class ShareController extends AbstractRESTController {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage(e.getMessage());
+				responseMessage.setMessage("服务器异常:"+e.getMessage());
 				return "";
 			}
 		}
@@ -110,7 +110,7 @@ public class ShareController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "/404";
 		}
 		model.addAttribute(RestConstants.Return_G_entity,a);
@@ -166,7 +166,7 @@ public class ShareController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 		model.addAttribute(RestConstants.Return_G_entity,a);
@@ -201,7 +201,7 @@ public class ShareController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "/404";
 		}
 		model.addAttribute(RestConstants.Return_G_entity,a);
@@ -239,7 +239,7 @@ public class ShareController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "/404";
 		}
 		model.addAttribute(RestConstants.Return_G_entity,a);
@@ -284,7 +284,7 @@ public class ShareController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "/404";
 		}
 		model.addAttribute(RestConstants.Return_G_entity,a);

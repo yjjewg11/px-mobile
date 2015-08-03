@@ -30,7 +30,8 @@ public class PushMessageService extends AbstractServcice {
 		String hql = "from PushMessage where revice_useruuid='" + useruuid + "'";
 		if (StringUtils.isNotBlank(type))
 			hql += " and type=" + type;
-		hql += " order by create_time desc";
+		pData.setOrderFiled("create_time");
+		pData.setOrderType("desc");
 		
 		
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao

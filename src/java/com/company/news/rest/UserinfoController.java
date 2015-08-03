@@ -47,7 +47,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 		
@@ -83,7 +83,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(error_bodyJsonToFormObject);
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
 
@@ -96,7 +96,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 
@@ -161,7 +161,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(error_bodyJsonToFormObject);
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
 
@@ -174,7 +174,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 
@@ -224,7 +224,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return false;
 		}
 		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
@@ -257,7 +257,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(error_bodyJsonToFormObject);
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
 		// 默认注册未普通用户类型
@@ -275,7 +275,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 
@@ -306,7 +306,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(error_bodyJsonToFormObject);
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
 		// 默认注册未普通用户类型
@@ -320,7 +320,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 
@@ -351,7 +351,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(error_bodyJsonToFormObject);
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
 
@@ -363,7 +363,7 @@ public class UserinfoController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 

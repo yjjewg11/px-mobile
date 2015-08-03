@@ -227,7 +227,8 @@ public class AnnouncementsService extends AbstractServcice {
 		if (StringUtils.isNotBlank(groupuuid)){
 			hql += " and  groupuuid in("+DBUtil.stringsToWhereInValue(groupuuid)+")";
 		}
-		hql += " order by create_time desc";
+		pData.setOrderFiled("create_time");
+		pData.setOrderType("desc");
 		
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
