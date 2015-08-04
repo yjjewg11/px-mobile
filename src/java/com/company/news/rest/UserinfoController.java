@@ -107,17 +107,25 @@ public class UserinfoController extends AbstractRESTController {
 
 	@RequestMapping(value = "/logout", method = RequestMethod.POST)
 	public String logout(ModelMap model, HttpServletRequest request) {
-		// 创建session
-		HttpSession session = SessionListener.getSession(request);
-		if (session != null) {
-			// UserInfo
-			// userInfo=(UserInfo)session.getAttribute(RestConstants.Session_UserInfo);
-			session.invalidate();
-		}
-
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		// 创建session
+		try {
+			HttpSession session = SessionListener.getSession(request);
+			if (session != null) {
+				// UserInfo
+				// userInfo=(UserInfo)session.getAttribute(RestConstants.Session_UserInfo);
+				session.invalidate();
+			}
+
+	
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
 		// responseMessage.setMessage(new Message("失败消息!", "Failure message"));
 		return "";
 	}
@@ -133,10 +141,17 @@ public class UserinfoController extends AbstractRESTController {
 	public String getUserinfo(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		boolean flag = this.getUserAndStudent(model, request, responseMessage);
-		if (!flag)// 请求服务返回失败标示
+		try {
+			boolean flag = this.getUserAndStudent(model, request, responseMessage);
+			if (!flag)// 请求服务返回失败标示
+				return "";
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
 			return "";
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		}
 		return "";
 	}
 
@@ -196,14 +211,20 @@ public class UserinfoController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 
-		boolean flag = userinfoService.updateDisable(
-				request.getParameter("disable"), request.getParameter("useruuids"),
-				responseMessage);
-		if (!flag)// 请求服务返回失败标示
-			return "";
+		try {
+			boolean flag = userinfoService.updateDisable(
+					request.getParameter("disable"), request.getParameter("useruuids"),
+					responseMessage);
+			if (!flag)// 请求服务返回失败标示
+				return "";
 
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("操作成功");
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			responseMessage.setMessage("操作成功");
+		} catch (Exception e) {
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
 		return "";
 	}
 	

@@ -237,7 +237,11 @@ public class StudentService extends AbstractServcice {
 			hql+=" and groupuuid='"+groupuuid+"'";
 		}		
 		
-		return (List<Student>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
+		List<Student> list=(List<Student>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
+		 
+		warpVoList(list);
+		 
+		 return list;
 	}
 	
 	/**
@@ -251,10 +255,8 @@ public class StudentService extends AbstractServcice {
 		
 		
 		List<Student> list=(List<Student>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql,null );
-		this.nSimpleHibernateDao.getHibernateTemplate().clear();
-		for(Student o:list){
-			o.setHeadimg(PxStringUtil.imgUrlByUuid(o.getHeadimg()));
-		}
+
+		this.warpVoList(list);
 		return list;
 	}
 	
@@ -265,8 +267,7 @@ public class StudentService extends AbstractServcice {
 	 */
 	public Student get(String uuid)throws Exception{
 		Student o= (Student) this.nSimpleHibernateDao.getObjectById(Student.class, uuid);
-		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
-			o.setHeadimg(PxStringUtil.imgUrlByUuid(o.getHeadimg()));
+		warpVo(o);
 		return o;
 	}
 	
@@ -280,6 +281,28 @@ public class StudentService extends AbstractServcice {
 		
 		return (List<StudentContactRealation>) this.nSimpleHibernateDao.getHibernateTemplate()
 				.find("from StudentContactRealation  where tel=?)", tel);
+	}
+
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private Student warpVo(Student o){
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+			o.setHeadimg(PxStringUtil.imgUrlByUuid(o.getHeadimg()));
+		return o;
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List<Student> warpVoList(List<Student> list){
+		for(Student o:list){
+			warpVo(o);
+		}
+		return list;
 	}
 
 

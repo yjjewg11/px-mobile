@@ -183,12 +183,12 @@ public class CookbookPlanService extends AbstractServcice {
 				CookbookPlan.class, uuid);
 		this.nSimpleHibernateDao.getHibernateTemplate().clear();
 		if (c != null) {
-			c.setTime_1(this.makeCookbookName(c.getTime_1()));
-			c.setTime_2(this.makeCookbookName(c.getTime_2()));
-			c.setTime_3(this.makeCookbookName(c.getTime_3()));
-			c.setTime_4(this.makeCookbookName(c.getTime_4()));
-			c.setTime_5(this.makeCookbookName(c.getTime_5()));
-			
+//			c.setTime_1(this.makeCookbookName(c.getTime_1()));
+//			c.setTime_2(this.makeCookbookName(c.getTime_2()));
+//			c.setTime_3(this.makeCookbookName(c.getTime_3()));
+//			c.setTime_4(this.makeCookbookName(c.getTime_4()));
+//			c.setTime_5(this.makeCookbookName(c.getTime_5()));
+//			
 			
 
 			c.setList_time_1(this.getCookbookList(c.getTime_1()));
