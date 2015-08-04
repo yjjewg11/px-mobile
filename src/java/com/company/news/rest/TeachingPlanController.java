@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -43,13 +44,40 @@ public class TeachingPlanController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 
-		List<Teachingplan> list = teachingPlanService.query(
-				request.getParameter("begDateStr"),
-				request.getParameter("endDateStr"),
-				request.getParameter("classuuid"));
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		try {
+			
+			String begDateStr=request.getParameter("begDateStr");
+			String endDateStr=request.getParameter("endDateStr");
+			String classuuid=request.getParameter("classuuid");
+			if(StringUtils.isBlank(begDateStr)){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("参数begDateStr不能为空!");
+				return "";
+			}
+			if(StringUtils.isBlank(endDateStr)){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("参数endDateStr不能为空!");
+				return "";
+			}
+			if(StringUtils.isBlank(classuuid)){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("参数classuuid不能为空!");
+				return "";
+			}
+			List<Teachingplan> list = teachingPlanService.query(
+					request.getParameter("begDateStr"),
+					request.getParameter("endDateStr"),
+					request.getParameter("classuuid"));
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
 		return "";
 	}
 

@@ -47,7 +47,7 @@ public class TeachingJudgeController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(error_bodyJsonToFormObject);
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
 
@@ -66,7 +66,7 @@ public class TeachingJudgeController extends AbstractRESTController {
 			e.printStackTrace();
 			responseMessage
 					.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 
@@ -80,14 +80,22 @@ public class TeachingJudgeController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 
-		// 设置当前用户
-		Parent user = this.getUserInfoBySession(request);
-		TeacherJudge t = teachingJudgeService.getJudgeByDate(
-				request.getParameter("teacheruuid"),
-				TimeUtils.getCurrentTimestamp(), user.getUuid());
+		try {
+			// 设置当前用户
+			Parent user = this.getUserInfoBySession(request);
+			TeacherJudge t = teachingJudgeService.getJudgeByDate(
+					request.getParameter("teacheruuid"),
+					TimeUtils.getCurrentTimestamp(), user.getUuid());
 
-		model.addAttribute(RestConstants.Return_G_entity, t);
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			model.addAttribute(RestConstants.Return_G_entity, t);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+			.setStatus(RestConstants.Return_ResponseMessage_failed);
+	responseMessage.setMessage("服务器异常:"+e.getMessage());
+		}
 		return "";
 	}
 	

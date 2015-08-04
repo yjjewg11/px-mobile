@@ -47,8 +47,7 @@ public class SmsService extends AbstractServcice {
 	public ModelMap sendCode(ModelMap model, HttpServletRequest request,
 			String tel, Integer type) {
 		// TODO Auto-generated method stub
-		ResponseMessage responseMessage = RestUtil
-				.addResponseMessageForModelMap(model);
+		ResponseMessage responseMessage = (ResponseMessage)model.get(RestConstants.Return_ResponseMessage);
 
 		String accountSid = SysConfig.getInstance().getProperty("accountSid");
 		String token = SysConfig.getInstance().getProperty("token");

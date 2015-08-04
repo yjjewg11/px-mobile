@@ -46,7 +46,7 @@ public class ReplyController extends AbstractRESTController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			responseMessage.setMessage(error_bodyJsonToFormObject);
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
 		
@@ -69,7 +69,7 @@ public class ReplyController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 
@@ -100,7 +100,7 @@ public class ReplyController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 	
@@ -128,7 +128,7 @@ public class ReplyController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 

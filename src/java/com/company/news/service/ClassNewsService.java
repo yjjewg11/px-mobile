@@ -111,7 +111,8 @@ public class ClassNewsService extends AbstractServcice {
 		else if("myByTeacher".equals(type)){
 			hql += " and  classuuid in (select classuuid from UserClassRelation where useruuid='"+ user.getUuid() + "')";
 		}
-		hql += " order by create_time desc";
+		pData.setOrderFiled("create_time");
+		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
 		List<ClassNews> list=pageQueryResult.getData();

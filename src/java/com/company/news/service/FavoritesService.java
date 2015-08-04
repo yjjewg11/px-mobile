@@ -76,8 +76,8 @@ public class FavoritesService extends AbstractServcice {
 		String hql = "from Favorites where user_uuid='"+user_uuid+"'";
 		if (StringUtils.isNotBlank(type))
 			hql += " and type=" + type;
-		hql += " order by createtime desc";
-		
+		pData.setOrderFiled("createtime");
+		pData.setOrderType("desc");
 		
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);

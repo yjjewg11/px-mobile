@@ -40,9 +40,17 @@ public class AnnouncementsController extends AbstractRESTController {
 	public String list(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		List list = announcementsService.query(request.getParameter("type"),request.getParameter("groupuuid"));
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		try {
+			List list = announcementsService.query(request.getParameter("type"),request.getParameter("groupuuid"));
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
 		return "";
 	}
 
@@ -79,15 +87,23 @@ public class AnnouncementsController extends AbstractRESTController {
 	public String queryMy(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		PaginationData pData = this.getPaginationDataByRequest(request);
-		String groupuuids=request.getParameter("groupuuids");
-		if(StringUtils.isBlank(groupuuids)){
-			groupuuids=this.getMyChildrenGroupUuidsBySession(request);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+			String groupuuids=request.getParameter("groupuuids");
+			if(StringUtils.isBlank(groupuuids)){
+				groupuuids=this.getMyChildrenGroupUuidsBySession(request);
+			}
+			PageQueryResult pageQueryResult = announcementsService.query(groupuuids,pData);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list,
+					pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
 		}
-		PageQueryResult pageQueryResult = announcementsService.query(groupuuids,pData);
-		model.addAttribute(RestConstants.Return_ResponseMessage_list,
-				pageQueryResult);
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}
 	
@@ -107,7 +123,7 @@ public class AnnouncementsController extends AbstractRESTController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(e.getMessage());
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
 		model.addAttribute(RestConstants.Return_G_entity,a);
