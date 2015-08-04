@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.TeacherJudge;
 import com.company.news.entity.User;
 import com.company.news.jsonform.TeachingJudgeJsonform;
@@ -158,7 +159,7 @@ public class TeachingJudgeService extends AbstractServcice {
 			TeacherPhone teacherPhone=new TeacherPhone();
 			teacherPhone.setTeacher_uuid(user.getUuid());
 			teacherPhone.setName(user.getName());
-			
+			teacherPhone.setImg(PxStringUtil.imgUrlByUuid(user.getImg()));
 			list.add(teacherPhone);
 		}
 		
