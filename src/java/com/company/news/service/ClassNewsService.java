@@ -53,7 +53,6 @@ public class ClassNewsService extends AbstractServcice {
 		ClassNews cn = new ClassNews();
 
 		BeanUtils.copyProperties(cn, classNewsJsonform);
-
 		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
 		cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		cn.setReply_time(TimeUtils.getCurrentTimestamp());

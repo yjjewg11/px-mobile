@@ -479,6 +479,7 @@ public class UserinfoService extends AbstractServcice {
 				teacherPhone.setTeacher_uuid(s);
 				teacherPhone.setName(cb.getBrand_name()+"园长");
 				teacherPhone.setTel("");
+				teacherPhone.setImg("http://img.wenjienet.com/i/KD_header.png");
 				list.add(teacherPhone);
 			}
 		}
@@ -500,6 +501,7 @@ public class UserinfoService extends AbstractServcice {
 			teacherPhone.setTeacher_uuid(user.getUuid());
 			teacherPhone.setName(user.getName());
 			teacherPhone.setTel(user.getTel());
+			teacherPhone.setImg(PxStringUtil.imgUrlByUuid(user.getImg()));
 			list.add(teacherPhone);
 		}
 		return list;

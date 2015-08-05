@@ -60,7 +60,7 @@ public class ClassNewsController extends AbstractRESTController {
 		classNewsJsonform.setCreate_useruuid(user.getUuid());
 		//转换特定格式.
 		classNewsJsonform.setContent(MyUbbUtils.htmlToMyUbb(classNewsJsonform.getContent()));
-
+		classNewsJsonform.setImgs(PxStringUtil.imgUrlToUuid(classNewsJsonform.getImgs()));
 		try {
 			boolean flag;
 			if (StringUtils.isEmpty(classNewsJsonform.getUuid()))

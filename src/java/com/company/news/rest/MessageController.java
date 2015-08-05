@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.entity.Message;
 import com.company.news.entity.Parent;
 import com.company.news.entity.User;
@@ -69,6 +70,7 @@ public class MessageController extends AbstractRESTController {
 		messageJsonform.setSend_user(user.getName());
 		messageJsonform.setSend_useruuid(user.getUuid());
 		messageJsonform.setType(SystemConstants.Message_type_2);//给园长写信时,revice_user是幼儿园uuid.
+		messageJsonform.setMessage(MyUbbUtils.htmlToMyUbb(messageJsonform.getMessage()));
 		
 		try {
 			boolean flag;
@@ -121,7 +123,7 @@ public class MessageController extends AbstractRESTController {
 		messageJsonform.setSend_user(user.getName());
 		messageJsonform.setSend_useruuid(user.getUuid());
 		messageJsonform.setType(SystemConstants.Message_type_1);//
-		
+		messageJsonform.setMessage(MyUbbUtils.htmlToMyUbb(messageJsonform.getMessage()));
 		try {
 			boolean flag;
 			    flag = messageService.add(messageJsonform, responseMessage);
