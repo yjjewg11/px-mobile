@@ -48,17 +48,17 @@ public class MessageService extends AbstractServcice {
 		}
 
 		
-		if(SystemConstants.Message_type_2.equals(messageJsonform.getRevice_useruuid())){
+		if(SystemConstants.Message_type_2.equals(messageJsonform.getType())){
 			Group user = (Group) CommonsCache.get(messageJsonform.getRevice_useruuid(),Group.class);
 			if (user == null) {
-				responseMessage.setMessage("user 不存在！");
+				responseMessage.setMessage("无效数据幼儿园不存在！Revice_useruuid="+messageJsonform.getRevice_useruuid());
 				return false;
 			}
 			messageJsonform.setRevice_user(user.getBrand_name()+"园长");
 		}else{
 			User user = (User) CommonsCache.get(messageJsonform.getRevice_useruuid(),User.class);
 			if (user == null) {
-				responseMessage.setMessage("user 不存在！");
+				responseMessage.setMessage("无效数据老师不存在！Revice_useruuid="+messageJsonform.getRevice_useruuid());
 				return false;
 			}
 			messageJsonform.setRevice_user(user.getName());
