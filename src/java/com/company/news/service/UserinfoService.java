@@ -301,7 +301,7 @@ public class UserinfoService extends AbstractServcice {
 		List<Student> list=q.list();
 		s.clear();
 		for(Student o:list){
-			o.setHeadimg(PxStringUtil.imgUrlByUuid(o.getHeadimg()));
+			o.setHeadimg(PxStringUtil.imgSmallUrlByUuid(o.getHeadimg()));
 		}
 		return list;
 	}
@@ -501,7 +501,7 @@ public class UserinfoService extends AbstractServcice {
 			teacherPhone.setTeacher_uuid(user.getUuid());
 			teacherPhone.setName(user.getName());
 			teacherPhone.setTel(user.getTel());
-			teacherPhone.setImg(PxStringUtil.imgUrlByUuid(user.getImg()));
+			teacherPhone.setImg(PxStringUtil.imgSmallUrlByUuid(user.getImg()));
 			list.add(teacherPhone);
 		}
 		return list;

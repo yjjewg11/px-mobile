@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
 import com.company.news.entity.CookbookPlan;
 import com.company.news.entity.Group;
@@ -105,7 +106,7 @@ public class CookbookPlanService extends AbstractServcice {
 	 * @throws Exception 
 	 */
 	public List<CookbookPlan> query(String begDateStr, String endDateStr,
-			String groupuuid)  throws Exception{
+			String groupuuid,String cur_user_uuid)  throws Exception{
 		if (StringUtils.isBlank(groupuuid)) {
 			return null;
 		}
@@ -127,27 +128,7 @@ public class CookbookPlanService extends AbstractServcice {
 				.find("from CookbookPlan where groupuuid=? and plandate<=? and plandate >=?  order by plandate asc",
 						groupuuid, endDate, begDate);
 		this.nSimpleHibernateDao.getHibernateTemplate().clear();
-		for(CookbookPlan c:list){
-//			c.setTime_1(this.makeCookbookName(c.getTime_1()));
-//			c.setTime_2(this.makeCookbookName(c.getTime_2()));
-//			c.setTime_3(this.makeCookbookName(c.getTime_3()));
-//			c.setTime_4(this.makeCookbookName(c.getTime_4()));
-//			c.setTime_5(this.makeCookbookName(c.getTime_5()));		
-//			
-			c.setShare_url(PxStringUtil.getCookbookPlanByUuid(c.getUuid()));
-			try {
-				c.setCount(countService.count(c.getUuid(), SystemConstants.common_type_shipu));
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			c.setList_time_1(this.getCookbookList(c.getTime_1()));
-			c.setList_time_2(this.getCookbookList(c.getTime_2()));
-			c.setList_time_3(this.getCookbookList(c.getTime_3()));
-			c.setList_time_4(this.getCookbookList(c.getTime_4()));
-			c.setList_time_5(this.getCookbookList(c.getTime_5()));
-
-		}
+		this.warpVoList(list, cur_user_uuid);
 		
 		return list;
 	}
@@ -178,30 +159,53 @@ public class CookbookPlanService extends AbstractServcice {
 	 * @param uuid
 	 * @return
 	 */
-	public CookbookPlan get(String uuid) {
+	public CookbookPlan get(String uuid,String cur_user_uuid) {
 		CookbookPlan c = (CookbookPlan) this.nSimpleHibernateDao.getObjectById(
 				CookbookPlan.class, uuid);
 		this.nSimpleHibernateDao.getHibernateTemplate().clear();
-		if (c != null) {
-//			c.setTime_1(this.makeCookbookName(c.getTime_1()));
-//			c.setTime_2(this.makeCookbookName(c.getTime_2()));
-//			c.setTime_3(this.makeCookbookName(c.getTime_3()));
-//			c.setTime_4(this.makeCookbookName(c.getTime_4()));
-//			c.setTime_5(this.makeCookbookName(c.getTime_5()));
-//			
-			
+		warpVo(c,cur_user_uuid);
+		return c;
 
+	}
+	
+
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private CookbookPlan warpVo(CookbookPlan c,String cur_user_uuid){
+		if(c==null)return c;
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(c);
+		try {
 			c.setList_time_1(this.getCookbookList(c.getTime_1()));
 			c.setList_time_2(this.getCookbookList(c.getTime_2()));
 			c.setList_time_3(this.getCookbookList(c.getTime_3()));
 			c.setList_time_4(this.getCookbookList(c.getTime_4()));
 			c.setList_time_5(this.getCookbookList(c.getTime_5()));
+			c.setCount(countService.count(c.getUuid(), SystemConstants.common_type_shipu));
+			c.setDianzan(this.getDianzanDianzanListVO(c.getUuid(), cur_user_uuid));
+			c.setReplyPage(this.getReplyPageList(c.getUuid()));
 
-
+			c.setShare_url(PxStringUtil.getCookbookPlanByUuid(c.getUuid()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return c;
-
 	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List<CookbookPlan> warpVoList(List<CookbookPlan> list,String cur_user_uuid){
+		for(CookbookPlan o:list){
+			warpVo(o,cur_user_uuid);
+		}
+		return list;
+	}
+
 
 	/**
 	 * 

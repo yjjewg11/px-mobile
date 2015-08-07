@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.ClassNews;
 import com.company.news.entity.Parent;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
@@ -185,9 +186,9 @@ public class ClassNewsController extends AbstractRESTController {
 			HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		ClassNewsJsonform c;
+		ClassNews c=null;
 		try {
-			c = classNewsService.get(uuid);
+			c = classNewsService.get(this.getUserInfoBySession(request),uuid);
 			
 			//定义接口,返回浏览总数.
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_hudong));

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.Parent;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
@@ -111,10 +112,11 @@ public class AnnouncementsController extends AbstractRESTController {
 	public String get(@PathVariable String uuid,ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		AnnouncementsVo a;
+		AnnouncementsVo a=null;
 		try {
 			a = announcementsService.get(uuid);
-
+			Parent user = this.getUserInfoBySession(request);
+			announcementsService.warpVo(a, user.getUuid());
 			//定义接口,返回浏览总数.
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_gonggao));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getAnnByUuid(uuid));

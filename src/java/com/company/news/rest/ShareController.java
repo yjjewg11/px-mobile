@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,12 +27,14 @@ import com.company.news.entity.Cookbook;
 import com.company.news.entity.CookbookPlan;
 import com.company.news.entity.Group;
 import com.company.news.entity.PClass;
+import com.company.news.entity.Parent;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.service.AnnouncementsService;
 import com.company.news.service.CountService;
+import com.company.news.vo.AnnouncementsVo;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -49,7 +52,8 @@ public class ShareController extends AbstractRESTController {
 	 @Autowired
      private CountService countService ;
 
-	 
+	 @Autowired
+     private AnnouncementsService announcementsService ;
 
 		/**
 		 * 获取表情列表(url)
@@ -186,14 +190,23 @@ public class ShareController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		String uuid=request.getParameter("uuid");
-		Announcements a;
+		
+		AnnouncementsVo vo =null;
 		try {
-			a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
+			Announcements a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
 				responseMessage.setMessage("数据不存在.");
 				return "/404";
 			}
+			Parent user = this.getUserInfoBySession(request);
+			String cur_user_uuid=null;
+			if(user!=null){
+				cur_user_uuid=user.getUuid();
+			}
+			 vo = new AnnouncementsVo();
+			BeanUtils.copyProperties(vo, a);
+			announcementsService.warpVo(vo, cur_user_uuid);
 			model.put("group",CommonsCache.get(a.getGroupuuid(), Group.class));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
@@ -204,7 +217,7 @@ public class ShareController extends AbstractRESTController {
 			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "/404";
 		}
-		model.addAttribute(RestConstants.Return_G_entity,a);
+		model.addAttribute(RestConstants.Return_G_entity,vo);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "/getArticle";
 	}

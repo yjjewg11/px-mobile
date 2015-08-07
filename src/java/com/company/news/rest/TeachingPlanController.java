@@ -67,7 +67,7 @@ public class TeachingPlanController extends AbstractRESTController {
 			List<Teachingplan> list = teachingPlanService.query(
 					request.getParameter("begDateStr"),
 					request.getParameter("endDateStr"),
-					request.getParameter("classuuid"));
+					request.getParameter("classuuid"),this.getUserInfoBySession(request).getUuid());
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -87,7 +87,7 @@ public class TeachingPlanController extends AbstractRESTController {
 			HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		Teachingplan t = teachingPlanService.get(uuid);
+		Teachingplan t = teachingPlanService.get(uuid,this.getUserInfoBySession(request).getUuid());
 
 		model.addAttribute(RestConstants.Return_G_entity, t);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

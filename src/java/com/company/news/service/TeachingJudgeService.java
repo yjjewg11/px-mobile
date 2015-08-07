@@ -159,7 +159,7 @@ public class TeachingJudgeService extends AbstractServcice {
 			TeacherPhone teacherPhone=new TeacherPhone();
 			teacherPhone.setTeacher_uuid(user.getUuid());
 			teacherPhone.setName(user.getName());
-			teacherPhone.setImg(PxStringUtil.imgUrlByUuid(user.getImg()));
+			teacherPhone.setImg(PxStringUtil.imgSmallUrlByUuid(user.getImg()));
 			list.add(teacherPhone);
 		}
 		

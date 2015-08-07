@@ -8,11 +8,13 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Announcements;
 import com.company.news.entity.Announcements4Q;
 import com.company.news.entity.AnnouncementsTo;
+import com.company.news.entity.ClassNews;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.User;
@@ -298,9 +300,26 @@ public class AnnouncementsService extends AbstractServcice {
 		a.setClassnames(PxStringUtil.StringDecComma(classnames));
 		a.setClassuuids(PxStringUtil.StringDecComma(classuuids));
 
+		
 		return a;
 	}
 
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public AnnouncementsVo warpVo(AnnouncementsVo o,String cur_user_uuid){
+		//this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		try {
+			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
 	@Override
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub

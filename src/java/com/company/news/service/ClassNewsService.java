@@ -11,6 +11,7 @@ import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Parent;
+import com.company.news.entity.Student;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -114,17 +115,8 @@ public class ClassNewsService extends AbstractServcice {
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
-		List<ClassNews> list=pageQueryResult.getData();
-		for(ClassNews o:list){
-			o.setImgsList(PxStringUtil.uuids_to_imgurlList(o.getImgs()));
-			o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
-			try {
-				o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		this.warpVoList(pageQueryResult.getData(), user.getUuid());
+		
 		return pageQueryResult;
 
 	}
@@ -156,17 +148,11 @@ public class ClassNewsService extends AbstractServcice {
 		return true;
 	}
 
-	public ClassNewsJsonform get(String uuid) throws Exception {
+	public ClassNews get(Parent user ,String uuid) throws Exception {
 		ClassNews cn = (ClassNews) this.nSimpleHibernateDao.getObjectById(
 				ClassNews.class, uuid);
-		ClassNewsJsonform cnjf = new ClassNewsJsonform();
-		BeanUtils.copyProperties(cnjf, cn);
-//
-//		// 计数
-//		cnjf.setCount(countService.count(uuid,
-//				countService.count_type_classnews));
-		cnjf.setShare_url(PxStringUtil.getClassNewsByUuid(uuid));
-		return cnjf;
+		this.warpVo(cn, user.getUuid());
+		return cn;
 
 	}
 
@@ -176,6 +162,39 @@ public class ClassNewsService extends AbstractServcice {
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
 		return ClassNews.class;
+	}
+	
+
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private ClassNews warpVo(ClassNews o,String cur_user_uuid){
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		
+		o.setImgsList(PxStringUtil.uuids_to_imgurlList(o.getImgs()));
+		o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
+		try {
+			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));
+			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List<ClassNews> warpVoList(List<ClassNews> list,String cur_user_uuid){
+		for(ClassNews o:list){
+			warpVo(o,cur_user_uuid);
+		}
+		return list;
 	}
 
 }

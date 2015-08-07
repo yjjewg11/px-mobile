@@ -47,7 +47,7 @@ public class AbstractRESTController   {
 	    UserInfoReturn userInfoReturn = new UserInfoReturn();
 	    try {
 	      BeanUtils.copyProperties(userInfoReturn, user);
-	      userInfoReturn.setImg(PxStringUtil.imgUrlByUuid(userInfoReturn.getImg()));
+	      userInfoReturn.setImg(PxStringUtil.imgSmallUrlByUuid(userInfoReturn.getImg()));
 	    } catch (Exception e) {
 	      e.printStackTrace();
 	    }

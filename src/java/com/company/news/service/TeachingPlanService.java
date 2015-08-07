@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
 import com.company.news.entity.CookbookPlan;
 import com.company.news.entity.Group;
@@ -106,7 +107,7 @@ public class TeachingPlanService extends AbstractServcice {
 	 * @return
 	 */
 	public List<Teachingplan> query(String begDateStr, String endDateStr,
-			String classuuid) {
+			String classuuid,String cur_user_uuid) {
 		if (StringUtils.isBlank(classuuid)) {
 			return null;
 		}
@@ -129,16 +130,8 @@ public class TeachingPlanService extends AbstractServcice {
 				.find("from Teachingplan where classuuid=? and plandate<=? and plandate >=?  order by plandate asc",
 						classuuid, endDate, begDate);
 		
-		for(Teachingplan c:list)
-		{
-			try {
-				c.setCount(countService.count(c.getUuid(), SystemConstants.common_type_jiaoxuejihua));
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
+
+				this.warpVoList(list, cur_user_uuid);
 		
 		return list;
 	}
@@ -149,14 +142,45 @@ public class TeachingPlanService extends AbstractServcice {
 	 * @param uuid
 	 * @return
 	 */
-	public Teachingplan get(String uuid) {
+	public Teachingplan get(String uuid,String cur_user_uuid) {
 		Teachingplan t = (Teachingplan) this.nSimpleHibernateDao.getObjectById(
 				Teachingplan.class, uuid);
 		
-		return t;
+		return warpVo(t,cur_user_uuid);
 
 	}
 
+	
+
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private Teachingplan warpVo(Teachingplan o,String cur_user_uuid){
+		if(o==null)return null;
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		try {
+			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_jiaoxuejihua));
+			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List<Teachingplan> warpVoList(List<Teachingplan> list,String cur_user_uuid){
+		for(Teachingplan o:list){
+			warpVo(o,cur_user_uuid);
+		}
+		return list;
+	}
 
 	/**
 	 * 删除 支持多个，用逗号分隔
