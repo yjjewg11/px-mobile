@@ -54,6 +54,7 @@ public class ReplyController extends AbstractRESTController {
 		Parent user=this.getUserInfoBySession(request);
 		classNewsReplyJsonform.setCreate_user(user.getName());
 		classNewsReplyJsonform.setCreate_useruuid(user.getUuid());
+		classNewsReplyJsonform.setCreate_img(user.getImg());
 		//转换特定格式.
 		classNewsReplyJsonform.setContent(MyUbbUtils.htmlToMyUbb(classNewsReplyJsonform.getContent()));
 
@@ -93,6 +94,10 @@ public class ReplyController extends AbstractRESTController {
 		try {
 			PaginationData pData=this.getPaginationDataByRequest(request);
 			PageQueryResult pageQueryResult = classNewsReplyService.query(request.getParameter("newsuuid"), pData);
+			Parent parent=this.getUserInfoBySession(request);
+			String cur_user_uuid="";
+			if(parent!=null)cur_user_uuid=parent.getUuid();
+			classNewsReplyService.warpVoList(pageQueryResult.getData(), cur_user_uuid);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 			return "";

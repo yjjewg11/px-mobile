@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.company.news.commons.util.MyUbbUtils;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.ClassNewsReply;
 import com.company.news.query.PageQueryResult;
@@ -30,7 +31,7 @@ public abstract class AbstractServcice {
   
   
   /**
-	 * 查询所有班级
+	 * 查询回复列表分页
 	 * 
 	 * @return
 	 */
@@ -40,19 +41,50 @@ public abstract class AbstractServcice {
 		}
 		
 		PaginationData pData=new PaginationData();
-		String hql="from ClassNewsReply where and  newsuuid='"+newsuuid+"'";
+		pData.setPageSize(5);
+		String hql="from ClassNewsReply where  newsuuid='"+newsuuid+"'";
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		
 		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
 		List<ClassNewsReply> list=pageQueryResult.getData();
-		this.nSimpleHibernateDao.getHibernateTemplate().clear();
+		
 		for(ClassNewsReply o:list){
+			this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 			o.setContent(MyUbbUtils.myUbbTohtml(o.getContent()));
+			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
 		}
 		return pageQueryResult;
 				
 	}
+	
+
+	  /**
+		 * 查询回复列表分页(每个回复带点赞数据)
+		 * 
+		 * @return
+	 * @throws Exception 
+		 */
+		public PageQueryResult getReplyPageListAndRelyDianzan(String newsuuid,String cur_user_uuid) throws Exception {
+			if (StringUtils.isBlank(newsuuid)) {
+				return new PageQueryResult();
+			}
+			
+			PaginationData pData=new PaginationData();
+			String hql="from ClassNewsReply where  newsuuid='"+newsuuid+"'";
+			pData.setOrderFiled("create_time");
+			pData.setOrderType("desc");
+			
+			PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+			List<ClassNewsReply> list=pageQueryResult.getData();
+			this.nSimpleHibernateDao.getHibernateTemplate().clear();
+			for(ClassNewsReply o:list){
+				o.setContent(MyUbbUtils.myUbbTohtml(o.getContent()));
+				o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			}
+			return pageQueryResult;
+					
+		}
   
   /**
 	 * 获取点赞列表信息

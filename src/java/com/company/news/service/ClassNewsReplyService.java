@@ -1,9 +1,13 @@
 package com.company.news.service;
 
+import java.util.List;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.ClassNewsReply;
 import com.company.news.jsonform.ClassNewsReplyJsonform;
@@ -104,7 +108,32 @@ public class ClassNewsReplyService extends AbstractServcice {
 				
 	}
 
-
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private ClassNewsReply warpVo(ClassNewsReply o,String cur_user_uuid){
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		try {
+			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public List<ClassNewsReply> warpVoList(List<ClassNewsReply> list,String cur_user_uuid){
+		for(ClassNewsReply o:list){
+			warpVo(o,cur_user_uuid);
+		}
+		return list;
+	}
 
 	/**
 	 * 删除 支持多个，用逗号分隔

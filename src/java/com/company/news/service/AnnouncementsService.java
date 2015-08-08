@@ -313,7 +313,7 @@ public class AnnouncementsService extends AbstractServcice {
 		//this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		try {
 			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
-			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+			o.setReplyPage(this.getReplyPageListAndRelyDianzan(o.getUuid(),cur_user_uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
