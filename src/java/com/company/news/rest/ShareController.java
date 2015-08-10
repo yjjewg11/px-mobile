@@ -20,16 +20,17 @@ import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.Announcements;
-import com.company.news.entity.Announcements4Q;
 import com.company.news.entity.BaseDataList;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
 import com.company.news.entity.CookbookPlan;
 import com.company.news.entity.Group;
+import com.company.news.entity.Group4Q;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.service.AnnouncementsService;
@@ -107,7 +108,7 @@ public class ShareController extends AbstractRESTController {
 				responseMessage.setMessage("数据不存在.");
 				return "/404";
 			}
-			model.put("group",CommonsCache.get(a.getGroupuuid(), Group.class));
+			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
 
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_gonggao));
 		} catch (Exception e) {
@@ -207,7 +208,7 @@ public class ShareController extends AbstractRESTController {
 			 vo = new AnnouncementsVo();
 			BeanUtils.copyProperties(vo, a);
 			announcementsService.warpVo(vo, cur_user_uuid);
-			model.put("group",CommonsCache.get(a.getGroupuuid(), Group.class));
+			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
 		} catch (Exception e) {
@@ -244,7 +245,7 @@ public class ShareController extends AbstractRESTController {
 			}
 			
 			PClass pClass=(PClass)CommonsCache.get(a.getClassuuid(), PClass.class);
-			model.put("group",CommonsCache.get(pClass.getGroupuuid(), Group.class));
+			model.put("group",CommonsCache.get(pClass.getGroupuuid(), Group4Q	.class));
 			model.put("pclass",CommonsCache.get(a.getClassuuid(), PClass.class));
 
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_hudong));
@@ -290,7 +291,7 @@ public class ShareController extends AbstractRESTController {
 			
 			String G_imgPath=ProjectProperties.getProperty("img_down_url_pre", "http://localhost:8080/px-moblie/rest/uploadFile/getImgFile.json?uuid={uuid}");
 			model.put("G_imgPath",G_imgPath.replace("{uuid}", ""));
-			model.put("group",CommonsCache.get(a.getGroupuuid(), Group.class));
+			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
 			model.put("plandate",TimeUtils.getDateString(a.getPlandate()));
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_shipu));
 		} catch (Exception e) {
@@ -305,7 +306,77 @@ public class ShareController extends AbstractRESTController {
 		return "/getCookbookPlan";
 	}
 	
+	/**
+	 * 获取幼儿园介绍
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getKDInfo", method = RequestMethod.GET)
+	public String getKDInfo(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String uuid=request.getParameter("uuid");
+		Group a=null;
+		try {
+			a = (Group)nSimpleHibernateDao.getObject(Group.class,uuid);
+			if(a==null){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("数据不存在.");
+				return "/404";
+			}
 
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_Kindergarten_introduction));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "/404";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,a);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "/getKDInfo";
+	}
+
+	/**
+	 * 获取招生计划,只查询最新的一篇
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getRecruitBygroupuuid", method = RequestMethod.GET)
+	public String getRecruit(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String uuid=request.getParameter("uuid");
+		Announcements a=null;
+		try {
+			String hql = "from Announcements where type="+SystemConstants.common_type_zhaoshengjihua;
+			if (StringUtils.isNotBlank(uuid)){
+				hql += " and  groupuuid in("+DBUtil.stringsToWhereInValue(uuid)+")";
+			}
+			hql+=" order by create_time desc";
+			List list= nSimpleHibernateDao.getHibernateTemplate().find(hql);
+			if(list==null||list.size()==0){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("数据不存在.");
+				return "/404";
+			}
+			a=(Announcements)list.get(0);
+			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(a.getUuid(), SystemConstants.common_type_zhaoshengjihua));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "/404";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,a);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "/getRecruitBygroupuuid";
+	}
 	/**
 	 * 
 	 * @param uuids

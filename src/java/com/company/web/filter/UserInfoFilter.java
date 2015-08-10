@@ -85,8 +85,11 @@ public class UserInfoFilter implements Filter {
             if (session == null
                     || session.getAttribute(RestConstants.Session_UserInfo) == null) {
                 //如果是附件下载也不需要进行校验
-                if (!excludeFiltersList.contains(servletPath) && !(servletPath.contains("/download/") || servletPath.contains("/downloadTb/"))) {
-                    ModelMap model = new ModelMap();
+				if (!excludeFiltersList.contains(servletPath)
+						&& !(servletPath.contains("/download/") 
+								|| servletPath.contains("/share/")
+								|| servletPath.contains("/downloadTb/"))) {
+					ModelMap model = new ModelMap();
                     ResponseMessage responseMessage = RestUtil
                             .addResponseMessageForModelMap(model);
                     if (StringUtils.isNotBlank(token)) {
