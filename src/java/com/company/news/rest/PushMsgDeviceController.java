@@ -2,6 +2,7 @@ package com.company.news.rest;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -51,7 +52,12 @@ public class PushMsgDeviceController extends AbstractRESTController {
 			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
 			return "";
 		}
-		
+
+		if(StringUtils.isBlank(jsonform.getDevice_id())){
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("参数必填:device_id");
+			return "";
+		}
 		//设置当前用户
 		Parent user=this.getUserInfoBySession(request);
 		jsonform.setUser_uuid(user.getUuid());

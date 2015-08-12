@@ -290,8 +290,8 @@ public class UserinfoService extends AbstractServcice {
 	 * 
 	 * @return
 	 */
-	public List<User> query() {
-		return (List<User>) this.nSimpleHibernateDao.getHibernateTemplate()
+	public List<Parent> query() {
+		return (List<Parent>) this.nSimpleHibernateDao.getHibernateTemplate()
 				.find("from Parent", null);
 	}
 
@@ -537,6 +537,16 @@ public class UserinfoService extends AbstractServcice {
 		return  this.nSimpleHibernateDao.getHibernateTemplate()
 				.find("from DynamicMenu where enable=1 and type=1 order by index", null);
 	}
+	public List getGroupVObyUuids(String uuids) {
+		if(StringUtils.isBlank(uuids))return new ArrayList();
+		return  this.nSimpleHibernateDao.getHibernateTemplate()
+				.find("from Group4Q where type=1 and uuid in("+DBUtil.stringsToWhereInValue(uuids)+")");
+	}
 
+	public List getPClassbyUuids(String uuids) {
+		if(StringUtils.isBlank(uuids))return new ArrayList();
+		return  this.nSimpleHibernateDao.getHibernateTemplate()
+				.find("from PClass where  uuid in("+DBUtil.stringsToWhereInValue(uuids)+")");
+	}
 
 }

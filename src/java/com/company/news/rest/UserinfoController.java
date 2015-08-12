@@ -242,6 +242,11 @@ public class UserinfoController extends AbstractRESTController {
 		try {
 			list = userinfoService.getStudentByParentuuid(this.getUserInfoBySession(
 					request).getUuid());
+			String group_uuids=this.getMyChildrenGroupUuidsBySession(request);
+			String class_uuids=this.getMyChildrenClassuuidsBySession(request);
+			model.addAttribute("group_list", userinfoService.getGroupVObyUuids(group_uuids));
+			model.addAttribute("class_list", userinfoService.getPClassbyUuids(class_uuids));
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -249,6 +254,7 @@ public class UserinfoController extends AbstractRESTController {
 			return false;
 		}
 		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		
 		HttpSession session = SessionListener.getSession(request);
 		// 返回用户信息
 		this.putUserInfoReturnToModel(model, request);

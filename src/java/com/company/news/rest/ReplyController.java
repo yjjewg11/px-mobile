@@ -50,6 +50,10 @@ public class ReplyController extends AbstractRESTController {
 			return "";
 		}
 		
+		if(classNewsReplyJsonform.getType()>1000){
+			responseMessage.setMessage("type取值超出范围:type="+classNewsReplyJsonform.getType());
+			return "";
+		}
 		//设置当前用户
 		Parent user=this.getUserInfoBySession(request);
 		classNewsReplyJsonform.setCreate_user(user.getName());

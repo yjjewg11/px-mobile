@@ -47,7 +47,10 @@ public class DianzanController extends AbstractRESTController {
 		Parent user = this.getUserInfoBySession(request);
 		classNewsJsonform.setCreate_user(user.getName());
 		classNewsJsonform.setCreate_useruuid(user.getUuid());
-
+		if(classNewsJsonform.getType()>1000){
+			responseMessage.setMessage("type取值超出范围:type="+classNewsJsonform.getType());
+			return "";
+		}
 		try {
 			boolean flag;
 			flag = classNewsDianzanService.dianzan(classNewsJsonform, responseMessage);
