@@ -303,7 +303,33 @@ public class AnnouncementsService extends AbstractServcice {
 		
 		return a;
 	}
-
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public List<Announcements4Q> warpVoList(List<Announcements4Q> list,String cur_user_uuid){
+		for(Announcements4Q o:list){
+			warpVo(o,cur_user_uuid);
+		}
+		return list;
+	}
+	
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public Announcements4Q warpVo(Announcements4Q o,String cur_user_uuid){
+		//this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		try {
+			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
 	/**
 	 * vo输出转换
 	 * @param list

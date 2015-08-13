@@ -120,7 +120,7 @@ public class AnnouncementsController extends AbstractRESTController {
 			//定义接口,返回浏览总数.
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_gonggao));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getAnnByUuid(uuid));
-			
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,announcementsService.isFavorites( user.getUuid(),uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

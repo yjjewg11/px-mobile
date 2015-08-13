@@ -43,14 +43,8 @@ public class ReplyController extends AbstractRESTController {
 		try {
 			classNewsReplyJsonform = (ClassNewsReplyJsonform) this.bodyJsonToFormObject(
 					bodyJson, ClassNewsReplyJsonform.class);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
-			return "";
-		}
 		
-		if(classNewsReplyJsonform.getType()>1000){
+		if(classNewsReplyJsonform.getType()==null||classNewsReplyJsonform.getType()>1000){
 			responseMessage.setMessage("type取值超出范围:type="+classNewsReplyJsonform.getType());
 			return "";
 		}
@@ -62,7 +56,6 @@ public class ReplyController extends AbstractRESTController {
 		//转换特定格式.
 		classNewsReplyJsonform.setContent(MyUbbUtils.htmlToMyUbb(classNewsReplyJsonform.getContent()));
 
-		try {
 			boolean flag;
 			if(StringUtils.isEmpty(classNewsReplyJsonform.getUuid()))
 			    flag = classNewsReplyService.add(classNewsReplyJsonform, responseMessage);

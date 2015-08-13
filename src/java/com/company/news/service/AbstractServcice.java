@@ -102,7 +102,7 @@ public abstract class AbstractServcice {
 				"select create_user from ClassNewsDianzanOfShow where newsuuid=?", newsuuid);
 		
 		
-		Boolean canDianzan=true;
+		Boolean canDianzan=false;
 		if(list.size()>0&&StringUtils.isNotBlank(cur_user_uuid)){
 			canDianzan=this.canDianzan(newsuuid,cur_user_uuid);
 		}
@@ -129,5 +129,24 @@ public abstract class AbstractServcice {
 		}
 		return true;
 	}
+	
+
+	/**
+	 * 是否可以收藏
+	 * 
+	 * @param loginname
+	 * @return
+	 */
+	public boolean isFavorites(String user_uuid,String reluuid) {
+		if(StringUtils.isBlank(reluuid)||StringUtils.isBlank(user_uuid))return false;
+		List list = nSimpleHibernateDao.getHibernateTemplate().find("select reluuid from Favorites where reluuid=? and user_uuid=?", reluuid,user_uuid);
+
+		if (list != null&&list.size()>0)// 已被占用
+			return false;
+		else
+			return true;
+
+	}
+	
 
 }

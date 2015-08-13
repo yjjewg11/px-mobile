@@ -20,6 +20,7 @@ import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.Announcements;
+import com.company.news.entity.Announcements4Q;
 import com.company.news.entity.BaseDataList;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
@@ -35,6 +36,7 @@ import com.company.news.rest.util.RestUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.service.AnnouncementsService;
 import com.company.news.service.CountService;
+import com.company.news.service.FavoritesService;
 import com.company.news.vo.AnnouncementsVo;
 import com.company.news.vo.ResponseMessage;
 
@@ -52,6 +54,9 @@ public class ShareController extends AbstractRESTController {
 	  protected NSimpleHibernateDao nSimpleHibernateDao;
 	 @Autowired
      private CountService countService ;
+	 
+		@Autowired
+		private FavoritesService favoritesService;
 
 	 @Autowired
      private AnnouncementsService announcementsService ;
@@ -134,15 +139,28 @@ public class ShareController extends AbstractRESTController {
 	public String list(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		PaginationData pData = this.getPaginationDataByRequest(request);
-		
-		String hql = "from Announcements4Q where type="+SystemConstants.common_type_jingpinwenzhang;
-		hql += " order by create_time desc";
-		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
-
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+			
+			String hql = "from Announcements4Q where type="+SystemConstants.common_type_jingpinwenzhang;
+			hql += " order by create_time desc";
+			PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+					.findByPaginationToHql(hql, pData);
+			Parent user = this.getUserInfoBySession(request);
+			String cur_user_uuid=null;
+			if(user!=null){
+				cur_user_uuid=user.getUuid();
+			}
+			announcementsService.warpVoList(pageQueryResult.getData(),cur_user_uuid);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
 		return "";
 	}
 	/**
@@ -157,16 +175,29 @@ public class ShareController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		String uuid=request.getParameter("uuid");
-		Announcements a;
+		if(StringUtils.isBlank(uuid)){
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("uuid 不能为空!");
+			return "";
+		}
+		AnnouncementsVo  vo = new AnnouncementsVo();
 		try {
-			a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
+			Announcements a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
 				responseMessage.setMessage("数据不存在.");
 				return "";
 			}
+			Parent user = this.getUserInfoBySession(request);
+			String cur_user_uuid=null;
+			if(user!=null){
+				cur_user_uuid=user.getUuid();
+			}
+				BeanUtils.copyProperties(vo, a);
+				announcementsService.warpVo(vo, cur_user_uuid);
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -174,7 +205,7 @@ public class ShareController extends AbstractRESTController {
 			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
-		model.addAttribute(RestConstants.Return_G_entity,a);
+		model.addAttribute(RestConstants.Return_G_entity,vo);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}
@@ -191,7 +222,11 @@ public class ShareController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		String uuid=request.getParameter("uuid");
-		
+		if(StringUtils.isBlank(uuid)){
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("uuid 不能为空!");
+			return "/404";
+		}
 		AnnouncementsVo vo =null;
 		try {
 			Announcements a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
@@ -211,6 +246,10 @@ public class ShareController extends AbstractRESTController {
 			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
+			
+			
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
