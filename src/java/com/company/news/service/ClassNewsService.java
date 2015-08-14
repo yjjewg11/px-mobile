@@ -7,11 +7,13 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.common.PxStringUtils;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Parent;
 import com.company.news.entity.Student;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -38,7 +40,7 @@ public class ClassNewsService extends AbstractServcice {
 	 * @param request
 	 * @return
 	 */
-	public boolean add(ClassNewsJsonform classNewsJsonform,
+	public boolean add(SessionUserInfoInterface user,ClassNewsJsonform classNewsJsonform,
 			ResponseMessage responseMessage) throws Exception {
 //		if (StringUtils.isBlank(classNewsJsonform.getTitle())
 //				|| classNewsJsonform.getTitle().length() > 128) {
@@ -58,6 +60,8 @@ public class ClassNewsService extends AbstractServcice {
 		cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		cn.setReply_time(TimeUtils.getCurrentTimestamp());
 		cn.setUsertype(USER_type_default);
+		
+		PxStringUtil.addCreateUser(user, cn);
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(cn);
 
@@ -72,7 +76,7 @@ public class ClassNewsService extends AbstractServcice {
 	 * @param request
 	 * @return
 	 */
-	public boolean update(ClassNewsJsonform classNewsJsonform,
+	public boolean update(SessionUserInfoInterface user,ClassNewsJsonform classNewsJsonform,
 			ResponseMessage responseMessage) throws Exception {
 //		if (StringUtils.isBlank(classNewsJsonform.getTitle())
 //				|| classNewsJsonform.getTitle().length() > 128) {
@@ -179,6 +183,7 @@ public class ClassNewsService extends AbstractServcice {
 			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));
 			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
 			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

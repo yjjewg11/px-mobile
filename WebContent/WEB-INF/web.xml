@@ -111,7 +111,10 @@
 		<init-param>
 			<param-name>excludeFilters</param-name>
 			<param-value>
-				/userinfo/login.json,/userinfo/reg.json,/uploadFile/getImgFile.json,/group/reg.json,/group/list.json
+				/userinfo/login.json,/userinfo/reg.json,/userinfo/updatePasswordBySms.json,
+				/uploadFile/getImgFile,/uploadFile/getImgFile.json,/sms/sendCode.json,
+				/group/reg.json,/group/list.json,/basedatalist/getAllList.json,
+				/doorrecord/insert.json,/doorrecord/autobind.json,/uploadFile/getImgFile
 			</param-value>
 		</init-param>
 	</filter>

@@ -6,10 +6,10 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.ClassNewsReply;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsReplyJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -32,7 +32,7 @@ public class ClassNewsReplyService extends AbstractServcice {
 	 * @param request
 	 * @return
 	 */
-	public boolean add(ClassNewsReplyJsonform classNewsReplyJsonform,
+	public boolean add(SessionUserInfoInterface user,ClassNewsReplyJsonform classNewsReplyJsonform,
 			ResponseMessage responseMessage) throws Exception {
 		if (StringUtils.isBlank(classNewsReplyJsonform.getContent())) {
 			responseMessage.setMessage("content不能为空！");
@@ -50,6 +50,10 @@ public class ClassNewsReplyService extends AbstractServcice {
 
 		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
         cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
+        
+        
+        PxStringUtil.addCreateUser(user, cn);
+        
         cn.setUsertype(USER_type_default);
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(cn);
@@ -65,7 +69,7 @@ public class ClassNewsReplyService extends AbstractServcice {
 	 * @param request
 	 * @return
 	 */
-	public boolean update(ClassNewsReplyJsonform classNewsReplyJsonform,
+	public boolean update(SessionUserInfoInterface user,ClassNewsReplyJsonform classNewsReplyJsonform,
 			ResponseMessage responseMessage) throws Exception {
 		if (StringUtils.isBlank(classNewsReplyJsonform.getContent())) {
 			responseMessage.setMessage("content不能为空！");
@@ -77,7 +81,7 @@ public class ClassNewsReplyService extends AbstractServcice {
 		if(cn!=null){
 			cn.setContent(classNewsReplyJsonform.getContent());
 			cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
-			
+
 			this.nSimpleHibernateDao.getHibernateTemplate().update(cn);
 		}else{
 			responseMessage.setMessage("对象不存在");

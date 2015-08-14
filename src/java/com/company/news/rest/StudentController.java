@@ -119,6 +119,11 @@ public class StudentController extends AbstractRESTController {
 		try {
 			studentJsonform = (StudentJsonform) this.bodyJsonToFormObject(
 					bodyJson, StudentJsonform.class);
+			
+			if(studentJsonform.getAddress()!=null&&studentJsonform.getAddress().length()>300){
+				responseMessage.setMessage("地址不能超过300个字.");
+				return "";
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
