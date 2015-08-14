@@ -250,8 +250,10 @@ public class UserinfoService extends AbstractServcice {
 		SessionListener.putSessionByJSESSIONID(session);
 
 		session.setAttribute(RestConstants.Session_UserInfo, parent);
-		List<StudentOfSession>  studentOfSessionlist=this.getStudentOfSessionByParentuuid(parent.getUuid());
-		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
+		
+		//移到CONTROLLER调用，减少长事务执行
+		//List<StudentOfSession>  studentOfSessionlist=this.getStudentOfSessionByParentuuid(parent.getUuid());
+		//session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
 		
 		// 返回客户端用户信息放入Map
 		//putUserInfoReturnToModel(model, request);
@@ -321,7 +323,7 @@ public class UserinfoService extends AbstractServcice {
 	 * 
 	 * @return
 	 */
-	private List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
+	public List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
 		String sql = "";

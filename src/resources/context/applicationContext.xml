@@ -67,7 +67,7 @@
 		<property name="hibernateProperties">
 			<props>
 				<prop key="hibernate.connection.release_mode">after_transaction</prop>
-				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.show_sql">false</prop>
 				<prop key="hibernate.format_sql">true</prop>
 				<prop key="hbm2ddl.auto">update</prop>
 				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
@@ -95,12 +95,19 @@
 <tx:advice id="serviceAdvice"  
     transaction-manager="defaultTransactionManager">  
     <tx:attributes>  
-        <tx:method name="index*" read-only="true"/>  
-        <tx:method name="show*" read-only="true"/>  
-        <tx:method name="operate*" read-only="true"/>  
-        <tx:method name="edit*" read-only="true"/>
+        <tx:method name="count" propagation="REQUIRED"/>  
+        <tx:method name="login" propagation="REQUIRED"/> 
+        <tx:method name="add" propagation="REQUIRED"/>
+        <tx:method name="update*" propagation="REQUIRED"/>
+        <tx:method name="delete" propagation="REQUIRED"/> 
+        <tx:method name="read" propagation="REQUIRED"/>
+        <tx:method name="sendCode" propagation="REQUIRED"/> 
+        <tx:method name="VerifySmsCode" propagation="REQUIRED"/>
+        <tx:method name="uploadImg" propagation="REQUIRED"/>
+        <tx:method name="reg" propagation="REQUIRED"/>
+
         
-        <tx:method name="*" propagation="REQUIRED" rollback-for="Throwable"/>  
+        <tx:method name="*" propagation="NOT_SUPPORTED" read-only="true"/>  
     </tx:attributes>  
 </tx:advice>  
 
