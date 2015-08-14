@@ -129,6 +129,8 @@ public class SmsService extends AbstractServcice {
 		// if(true){//测试保存
 		// return model;
 		// }
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("发送成功");
 		return model;
 	}
 

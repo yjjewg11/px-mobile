@@ -57,17 +57,15 @@ public class ClassNewsController extends AbstractRESTController {
 
 		// 设置当前用户
 		Parent user = this.getUserInfoBySession(request);
-		classNewsJsonform.setCreate_user(user.getName());
-		classNewsJsonform.setCreate_useruuid(user.getUuid());
 		//转换特定格式.
 		classNewsJsonform.setContent(MyUbbUtils.htmlToMyUbb(classNewsJsonform.getContent()));
 		classNewsJsonform.setImgs(PxStringUtil.imgUrlToUuid(classNewsJsonform.getImgs()));
 		try {
 			boolean flag;
 			if (StringUtils.isEmpty(classNewsJsonform.getUuid()))
-				flag = classNewsService.add(classNewsJsonform, responseMessage);
+				flag = classNewsService.add(user,classNewsJsonform, responseMessage);
 			else
-				flag = classNewsService.update(classNewsJsonform,
+				flag = classNewsService.update(user,classNewsJsonform,
 						responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";

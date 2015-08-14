@@ -139,13 +139,14 @@ public class UserinfoService extends AbstractServcice {
 			responseMessage.setMessage("user不存在！");
 			return null;
 		}
+		boolean needUpdateCreateImg=false;
 		//头像有变化,更新相应的表.
 		if(userRegJsonform.getImg()!=null&&!userRegJsonform.getImg().equals(user.getImg())){
-			this.nSimpleHibernateDao.updateUserInfoToBusinessData(user.getUuid(), userRegJsonform.getName(), userRegJsonform.getImg());
+			needUpdateCreateImg=true;
 		}
 		//名字有变化更新相应的表.
 		else if(!userRegJsonform.getName().equals(user.getName())){
-			this.nSimpleHibernateDao.updateUserInfoToBusinessData(user.getUuid(), userRegJsonform.getName(), userRegJsonform.getImg());
+			needUpdateCreateImg=true;
 		}
 
 		user.setName(userRegJsonform.getName());
@@ -156,7 +157,7 @@ public class UserinfoService extends AbstractServcice {
 		
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().update(user);
-
+		
 		return user;
 	}
 
@@ -381,7 +382,7 @@ public class UserinfoService extends AbstractServcice {
 		}
 
 		if (StringUtils.isBlank(userRegJsonform.getOldpassword())) {
-			responseMessage.setMessage("Oldpassword不能为空！");
+			responseMessage.setMessage("oldpassword不能为空！");
 			return false;
 		}
 
