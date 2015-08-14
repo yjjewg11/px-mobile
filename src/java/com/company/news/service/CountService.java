@@ -78,7 +78,7 @@ public class CountService extends AbstractServcice {
 	 * 
 	 * @return
 	 */
-	public void clear(String ext_uuid) {
+	public void delete(String ext_uuid) {
 		this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
 				"delete from Count where ext_uuid =?", ext_uuid);
 	}

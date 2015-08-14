@@ -53,7 +53,7 @@ public class DianzanController extends AbstractRESTController {
 		}
 		try {
 			boolean flag;
-			flag = classNewsDianzanService.dianzan(classNewsJsonform, responseMessage);
+			flag = classNewsDianzanService.save(classNewsJsonform, responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {
@@ -125,7 +125,7 @@ public class DianzanController extends AbstractRESTController {
 
 		try {
 			boolean flag;
-			flag = classNewsDianzanService.cancelDianzan(classNewsJsonform, responseMessage);
+			flag = classNewsDianzanService.delete(classNewsJsonform, responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {

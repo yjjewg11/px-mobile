@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.entity.Parent;
+import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User;
 import com.company.news.form.UserLoginForm;
 import com.company.news.jsonform.ParentRegJsonform;
@@ -50,6 +51,14 @@ public class UserinfoController extends AbstractRESTController {
 			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
+		
+		
+		// 将关联系学生信息放入
+		HttpSession session = SessionListener
+						.getSession((HttpServletRequest) request);
+		List<StudentOfSession> studentOfSessionlist=userinfoService.getStudentOfSessionByParentuuid(this.getUserInfoBySession(request).getUuid());
+		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
+		
 		
 		flag = this.getUserAndStudent(model, request, responseMessage);
 		if (!flag)// 请求服务返回失败标示

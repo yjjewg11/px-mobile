@@ -31,7 +31,7 @@ public class ClassNewsDianzanService extends AbstractServcice {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean dianzan(ClassNewsDianzanJsonform classNewsDianzanJsonform,
+	public boolean save(ClassNewsDianzanJsonform classNewsDianzanJsonform,
 			ResponseMessage responseMessage) throws Exception {
 		if (StringUtils.isBlank(classNewsDianzanJsonform.getNewsuuid())) {
 			responseMessage.setMessage("Newsuuid不能为空！");
@@ -90,7 +90,7 @@ public class ClassNewsDianzanService extends AbstractServcice {
 	 * 
 	 * @param uuid
 	 */
-	public boolean cancelDianzan(
+	public boolean delete(
 			ClassNewsDianzanJsonform classNewsDianzanJsonform,
 			ResponseMessage responseMessage) {
 		if (StringUtils.isBlank(classNewsDianzanJsonform.getNewsuuid())) {
