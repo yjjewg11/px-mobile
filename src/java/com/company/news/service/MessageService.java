@@ -2,10 +2,12 @@ package com.company.news.service;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.core.iservice.PushMsgIservice;
 import com.company.news.entity.Group;
 import com.company.news.entity.Message;
 import com.company.news.entity.User;
@@ -26,7 +28,8 @@ public class MessageService extends AbstractServcice {
 	public static final int announcements_isread_no = 0;// 未读
 	public static final int announcements_isdelete_yes = 1;// 已读
 	public static final int announcements_isdelete_no = 0;// 未读
-
+	@Autowired
+	public PushMsgIservice pushMsgIservice;
 	/**
 	 * 增加
 	 * 
@@ -47,7 +50,6 @@ public class MessageService extends AbstractServcice {
 			return false;
 		}
 
-		
 		if(SystemConstants.Message_type_2.equals(messageJsonform.getType())){
 			Group user = (Group) CommonsCache.get(messageJsonform.getRevice_useruuid(),Group.class);
 			if (user == null) {
@@ -71,7 +73,9 @@ public class MessageService extends AbstractServcice {
 
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(message);
-
+		if(!SystemConstants.Message_type_2.equals(messageJsonform.getType())){
+			pushMsgIservice.pushMsg_to_teacher(SystemConstants.common_type_messageTeaher, message.getSend_useruuid(), message.getRevice_useruuid(), message.getTitle());
+		}
 		return true;
 	}
 

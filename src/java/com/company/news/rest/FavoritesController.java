@@ -123,8 +123,11 @@ public class FavoritesController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
-			boolean flag = favoritesService.delete(request.getParameter("uuid"),
-					responseMessage);
+			
+			Parent user=this.getUserInfoBySession(request);
+			
+			boolean flag = favoritesService.delete(user.getUuid(),request.getParameter("uuid"),request.getParameter("reluuid")
+					,responseMessage);
 			if (!flag)
 				return "";
 		} catch (Exception e) {

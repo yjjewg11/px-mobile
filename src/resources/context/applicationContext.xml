@@ -105,9 +105,11 @@
         <tx:method name="VerifySmsCode" propagation="REQUIRED"/>
         <tx:method name="uploadImg" propagation="REQUIRED"/>
         <tx:method name="reg" propagation="REQUIRED"/>
+		<tx:method name="*" propagation="REQUIRED"/>
 
         
-        <tx:method name="*" propagation="NOT_SUPPORTED" read-only="true"/>  
+        
+        <!-- tx:method name="*" propagation="NOT_SUPPORTED" read-only="true"/>   -->
     </tx:attributes>  
 </tx:advice>  
 

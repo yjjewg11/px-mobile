@@ -19,7 +19,7 @@ public class CommonsCache{
 	
 	// 获取自动保存内容
 	public static Object get(String uuid,Class clazz) {
-		logger.info("get:uuid-->" + uuid);
+		logger.info(clazz.getName()+":get:uuid-->" + uuid);
 		Element e = dbDataCache.get(uuid);
 
 		if (e != null)
@@ -38,7 +38,7 @@ public class CommonsCache{
 
 	// 存入自动保存内容
 	public static void put(String uuid, Object user) {
-		logger.info("putUser:uuid-->" + uuid);
+		logger.info(user.getClass().getName()+":put:uuid-->" + uuid);
 		Element e = new Element(uuid, user);
 		dbDataCache.put(e);
 	}
