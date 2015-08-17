@@ -25,7 +25,7 @@ public class DianzanController extends AbstractRESTController {
 	private ClassNewsDianzanService classNewsDianzanService;
 
 	@RequestMapping(value = "/save", method = RequestMethod.POST)
-	public String dianzan(ModelMap model, HttpServletRequest request) {
+	public String save(ModelMap model, HttpServletRequest request) {
 		// 返回消息体
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
