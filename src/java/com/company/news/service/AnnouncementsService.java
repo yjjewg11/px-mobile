@@ -340,6 +340,7 @@ public class AnnouncementsService extends AbstractServcice {
 		try {
 			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
 			o.setReplyPage(this.getReplyPageListAndRelyDianzan(o.getUuid(),cur_user_uuid));
+			o.setMessage(PxStringUtil.warpHtml5Responsive(o.getMessage()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

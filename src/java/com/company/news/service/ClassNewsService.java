@@ -7,12 +7,11 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.company.common.PxStringUtils;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Parent;
-import com.company.news.entity.Student;
+import com.company.news.entity.StudentContactRealation;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
@@ -52,7 +51,9 @@ public class ClassNewsService extends AbstractServcice {
 			responseMessage.setMessage("classuuid不能为空！");
 			return false;
 		}
-
+		
+		StudentContactRealation studentContactRealation=this.getStudentContactRealationBy(user.getUuid(), classNewsJsonform.getClassuuid());
+		
 		ClassNews cn = new ClassNews();
 
 		BeanUtils.copyProperties(cn, classNewsJsonform);
@@ -62,10 +63,25 @@ public class ClassNewsService extends AbstractServcice {
 		cn.setUsertype(USER_type_default);
 		
 		PxStringUtil.addCreateUser(user, cn);
+		
+		if (studentContactRealation!=null) {
+			//班级互动用孩子的信息发布.
+			cn.setCreate_user(PxStringUtil.getParentNameByStudentContactRealation(studentContactRealation));
+			cn.setCreate_img(studentContactRealation.getStudent_img());
+		}
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(cn);
 
 		return true;
+	}
+	
+	public StudentContactRealation getStudentContactRealationBy(String parent_uuid,String class_uuid){
+		List<StudentContactRealation> list=(List<StudentContactRealation>)this.nSimpleHibernateDao.getHibernateTemplate().find("from StudentContactRealation where parent_uuid=? and class_uuid=?", parent_uuid,class_uuid);
+
+		if(list.size()==0){
+			return null;
+		}
+		return list.get(0);
 	}
 
 	/**

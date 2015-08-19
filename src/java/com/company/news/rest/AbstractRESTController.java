@@ -117,7 +117,8 @@ public class AbstractRESTController   {
 		  String uuids="";
 		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
 		  for (StudentOfSession stu:list){
-			  uuids+=stu.getGroupuuid()+",";
+			  if(uuids.indexOf(stu.getGroupuuid())==-1)
+				  uuids+=stu.getGroupuuid()+",";
 		  }
 		  return StringOperationUtil.trimSeparatorChars(uuids);
 		}

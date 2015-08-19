@@ -51,7 +51,7 @@ public abstract class AbstractServcice {
 		
 		for(ClassNewsReply o:list){
 			this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
-			o.setContent(MyUbbUtils.myUbbTohtml(o.getContent()));
+			o.setContent(o.getContent());
 			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
 		}
 		return pageQueryResult;

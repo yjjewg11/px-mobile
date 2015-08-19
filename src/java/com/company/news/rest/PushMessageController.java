@@ -102,9 +102,7 @@ public class PushMessageController extends AbstractRESTController {
 		// 返回消息体
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		if(!RightUtils.hasRight(RightConstants.KD_announce_m,request)){
-			responseMessage.setMessage(RightConstants.Return_msg);
-		}
+		
 		try {
 			boolean flag = pushMessageService.read(request.getParameter("uuid"),
 					responseMessage);
@@ -119,7 +117,7 @@ public class PushMessageController extends AbstractRESTController {
 		}
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("删除成功");
+		responseMessage.setMessage("操作成功");
 		return "";
 	}
 	

@@ -51,12 +51,19 @@ public class TeachingJudgeController extends AbstractRESTController {
 			return "";
 		}
 
-		// 设置当前用户
-		Parent user = this.getUserInfoBySession(request);
-		teachingJudgeJsonform.setCreate_user(user.getName());
-		teachingJudgeJsonform.setCreate_useruuid(user.getUuid());
-
 		try {
+			if(teachingJudgeJsonform.getType()!=null
+					&&teachingJudgeJsonform.getType().intValue()>0
+					&&teachingJudgeJsonform.getType().intValue()<4)	{
+				
+			}else{
+				responseMessage.setMessage("数据不合法,Type有效取值范围:[1-3],当前为:type="+teachingJudgeJsonform.getType());
+				return "";
+			}
+			// 设置当前用户
+			Parent user = this.getUserInfoBySession(request);
+			teachingJudgeJsonform.setCreate_user(user.getName());
+			teachingJudgeJsonform.setCreate_useruuid(user.getUuid());
 			boolean flag = teachingJudgeService.add(teachingJudgeJsonform,
 					responseMessage);
 			if (!flag)// 请求服务返回失败标示

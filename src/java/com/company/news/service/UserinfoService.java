@@ -90,9 +90,7 @@ public class UserinfoService extends AbstractServcice {
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
 		
-		//当昵称为空时，使用登陆名作为初始昵称
-		if(StringUtils.isBlank(parent.getName()))
-		parent.setName(parent.getLoginname());
+		
 
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
@@ -105,12 +103,19 @@ public class UserinfoService extends AbstractServcice {
 		List<StudentContactRealation> list = studentService.getStudentByPhone(parent.getTel());
 		if (list != null)
 			for (StudentContactRealation s : list) {
-
+				//当昵称为空时，使用登陆名作为初始昵称
+				if(StringUtils.isBlank(parent.getName())){
+					parent.setName(s.getStudent_name()+s.getTypename());
+				}
+				if(StringUtils.isBlank(parent.getImg())){
+					parent.setName(s.getStudent_name()+s.getTypename());
+				}
+				
+				parent.setImg(s.getStudent_img());
 				// 有事务管理，统一在Controller调用时处理异常
 				s.setIsreg(SystemConstants.USER_isreg_1);
 				s.setParent_uuid(parent.getUuid());
-				this.nSimpleHibernateDao.getHibernateTemplate().save(
-						s);
+				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
 			}
 		return true;
 	}

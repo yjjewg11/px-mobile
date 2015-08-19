@@ -29,6 +29,7 @@ import com.company.news.entity.Group;
 import com.company.news.entity.Group4Q;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
+import com.company.news.entity.User4Q;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
@@ -389,7 +390,7 @@ public class ShareController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		String uuid=request.getParameter("uuid");
-		Announcements a=null;
+		AnnouncementsVo vo=null;
 		try {
 			String hql = "from Announcements where type="+SystemConstants.common_type_zhaoshengjihua;
 			if (StringUtils.isNotBlank(uuid)){
@@ -402,7 +403,16 @@ public class ShareController extends AbstractRESTController {
 				responseMessage.setMessage("数据不存在.");
 				return "/404";
 			}
-			a=(Announcements)list.get(0);
+			Announcements a=(Announcements)list.get(0);
+			
+			
+			Parent user = this.getUserInfoBySession(request);
+			String cur_user_uuid=null;
+			if(user!=null){
+				cur_user_uuid=user.getUuid();
+			}
+				BeanUtils.copyProperties(vo, a);
+				announcementsService.warpVo(vo, cur_user_uuid);
 			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(a.getUuid(), SystemConstants.common_type_zhaoshengjihua));
 		} catch (Exception e) {
@@ -412,7 +422,7 @@ public class ShareController extends AbstractRESTController {
 			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "/404";
 		}
-		model.addAttribute(RestConstants.Return_G_entity,a);
+		model.addAttribute(RestConstants.Return_G_entity,vo);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "/getRecruitBygroupuuid";
 	}
@@ -434,5 +444,43 @@ public class ShareController extends AbstractRESTController {
 		}
 		return list;
 
+	}
+	
+	
+	/**
+	 * 老师详细信息
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getTeacherInfo", method = RequestMethod.GET)
+	public String getTeacherInfo(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String uuid=request.getParameter("uuid");
+		if(StringUtils.isBlank(uuid)){
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("uuid 不能为空!");
+			return "";
+		}
+		User4Q a=null;
+		try {
+			a=(User4Q)CommonsCache.get(uuid, User4Q.class);
+			if(a==null){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("数据不存在.");
+				return "";
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,a);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
 	}
 }

@@ -159,6 +159,9 @@ public class StudentService extends AbstractServcice {
 		studentContactRealation.setType(type);
 		studentContactRealation.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		
+		studentContactRealation.setClass_uuid(student.getClassuuid());
+		studentContactRealation.setStudent_img(student.getHeadimg());
+		
 		Parent parent=(Parent)nSimpleHibernateDao.getObjectByAttribute(Parent.class,"loginname", tel);
 		//判断电话,是否已经注册,来设置状态.
 		if(parent!=null){
