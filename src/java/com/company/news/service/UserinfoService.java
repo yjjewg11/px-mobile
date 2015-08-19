@@ -101,22 +101,22 @@ public class UserinfoService extends AbstractServcice {
 		 * 2.更新孩子数据时,也会自动绑定学生和家长的数据.
 		 */
 		List<StudentContactRealation> list = studentService.getStudentByPhone(parent.getTel());
+		
+		
+		
 		if (list != null)
 			for (StudentContactRealation s : list) {
-				//当昵称为空时，使用登陆名作为初始昵称
-				if(StringUtils.isBlank(parent.getName())){
-					parent.setName(s.getStudent_name()+s.getTypename());
-				}
-				if(StringUtils.isBlank(parent.getImg())){
-					parent.setName(s.getStudent_name()+s.getTypename());
-				}
-				
+				//更新家长姓名和头像.多个孩子已最后保存为准
+				parent.setName(PxStringUtil.getParentNameByStudentContactRealation(s));
 				parent.setImg(s.getStudent_img());
+				this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
+				
 				// 有事务管理，统一在Controller调用时处理异常
 				s.setIsreg(SystemConstants.USER_isreg_1);
 				s.setParent_uuid(parent.getUuid());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
 			}
+		
 		return true;
 	}
 	

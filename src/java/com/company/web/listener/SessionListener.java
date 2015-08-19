@@ -107,7 +107,7 @@ public class SessionListener implements HttpSessionListener {
           sessionMap.remove(token);
         }
         sessionMapBySessionid.remove(session.getId());
-        User userInfo=(User)session.getAttribute(RestConstants.Session_UserInfo);
+        Object userInfo=(Object)session.getAttribute(RestConstants.Session_UserInfo);
         if (userInfo == null) {
                 logger
                         .info("sessionDestroyed(HttpSessionEvent) - $$$$$$$$$$ bean userInfo is null $$$$$$$$$$$$$$$");

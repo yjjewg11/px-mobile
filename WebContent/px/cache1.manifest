@@ -1,0 +1,23 @@
+CACHE MANIFEST
+#v0.06
+
+CACHE:
+
+../assets/css/amazeui.min.css
+../assets/css/app.css
+../w/cropbox/style.css
+
+../assets/js/jquery.min.js
+../assets/js/amazeui.min.js
+../w/react.min.js
+../assets/js/amazeui.react.min.js
+../w/jQuery.md5.js
+../w/xheditor/xheditor-1.2.2.min.js
+../w/xheditor/zh-cn.js
+../w/cropbox/cropbox-min.js
+
+NETWORK:
+*
+
+FALLBACK:
+/ offline.html

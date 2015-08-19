@@ -1,5 +1,5 @@
 <!doctype html>
-<html manifest = "cache.manifest" class="no-js" >
+<html manifest = "cache1.manifest" class="no-js" >
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,29 +11,37 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="Cache-Control" content="no-siteapp"/>
   <link rel="icon" type="image/png" href="../assets/i/favicon.png">
-<link rel="stylesheet" href="http://cdn.amazeui.org/amazeui/2.4.2/css/amazeui.min.css">
- 
+  <link rel="stylesheet" href="../assets/css/amazeui.min.css">
   <link rel="stylesheet" href="../assets/css/app.css">
     <link rel="stylesheet" href="../css/css.css"/>
     <link rel="stylesheet" href="../w/cropbox/style.css"/>
-    
-
 </head>
 <body>
-<div id="div_body"></div>
-<script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
-<script src="http://cdn.amazeui.org/amazeui/2.4.2/js/amazeui.min.js"></script>
-<script src="http://cdn.amazeui.org/react/0.13.3/react.min.js"></script>
-<script src="http://cdn.amazeui.org/amazeui-react/1.0.0-beta1/amazeui.react.min.js"></script>
+<div id="div_msg_pop" class="G_div_msg_pop"></div>
+<div id="div_seesion_body" style="display: none;">
+	<div id="div_header"></div>
+	<div id="div_menu"></div>
+	<div id="div_body">加载中...</div>
+	<div id="div_widget_chooseUser"></div>
+	<div id="div_widget_chooseCook"></div>
+	<div id="div_footer"></div>
+</div>
 
-<script type="text/javascript" src="http://dup.baidustatic.com/js/zm.js"></script>
+<div id="div_login"></div>
+
+<script src="../assets/js/jquery.min.js"></script>
+
+<script src="../assets/js/amazeui.min.js"></script>
+<script src="../w/react.min.js"></script>
+<script src="../assets/js/amazeui.react.min.js"></script>
 
 <script src="../w/jQuery.md5.js"></script>
-
+<script src="../w/xheditor/xheditor-1.2.2.min.js"></script>
+<script src="../w/xheditor/zh-cn.js"></script>
+<script src="../w/cropbox/cropbox-min.js"></script>
 
 <script src="../js/gl.js"></script>
 <script src="../js/store.js"></script>
-<script src="../js/phone_interface.js"></script>
 
 <script src="../js/vo.js"></script>
 <script src="../jsb/common_react.js"></script>
@@ -44,5 +52,6 @@
 <script src="widget.js"></script>
 <script src="kd_service.js"></script>
 <script src="index.js"></script>
+<div id="tmp"></div>
 </body>
 </html>
