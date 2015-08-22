@@ -404,7 +404,7 @@ public class ShareController extends AbstractRESTController {
 				return "/404";
 			}
 			Announcements a=(Announcements)list.get(0);
-			
+			vo=new AnnouncementsVo();
 			
 			Parent user = this.getUserInfoBySession(request);
 			String cur_user_uuid=null;

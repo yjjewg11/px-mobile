@@ -90,7 +90,10 @@ public class UserinfoService extends AbstractServcice {
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
 		
-		
+		//电话保密
+		if(StringUtils.isBlank(parent.getName())){
+			parent.setName(StringUtils.substring(parent.getLoginname(), 0,3)+"****"+StringUtils.substring(parent.getLoginname(), 7));
+		}
 
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(parent);

@@ -114,6 +114,7 @@ public class UserInfoFilter implements Filter {
         } finally {
             logger.info("client IP:"+UserInfoFilter.getIpAddr((HttpServletRequest) request)+","+endTime + " count time(ms)="
                     + httpServletRequest.getMethod() + "|"
+                    	+httpServletRequest.getContextPath()
                     + httpServletRequest.getPathInfo() + "?"
                     + httpServletRequest.getQueryString());
         }

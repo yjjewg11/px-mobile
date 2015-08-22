@@ -121,6 +121,7 @@ public class ClassNewsReplyService extends AbstractServcice {
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		try {
 			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

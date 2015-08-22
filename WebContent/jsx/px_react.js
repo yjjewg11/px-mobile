@@ -63,8 +63,8 @@ render: function() {
 		  <div>
 		  <h1>特长课程</h1>
 		  <h1> </h1>
-		  <button onclick="call_testFun();">调用IOS_App方法testFun()</button><br/>
-		  <button onclick="call_testFun();">调用IOS_App方法testFun1(1)</button><br/>
+		  <button onClick={call_testFun} >调用IOS_App方法testFun()</button><br/>
+		  <button  onClick={call_testFun1.bind(this,1)} >调用IOS_App方法testFun1(1)</button><br/>
 		  React提供js调用方法:call_alert(fx);调用成功会弹出alert("call_alert(fx),fx="+fx);
 		    </div>
 		   

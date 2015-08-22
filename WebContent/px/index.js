@@ -8,7 +8,7 @@
   			alert("window.testFun(); 调用失败");
   		}
   	}
-  	function call_testFun(){
+  	function call_testFun1(){
   		try{
   			window.testFun1(1);
   		}catch(e){

@@ -63,8 +63,8 @@ render: function() {
 		  React.createElement("div", null, 
 		  React.createElement("h1", null, "特长课程"), 
 		  React.createElement("h1", null, " "), 
-		  React.createElement("button", {onclick: "call_testFun();"}, "调用IOS_App方法testFun()"), React.createElement("br", null), 
-		  React.createElement("button", {onclick: "call_testFun();"}, "调用IOS_App方法testFun1(1)"), React.createElement("br", null), 
+		  React.createElement("button", {onClick: call_testFun}, "调用IOS_App方法testFun()"), React.createElement("br", null), 
+		  React.createElement("button", {onClick: call_testFun1.bind(this,1)}, "调用IOS_App方法testFun1(1)"), React.createElement("br", null), 
 		  "React提供js调用方法:call_alert(fx);调用成功会弹出alert(\"call_alert(fx),fx=\"+fx);"
 		    )
 		   

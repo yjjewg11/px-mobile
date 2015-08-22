@@ -69,6 +69,7 @@ public class MessageController extends AbstractRESTController {
 		Parent user=this.getUserInfoBySession(request);
 		messageJsonform.setSend_user(user.getName());
 		messageJsonform.setSend_useruuid(user.getUuid());
+		messageJsonform.setSend_userimg(user.getImg());
 		messageJsonform.setType(SystemConstants.Message_type_2);//给园长写信时,revice_user是幼儿园uuid.
 		messageJsonform.setMessage(MyUbbUtils.htmlToMyUbb(messageJsonform.getMessage()));
 		
@@ -122,8 +123,10 @@ public class MessageController extends AbstractRESTController {
 		Parent user=this.getUserInfoBySession(request);
 		messageJsonform.setSend_user(user.getName());
 		messageJsonform.setSend_useruuid(user.getUuid());
+		messageJsonform.setSend_userimg(user.getImg());
 		messageJsonform.setType(SystemConstants.Message_type_1);//
 		messageJsonform.setMessage(MyUbbUtils.htmlToMyUbb(messageJsonform.getMessage()));
+		
 		try {
 			boolean flag;
 			    flag = messageService.add(messageJsonform, responseMessage);

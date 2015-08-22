@@ -146,7 +146,8 @@ public class StudentService extends AbstractServcice {
 			}
 			//一样则表示不变,直接返回.
 			if(tel.equals(studentContactRealation.getTel())
-					&&student.getName().equals(studentContactRealation.getStudent_name())){
+					&&student.getName().equals(studentContactRealation.getStudent_name())
+					&&student.getHeadimg()!=null&&student.getHeadimg().equals(studentContactRealation.getStudent_img())){
 				return studentContactRealation;
 			}
 		}

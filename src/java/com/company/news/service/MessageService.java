@@ -1,5 +1,7 @@
 package com.company.news.service;
 
+import java.util.List;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
+import com.company.news.entity.ClassNews;
 import com.company.news.entity.Group;
 import com.company.news.entity.Message;
 import com.company.news.entity.User;
@@ -180,6 +184,7 @@ public class MessageService extends AbstractServcice {
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
+		this.warpVoList(pageQueryResult.getData());
 		return pageQueryResult;
 	}
 	/**
@@ -198,11 +203,35 @@ public class MessageService extends AbstractServcice {
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
+		this.warpVoList(pageQueryResult.getData());
 		return pageQueryResult;
+	}
+	
+	
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private Message warpVo(Message o){
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		o.setSend_userimg(PxStringUtil.imgSmallUrlByUuid(o.getSend_userimg()));
+		return o;
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List<Message> warpVoList(List<Message> list){
+		for(Message o:list){
+			warpVo(o);
+		}
+		return list;
 	}
 	@Override
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
-		return User.class;
+		return null;
 	}
 }
