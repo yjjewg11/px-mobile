@@ -102,7 +102,7 @@ public class FavoritesController extends AbstractRESTController {
 		}
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("修改成功");
+		responseMessage.setMessage("收藏成功");
 		return "";
 	}
 
@@ -139,7 +139,7 @@ public class FavoritesController extends AbstractRESTController {
 		}
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("删除成功");
+		responseMessage.setMessage("取消收藏");
 		return "";
 	}
 	

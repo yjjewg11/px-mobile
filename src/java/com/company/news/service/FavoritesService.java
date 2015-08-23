@@ -57,7 +57,7 @@ public class FavoritesService extends AbstractServcice {
 		}
 		
 		if(isExitFavorites(favoritesJsonform.getUser_uuid(), favoritesJsonform.getReluuid())){
-			responseMessage.setMessage("已收藏，不需要再进行收藏");
+			responseMessage.setMessage("已收藏");
 			return false;
 		}
 		Favorites favorites = new Favorites();

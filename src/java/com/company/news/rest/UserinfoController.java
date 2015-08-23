@@ -6,14 +6,17 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.cache.CommonsCache;
 import com.company.news.entity.Parent;
 import com.company.news.entity.StudentOfSession;
+import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
@@ -463,5 +466,37 @@ public class UserinfoController extends AbstractRESTController {
 		}
 	}
 	
-	
+	/**
+	 * 获取老师信息
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getTeacherInfo", method = RequestMethod.GET)
+	public String getTeacherInfo(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			String uuid=request.getParameter("uuid");
+			if(StringUtils.isBlank(uuid)){
+				responseMessage.setMessage("uuid 不能空");
+				return "";
+			}
+			Object user=CommonsCache.get(uuid, User4Q.class);
+			if(user==null){
+				responseMessage.setMessage("没有查询到老师数据.uuid="+uuid);
+				return "";
+			}
+			model.addAttribute(RestConstants.Return_G_entity, user);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
+	}
 }

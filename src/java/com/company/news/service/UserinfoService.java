@@ -25,6 +25,7 @@ import com.company.news.entity.StudentContactRealation;
 import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.TelSmsCode;
 import com.company.news.entity.User;
+import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
@@ -513,10 +514,10 @@ public class UserinfoService extends AbstractServcice {
 	 */
 	public List getTeacherPhoneList(String class_uuids) {
 		
-		String hql = "from User where uuid in (select useruuid from UserClassRelation where classuuid in("+DBUtil.stringsToWhereInValue(class_uuids)+"))";
-		List<User> userList=(List<User> )this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
+		String hql = "from User4Q where uuid in (select useruuid from UserClassRelation where classuuid in("+DBUtil.stringsToWhereInValue(class_uuids)+"))";
+		List<User4Q> userList=(List<User4Q> )this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
 		List list=new ArrayList();
-		for (User user : userList) {
+		for (User4Q user : userList) {
 			TeacherPhone teacherPhone=new TeacherPhone();
 			teacherPhone.setType(SystemConstants.TeacherPhone_type_1);
 			teacherPhone.setTeacher_uuid(user.getUuid());

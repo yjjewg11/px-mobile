@@ -79,7 +79,7 @@ public abstract class AbstractServcice {
 			List<ClassNewsReply> list=pageQueryResult.getData();
 			this.nSimpleHibernateDao.getHibernateTemplate().clear();
 			for(ClassNewsReply o:list){
-				o.setContent(MyUbbUtils.myUbbTohtml(o.getContent()));
+				o.setContent(o.getContent());
 				o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
 			}
 			return pageQueryResult;
@@ -102,7 +102,7 @@ public abstract class AbstractServcice {
 				"select create_user from ClassNewsDianzanOfShow where newsuuid=?", newsuuid);
 		
 		
-		Boolean canDianzan=false;
+		Boolean canDianzan=true;
 		if(list.size()>0&&StringUtils.isNotBlank(cur_user_uuid)){
 			canDianzan=this.canDianzan(newsuuid,cur_user_uuid);
 		}

@@ -78,7 +78,7 @@ public class MessageService extends AbstractServcice {
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(message);
 		if(!SystemConstants.Message_type_2.equals(messageJsonform.getType())){
-			pushMsgIservice.pushMsg_to_teacher(SystemConstants.common_type_messageTeaher, message.getSend_useruuid(), message.getRevice_useruuid(), message.getTitle());
+			pushMsgIservice.pushMsg_to_teacher(SystemConstants.common_type_messageTeaher, message.getSend_useruuid(), message.getRevice_useruuid(), message.getSend_user());
 		}
 		return true;
 	}

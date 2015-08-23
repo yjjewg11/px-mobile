@@ -30,8 +30,7 @@ public class SmsService extends AbstractServcice {
 	private UserinfoService userinfoService;
 
 	private static long MINUTE = 1000 * 60L;
-	public static long SMS_TIME_LIMIT = MINUTE
-			* Long.valueOf(ProjectProperties.getProperty(
+	public static long SMS_TIME_LIMIT = Long.valueOf(ProjectProperties.getProperty(
 					"project.SMS.TIME_LIMIT", "5"));
 	// key:tel,value[验证码,时间]
 	private static ConcurrentMap<String, Long[]> smscodeMap = new ConcurrentHashMap<String, Long[]>();
@@ -70,6 +69,13 @@ public class SmsService extends AbstractServcice {
 				responseMessage.setMessage("电话号码未注册！");
 				return model;
 			}
+		}else{
+			if (userinfoService.isExitSameUserByLoginName(tel)) {
+				responseMessage
+				.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("电话号码已被注册!");
+				return model;
+			}
 		}
 
 		TelSmsCode smsdb = (TelSmsCode) this.nSimpleHibernateDao
@@ -79,7 +85,7 @@ public class SmsService extends AbstractServcice {
 		} else {
 			long timeInterval = TimeUtils.getCurrentTimestamp().getTime()
 					- smsdb.getCreatetime().getTime();
-			if (timeInterval < SMS_TIME_LIMIT) {
+			if (timeInterval < MINUTE*SMS_TIME_LIMIT) {
 				responseMessage
 						.setStatus(RestConstants.Return_ResponseMessage_failed);
 				responseMessage.setMessage("如果没有收到验证码，请在" + SMS_TIME_LIMIT
