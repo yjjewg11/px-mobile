@@ -17,8 +17,7 @@ import javax.servlet.http.HttpSession;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import org.springframework.ui.ModelMap;
 
 import com.company.news.rest.RestConstants;
@@ -28,8 +27,8 @@ import com.company.web.listener.SessionListener;
 
 
 public class UserInfoFilter implements Filter {
-    private static Logger logger = LoggerFactory
-            .getLogger(UserInfoFilter.class);
+	private static final Logger logger = Logger.getLogger(UserInfoFilter.class);
+
 
     private FilterConfig config;
 
@@ -97,6 +96,7 @@ public class UserInfoFilter implements Filter {
                     } else {
                         RestUtil.addNoSessionForResponseMessage(responseMessage);
                     }
+                    this.logger.warn("sessionTimeout,PathInfo="+servletPath+",?JSESSIONID="+request.getParameter(RestConstants.Return_JSESSIONID));
                     responseMessage
                             .setStatus(RestConstants.Return_ResponseMessage_sessionTimeout);
                     httpServletResponse.setContentType("application/json;charset=UTF-8");
@@ -112,11 +112,9 @@ public class UserInfoFilter implements Filter {
         } catch (Exception e) {
             logger.error("", e);
         } finally {
-            logger.info("client IP:"+UserInfoFilter.getIpAddr((HttpServletRequest) request)+","+endTime + " count time(ms)="
-                    + httpServletRequest.getMethod() + "|"
-                    	+httpServletRequest.getContextPath()
-                    + httpServletRequest.getPathInfo() + "?"
-                    + httpServletRequest.getQueryString());
+        	  logger.info("client IP:"+UserInfoFilter.getIpAddr((HttpServletRequest) request)+","+endTime + " count time(ms)="
+	                    + httpServletRequest.getMethod() +"|"+httpServletRequest.getRequestURL()+ "?"
+	                    + httpServletRequest.getQueryString());
         }
     }
 

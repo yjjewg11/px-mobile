@@ -126,6 +126,7 @@ public class ClassNewsController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
+			pData.setPageSize(5);
 			Parent user = this.getUserInfoBySession(request);
 			String classuuids=request.getParameter("classuuid");
 			if(StringUtils.isBlank(classuuids)){
