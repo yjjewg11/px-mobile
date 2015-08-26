@@ -47,6 +47,8 @@ public class UserinfoService extends AbstractServcice {
 	@Autowired
 	private StudentService studentService;
 	
+	@Autowired
+	private GroupService groupService;
 	
 	@Autowired
 	private SmsService smsService;
@@ -551,8 +553,10 @@ public class UserinfoService extends AbstractServcice {
 	}
 	public List getGroupVObyUuids(String uuids) {
 		if(StringUtils.isBlank(uuids))return new ArrayList();
-		return  this.nSimpleHibernateDao.getHibernateTemplate()
+		List list=  this.nSimpleHibernateDao.getHibernateTemplate()
 				.find("from Group4Q where type=1 and uuid in("+DBUtil.stringsToWhereInValue(uuids)+")");
+		groupService.warpVoList(list);
+		return list;
 	}
 
 	public List getPClassbyUuids(String uuids) {

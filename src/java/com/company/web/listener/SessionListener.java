@@ -63,10 +63,15 @@ public class SessionListener implements HttpSessionListener {
     if(StringUtils.isNotBlank(JSESSIONID)){//使用JSESSIONID
       session=(HttpSession)sessionMapBySessionid.get(JSESSIONID);
       if(session!=null)return session;
+      else{
+    	  logger.warn("session==null,JSESSIONID="+JSESSIONID);
+      }
    }
     if(StringUtils.isNotBlank(token)){//使用token
        return SessionListener.getSessionByToken(token);
     }
+    
+    
       return request.getSession(false);
   }
   
@@ -90,6 +95,7 @@ public class SessionListener implements HttpSessionListener {
     public void sessionCreated(HttpSessionEvent se) {
         count++;
         logger.info("sessionCreated,Session count="+count);
+        
     }
 
     /**

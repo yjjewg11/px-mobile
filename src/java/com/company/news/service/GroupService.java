@@ -10,8 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.MyUbbUtils;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
 import com.company.news.entity.Group4Q;
+import com.company.news.entity.Message;
 import com.company.news.entity.User;
 import com.company.news.entity.UserGroupRelation;
 import com.company.news.jsonform.GroupRegJsonform;
@@ -25,11 +28,6 @@ import com.company.news.vo.ResponseMessage;
  */
 @Service
 public class GroupService extends AbstractServcice {
-	@Autowired
-	private UserinfoService userinfoService;
-
-
-	
 	/**
 	 * 增加机构
 	 * 
@@ -240,5 +238,41 @@ public class GroupService extends AbstractServcice {
 		// TODO Auto-generated method stub
 		return User.class;
 	}
-
+	
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public Group4Q warpVo(Group4Q o){
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		o.setImg(PxStringUtil.imgSmallUrlByUuid(o.getImg()));
+		return o;
+	}
+	
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public Group warpVo(Group o){
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		o.setImg(PxStringUtil.imgSmallUrlByUuid(o.getImg()));
+		return o;
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public List<Object> warpVoList(List<Object> list){
+		for(Object o:list){
+			if(o instanceof Group){
+				warpVo((Group)o);
+			}else if(o instanceof Group4Q){
+				warpVo((Group4Q)o);
+			}
+		}
+		return list;
+	}
 }
