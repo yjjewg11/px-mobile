@@ -63,7 +63,7 @@
 	</appender>
 
 	<appender name="operate" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="c:/px-log/px-operate.log" />
+		<param name="File" value="c:/px-log/px_mobile_operate.log" />
 		<param name="Append" value="true" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="操作时间：%d%n%m%n%n" />
