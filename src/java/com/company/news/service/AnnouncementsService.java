@@ -275,30 +275,30 @@ public class AnnouncementsService extends AbstractServcice {
 		Announcements announcements = (Announcements) this.nSimpleHibernateDao
 				.getObjectById(Announcements.class, uuid);
 
-		String classuuids = "";
-		String classnames = "";
-
-		//当类型是通知班级时
-		if (announcements.getType().intValue() == announcements_type_class) {
-			List<AnnouncementsTo> list = (List<AnnouncementsTo>) this.nSimpleHibernateDao
-					.getHibernateTemplate().find(
-							"from AnnouncementsTo where announcementsuuid=?",
-							uuid);
-
-			for (AnnouncementsTo announcementsTo : list) {
-				PClass p = (PClass) CommonsCache
-						.get(announcementsTo.getClassuuid(),PClass.class);
-				if (p != null) {
-					classuuids += (p.getUuid() + ",");
-					classnames += (p.getName() + ",");
-				}
-			}
-		}
+//		String classuuids = "";
+//		String classnames = "";
+//		
+//		//当类型是通知班级时
+//		if (announcements.getType().intValue() == announcements_type_class) {
+//			List<AnnouncementsTo> list = (List<AnnouncementsTo>) this.nSimpleHibernateDao
+//					.getHibernateTemplate().find(
+//							"from AnnouncementsTo where announcementsuuid=?",
+//							uuid);
+//
+//			for (AnnouncementsTo announcementsTo : list) {
+//				PClass p = (PClass) CommonsCache
+//						.get(announcementsTo.getClassuuid(),PClass.class);
+//				if (p != null) {
+//					classuuids += (p.getUuid() + ",");
+//					classnames += (p.getName() + ",");
+//				}
+//			}
+//		}
 		AnnouncementsVo a = new AnnouncementsVo();
 		BeanUtils.copyProperties(a, announcements);
 
-		a.setClassnames(PxStringUtil.StringDecComma(classnames));
-		a.setClassuuids(PxStringUtil.StringDecComma(classuuids));
+//		a.setClassnames(PxStringUtil.StringDecComma(classnames));
+//		a.setClassuuids(PxStringUtil.StringDecComma(classuuids));
 
 		
 		return a;

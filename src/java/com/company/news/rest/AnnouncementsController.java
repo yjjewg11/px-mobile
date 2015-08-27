@@ -115,6 +115,15 @@ public class AnnouncementsController extends AbstractRESTController {
 		AnnouncementsVo a=null;
 		try {
 			a = announcementsService.get(uuid);
+			
+			if(a==null){
+				responseMessage.setMessage("数据不存在!");
+				return "";
+			}
+			if(SystemConstants.Check_status_disable.equals(a.getStatus())){
+				responseMessage.setMessage("数据已被禁止浏览!");
+				return "";
+			}
 			Parent user = this.getUserInfoBySession(request);
 			announcementsService.warpVo(a, user.getUuid());
 			//定义接口,返回浏览总数.

@@ -249,13 +249,7 @@ public class UserinfoService extends AbstractServcice {
 			}
 		}
 
-		// 更新登陆日期,最近一次登陆日期
-		this.nSimpleHibernateDao
-				.getHibernateTemplate()
-				.bulkUpdate(
-						"update Parent set login_time=?,last_login_time=? where uuid=?",
-						TimeUtils.getCurrentTimestamp(),
-						parent.getLogin_time(), parent.getUuid());
+		
 		session = request.getSession(true);
 		// this.nSimpleHibernateDao.getHibernateTemplate().evict(user);
 		SessionListener.putSessionByJSESSIONID(session);
@@ -272,6 +266,11 @@ public class UserinfoService extends AbstractServcice {
 		model.put(RestConstants.Return_JSESSIONID, session.getId());
 		// model.put(RestConstants.Return_UserInfo, userInfoReturn);
 
+		
+		// 更新登陆日期,最近一次登陆日期
+		String sql="update px_parent set count=count+1,last_login_time=login_time,login_time=now() where uuid='"+parent.getUuid()+"'";
+		this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery(sql).executeUpdate();
+//
 		return true;
 	}
 
@@ -445,44 +444,16 @@ public class UserinfoService extends AbstractServcice {
 			responseMessage.setMessage("Password不能为空！");
 			return false;
 		}
-
-		List<TelSmsCode> list=(List<TelSmsCode>) this.nSimpleHibernateDao.getHibernateTemplate().find("from TelSmsCode where tel=? and type=? order by createtime desc", userRegJsonform.getTel(),SmsService.SMS_TYPE_USER);
 		
-		TelSmsCode smsdb;
-		if(list!=null&&list.size()>0)
-			smsdb=list.get(0);
-		else
-		{
-			responseMessage.setMessage("请重发验证码!");
+		
+		if(!smsService.VerifySmsCode(responseMessage, userRegJsonform.getTel(), userRegJsonform.getSmscode())){
 			return false;
 		}
-		
-		 long timeInterval=TimeUtils.getCurrentTimestamp().getTime()-smsdb.getCreatetime().getTime();
-	      if(timeInterval>SmsService.SMS_TIME_LIMIT){//防止暴力破解.
-	        responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-	        responseMessage.setMessage("验证码已经失效!");
-	        return false;
-	      }
-		// 验证码成功
-		if (smsdb != null
-				&& smsdb.getCode().equals(userRegJsonform.getSmscode())) {
-//			if (!this.isExitSameUserByLoginName(userRegJsonform.getTel())) {
-//				responseMessage
-//						.setStatus(RestConstants.Return_ResponseMessage_failed);
-//				responseMessage.setMessage("电话号码不存在！");
-//				return false;
-//			}
 
-			this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
-					"update Parent set password=? where loginname =?",
-					userRegJsonform.getPassword(), userRegJsonform.getTel());
-			//清除验证码,防止暴力破解.
-			this.nSimpleHibernateDao.delete(smsdb);
-			return true;
-
-		}
-		responseMessage.setMessage("短信验证码不正确！");
-		return false;
+		this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
+				"update Parent set password=? where loginname =?",
+				userRegJsonform.getPassword(), userRegJsonform.getTel());
+		return true;
 
 	}
 	

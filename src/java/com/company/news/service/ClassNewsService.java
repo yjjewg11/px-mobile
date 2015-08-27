@@ -124,7 +124,7 @@ public class ClassNewsService extends AbstractServcice {
 	 * @return
 	 */
 	public PageQueryResult query(Parent user ,String type,String classuuid, PaginationData pData) {
-		String hql = "from ClassNews where 1=1";
+		String hql = "from ClassNews where status=0 ";
 		if (StringUtils.isNotBlank(classuuid)){
 			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
 		}
