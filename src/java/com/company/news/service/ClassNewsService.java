@@ -61,7 +61,7 @@ public class ClassNewsService extends AbstractServcice {
 		cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		cn.setReply_time(TimeUtils.getCurrentTimestamp());
 		cn.setUsertype(USER_type_default);
-		
+		cn.setStatus(SystemConstants.Check_status_fabu);
 		PxStringUtil.addCreateUser(user, cn);
 		
 		if (studentContactRealation!=null) {

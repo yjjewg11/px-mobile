@@ -24,9 +24,9 @@ public class CountService extends AbstractServcice {
 	 * @param request
 	 * @return
 	 */
-	public Integer count(String ext_uuid, Integer type) throws Exception {
+	public Long count(String ext_uuid, Integer type) throws Exception {
 		if (StringUtils.isBlank(ext_uuid)) {
-			return 0;
+			return 0l;
 		}
 
 		Count c = (Count) this.nSimpleHibernateDao.getObjectByAttribute(
@@ -38,7 +38,7 @@ public class CountService extends AbstractServcice {
 		c.setType(type);
 		c.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		c.setExt_uuid(ext_uuid);
-		int count = 0;
+		long count = 0;
 		if (c.getCount() != null)
 			count = c.getCount();
 
@@ -58,14 +58,14 @@ public class CountService extends AbstractServcice {
 	 * @param request
 	 * @return
 	 */
-	public Integer get(String ext_uuid, Integer type) throws Exception {
+	public Long get(String ext_uuid, Integer type) throws Exception {
 		if (StringUtils.isBlank(ext_uuid)) {
-			return 0;
+			return 0l;
 		}
 
 		Count c = (Count) this.nSimpleHibernateDao.getObjectByAttribute(
 				Count.class, "ext_uuid", ext_uuid);
-		int count = 0;
+		Long count = 0l;
 		if (c != null)
 			count = c.getCount();
 
