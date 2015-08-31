@@ -171,7 +171,7 @@ public class AnnouncementsService extends AbstractServcice {
 		if (StringUtils.isBlank(groupuuid))
 			return null;
 
-		String hql = "from Announcements4Q where groupuuid='" + groupuuid + "'";
+		String hql = "from Announcements4Q where status="+SystemConstants.Check_status_fabu+" and groupuuid='" + groupuuid + "'";
 		if (StringUtils.isNotBlank(type))
 			hql += " and type=" + type;
 
@@ -225,7 +225,7 @@ public class AnnouncementsService extends AbstractServcice {
 	 * @return
 	 */
 	public PageQueryResult query(String groupuuid, PaginationData pData) {
-		String hql = "from Announcements4Q where type=0";
+		String hql = "from Announcements4Q where  status="+SystemConstants.Check_status_fabu+" and type=0";
 		if (StringUtils.isNotBlank(groupuuid)){
 			hql += " and  groupuuid in("+DBUtil.stringsToWhereInValue(groupuuid)+")";
 		}
