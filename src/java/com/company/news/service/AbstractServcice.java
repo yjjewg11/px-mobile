@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
@@ -42,7 +43,7 @@ public abstract class AbstractServcice {
 		
 		PaginationData pData=new PaginationData();
 		pData.setPageSize(5);
-		String hql="from ClassNewsReply where  newsuuid='"+newsuuid+"'";
+		String hql="from ClassNewsReply where  status ="+SystemConstants.Check_status_fabu +" and  newsuuid='"+newsuuid+"'";
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		
@@ -71,7 +72,7 @@ public abstract class AbstractServcice {
 			}
 			
 			PaginationData pData=new PaginationData();
-			String hql="from ClassNewsReply where  newsuuid='"+newsuuid+"'";
+			String hql="from ClassNewsReply where   status ="+SystemConstants.Check_status_fabu +" and  newsuuid='"+newsuuid+"'";
 			pData.setOrderFiled("create_time");
 			pData.setOrderType("desc");
 			

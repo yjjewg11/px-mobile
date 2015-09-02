@@ -6,6 +6,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.ClassNewsReply;
@@ -50,7 +51,7 @@ public class ClassNewsReplyService extends AbstractServcice {
 
 		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
         cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
-        
+        cn.setStatus(SystemConstants.Check_status_fabu);
         
         PxStringUtil.addCreateUser(user, cn);
         
@@ -99,7 +100,7 @@ public class ClassNewsReplyService extends AbstractServcice {
 	 * @return
 	 */
 	public PageQueryResult query(String newsuuid, PaginationData pData) {
-		String hql="from ClassNewsReply where 1=1";	
+		String hql="from ClassNewsReply where status ="+SystemConstants.Check_status_fabu;	
 		if (StringUtils.isNotBlank(newsuuid))
 			hql+=" and  newsuuid='"+newsuuid+"'";
 		

@@ -114,6 +114,9 @@ public class ShareController extends AbstractRESTController {
 				responseMessage.setMessage("数据不存在.");
 				return "/404";
 			}
+			if(SystemConstants.Check_status_disable.equals(a.getStatus())){
+				return "/404";
+		}
 			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
 
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_gonggao));
@@ -143,7 +146,7 @@ public class ShareController extends AbstractRESTController {
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			
-			String hql = "from Announcements4Q where type="+SystemConstants.common_type_jingpinwenzhang;
+			String hql = "from Announcements4Q where  status=0 and  type="+SystemConstants.common_type_jingpinwenzhang;
 			hql += " order by create_time desc";
 			PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 					.findByPaginationToHql(hql, pData);
@@ -189,6 +192,7 @@ public class ShareController extends AbstractRESTController {
 				responseMessage.setMessage("数据不存在.");
 				return "";
 			}
+			
 			Parent user = this.getUserInfoBySession(request);
 			String cur_user_uuid=null;
 			if(user!=null){
@@ -392,7 +396,7 @@ public class ShareController extends AbstractRESTController {
 		String uuid=request.getParameter("uuid");
 		AnnouncementsVo vo=null;
 		try {
-			String hql = "from Announcements where type="+SystemConstants.common_type_zhaoshengjihua;
+			String hql = "from Announcements where  status=0 and  type="+SystemConstants.common_type_zhaoshengjihua;
 			if (StringUtils.isNotBlank(uuid)){
 				hql += " and  groupuuid in("+DBUtil.stringsToWhereInValue(uuid)+")";
 			}

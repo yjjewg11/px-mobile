@@ -41,9 +41,16 @@ public class ReplyController extends AbstractRESTController {
 		String bodyJson = RestUtil.getJsonStringByRequest(request);
 		ClassNewsReplyJsonform classNewsReplyJsonform;
 		try {
+			
+			
 			classNewsReplyJsonform = (ClassNewsReplyJsonform) this.bodyJsonToFormObject(
 					bodyJson, ClassNewsReplyJsonform.class);
-		
+			
+			String classuuids=this.getMyChildrenClassuuidsBySession(request);
+			if(StringUtils.isBlank(classuuids)){
+				responseMessage.setMessage("没有你的孩子信息,不能发布评论!");
+				return "";
+			}
 		if(classNewsReplyJsonform.getType()==null||classNewsReplyJsonform.getType()>1000){
 			responseMessage.setMessage("type取值超出范围:type="+classNewsReplyJsonform.getType());
 			return "";
