@@ -107,7 +107,7 @@ public class FavoritesService extends AbstractServcice {
 		pData.setOrderType("desc");
 		
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
+				.findByPaginationToHqlNoTotal(hql, pData);
 		
 		this.warpVoList(pageQueryResult.getData(), null);
 		return pageQueryResult;

@@ -47,7 +47,7 @@ public abstract class AbstractServcice {
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		
-		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHqlNoTotal(hql, pData);
 		List<ClassNewsReply> list=pageQueryResult.getData();
 		
 		for(ClassNewsReply o:list){
@@ -76,7 +76,7 @@ public abstract class AbstractServcice {
 			pData.setOrderFiled("create_time");
 			pData.setOrderType("desc");
 			
-			PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+			PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHqlNoTotal(hql, pData);
 			List<ClassNewsReply> list=pageQueryResult.getData();
 			this.nSimpleHibernateDao.getHibernateTemplate().clear();
 			for(ClassNewsReply o:list){

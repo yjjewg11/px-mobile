@@ -35,7 +35,7 @@ public class PushMessageService extends AbstractServcice {
 		
 		
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
+				.findByPaginationToHqlNoTotal(hql, pData);
 		return pageQueryResult;
 	}
 

@@ -107,7 +107,7 @@ public class ClassNewsReplyService extends AbstractServcice {
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		
-		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHqlNoTotal(hql, pData);
 		
 		return pageQueryResult;
 				

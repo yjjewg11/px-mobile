@@ -98,7 +98,7 @@ public class MessageService extends AbstractServcice {
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
+				.findByPaginationToHqlNoTotal(hql, pData);
 		return pageQueryResult;
 	}
 
@@ -183,7 +183,7 @@ public class MessageService extends AbstractServcice {
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
+				.findByPaginationToHqlNoTotal(hql, pData);
 		this.warpVoList(pageQueryResult.getData());
 		return pageQueryResult;
 	}
@@ -202,7 +202,7 @@ public class MessageService extends AbstractServcice {
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
+				.findByPaginationToHqlNoTotal(hql, pData);
 		this.warpVoList(pageQueryResult.getData());
 		return pageQueryResult;
 	}

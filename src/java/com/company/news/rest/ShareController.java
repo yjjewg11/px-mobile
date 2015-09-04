@@ -149,7 +149,7 @@ public class ShareController extends AbstractRESTController {
 			String hql = "from Announcements4Q where  status=0 and  type="+SystemConstants.common_type_jingpinwenzhang;
 			hql += " order by create_time desc";
 			PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-					.findByPaginationToHql(hql, pData);
+					.findByPaginationToHqlNoTotal(hql, pData);
 			Parent user = this.getUserInfoBySession(request);
 			String cur_user_uuid=null;
 			if(user!=null){

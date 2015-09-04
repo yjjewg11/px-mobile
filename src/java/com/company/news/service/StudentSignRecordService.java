@@ -31,7 +31,7 @@ public class StudentSignRecordService extends AbstractServcice {
 		//}
 		pData.setOrderType("desc");
 		pData.setOrderFiled("sign_time");
-		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPaginationToHqlNoTotal(hql, pData);
 				List<DoorRecord> list=pageQueryResult.getData();
 
 		return pageQueryResult;

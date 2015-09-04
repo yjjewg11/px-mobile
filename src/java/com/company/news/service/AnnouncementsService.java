@@ -233,7 +233,7 @@ public class AnnouncementsService extends AbstractServcice {
 		pData.setOrderType("desc");
 		
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
+				.findByPaginationToHqlNoTotal(hql, pData);
 		return pageQueryResult;
 
 	}

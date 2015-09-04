@@ -74,6 +74,7 @@ public class ClassNewsService extends AbstractServcice {
 		cn.setReply_time(TimeUtils.getCurrentTimestamp());
 		cn.setUsertype(USER_type_default);
 		cn.setStatus(SystemConstants.Check_status_fabu);
+		cn.setIllegal(0l);
 		PxStringUtil.addCreateUser(user, cn);
 		
 		if (studentContactRealation!=null) {
@@ -146,7 +147,7 @@ public class ClassNewsService extends AbstractServcice {
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
+				.findByPaginationToHqlNoTotal(hql, pData);
 		this.warpVoList(pageQueryResult.getData(), user.getUuid());
 		
 		return pageQueryResult;
