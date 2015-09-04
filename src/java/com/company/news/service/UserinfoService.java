@@ -169,6 +169,9 @@ public class UserinfoService extends AbstractServcice {
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().update(user);
 		
+
+		if(needUpdateCreateImg)this.nSimpleHibernateDao.relUpdate_updateSessionUserInfoInterface(user);
+		
 		return user;
 	}
 
@@ -198,7 +201,10 @@ public class UserinfoService extends AbstractServcice {
 
 		Parent parent = (Parent) this.nSimpleHibernateDao.getObjectByAttribute(
 				Parent.class, attribute, loginname);
-
+		if(parent.getDisable()!=null&&SystemConstants.USER_disable_true==parent.getDisable().intValue()){
+			responseMessage.setMessage("帐号被禁用,请联系互动家园");
+			return false;
+		}
 		if (parent == null) {
 			responseMessage.setMessage("用户名:" + loginname + ",不存在!");
 			return false;

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
+import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.StudentContactRealation;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -52,11 +53,22 @@ public class ClassNewsService extends AbstractServcice {
 			return false;
 		}
 		
+		
+		PClass pClass=(PClass)this.nSimpleHibernateDao.getObject(PClass.class, classNewsJsonform.getClassuuid());
+		if(pClass==null){
+			responseMessage.setMessage("选择的班级不存在");
+			return false;
+		}
+		
+		
+		
 		StudentContactRealation studentContactRealation=this.getStudentContactRealationBy(user.getUuid(), classNewsJsonform.getClassuuid());
 		
 		ClassNews cn = new ClassNews();
 
 		BeanUtils.copyProperties(cn, classNewsJsonform);
+		
+		cn.setGroupuuid(pClass.getGroupuuid());
 		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
 		cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		cn.setReply_time(TimeUtils.getCurrentTimestamp());

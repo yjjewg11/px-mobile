@@ -62,7 +62,14 @@ public class SmsService extends AbstractServcice {
 			if (!userinfoService.isExitSameUserByLoginName(tel)) {
 				responseMessage
 						.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("电话号码未注册！");
+				responseMessage.setMessage("手机号码未注册！");
+				return model;
+			}
+		}else if (SystemConstants.Sms_type_1.equals(type)) {
+			if (userinfoService.isExitSameUserByLoginName(tel)) {
+				responseMessage
+						.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("手机号码已注册！忘记密码可以找回!");
 				return model;
 			}
 		}
