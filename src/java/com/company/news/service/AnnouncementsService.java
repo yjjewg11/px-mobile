@@ -294,6 +294,8 @@ public class AnnouncementsService extends AbstractServcice {
 //				}
 //			}
 //		}
+		
+		if(announcements==null)return null;
 		AnnouncementsVo a = new AnnouncementsVo();
 		BeanUtils.copyProperties(a, announcements);
 

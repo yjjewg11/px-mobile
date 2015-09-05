@@ -395,29 +395,29 @@ public class UserinfoService extends AbstractServcice {
 		// 更新用户状态
 		// Group_uuid昵称验证
 		if (StringUtils.isBlank(userRegJsonform.getUuid())) {
-			responseMessage.setMessage("useruuid不能为空！");
+			responseMessage.setMessage("用户不能为空！");
 			return false;
 		}
 
 		if (StringUtils.isBlank(userRegJsonform.getOldpassword())) {
-			responseMessage.setMessage("oldpassword不能为空！");
+			responseMessage.setMessage("原密码不能为空！");
 			return false;
 		}
 
 		if (StringUtils.isBlank(userRegJsonform.getPassword())) {
-			responseMessage.setMessage("Password不能为空！");
+			responseMessage.setMessage("新密码不能为空！");
 			return false;
 		}
 
 		Parent user = (Parent) this.nSimpleHibernateDao.getObject(Parent.class,
 				userRegJsonform.getUuid());
 		if (user == null) {
-			responseMessage.setMessage("user不存在！");
+			responseMessage.setMessage("用户不存在！");
 			return false;
 		}
 
 		if (!user.getPassword().equals(userRegJsonform.getOldpassword())) {
-			responseMessage.setMessage("Oldpassword不匹配！");
+			responseMessage.setMessage("原密码输入错误！");
 			return false;
 		}
 
@@ -437,17 +437,17 @@ public class UserinfoService extends AbstractServcice {
 		// 更新用户状态
 		// Group_uuid昵称验证
 		if (StringUtils.isBlank(userRegJsonform.getTel())) {
-			responseMessage.setMessage("Tel不能为空！");
+			responseMessage.setMessage("手机号码不能为空！");
 			return false;
 		}
 
 		if (StringUtils.isBlank(userRegJsonform.getSmscode())) {
-			responseMessage.setMessage("Smscode不能为空！");
+			responseMessage.setMessage("验证码不能为空！");
 			return false;
 		}
 
 		if (StringUtils.isBlank(userRegJsonform.getPassword())) {
-			responseMessage.setMessage("Password不能为空！");
+			responseMessage.setMessage("密码不能为空！");
 			return false;
 		}
 		
