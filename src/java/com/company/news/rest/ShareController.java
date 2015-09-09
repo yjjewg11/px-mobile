@@ -20,7 +20,6 @@ import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.Announcements;
-import com.company.news.entity.Announcements4Q;
 import com.company.news.entity.BaseDataList;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
@@ -38,6 +37,7 @@ import com.company.news.rest.util.TimeUtils;
 import com.company.news.service.AnnouncementsService;
 import com.company.news.service.CountService;
 import com.company.news.service.FavoritesService;
+import com.company.news.service.GroupService;
 import com.company.news.vo.AnnouncementsVo;
 import com.company.news.vo.ResponseMessage;
 
@@ -61,6 +61,9 @@ public class ShareController extends AbstractRESTController {
 
 	 @Autowired
      private AnnouncementsService announcementsService ;
+	 
+	 @Autowired
+     private GroupService groupService;
 
 		/**
 		 * 获取表情列表(url)
@@ -486,5 +489,39 @@ public class ShareController extends AbstractRESTController {
 		model.addAttribute(RestConstants.Return_G_entity,a);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
+	}
+	
+	
+	/**
+	 * 获取所有幼儿园列表
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/allKDGroupList", method = RequestMethod.GET)
+	public String allKDGroupList(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+//			String uuid_not_in=SystemConstants.Group_uuid_wjd+",group_wj1,group_wj2";
+//			String hql = "from Group4Q where type=1 and status=9 and uuid not in("+DBUtil.stringsToWhereInValue(uuid_not_in)+")";
+			String hql = "from Group4Q where type=1 and status=9";
+			
+			hql += " order by create_time asc";
+			PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+					.findByPaginationToHql(hql, pData);
+			groupService.warpVoList(pageQueryResult.getData());
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "/404";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "/allKDGroupList";
 	}
 }
