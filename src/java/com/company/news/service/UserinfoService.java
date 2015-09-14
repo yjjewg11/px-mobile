@@ -27,6 +27,7 @@ import com.company.news.entity.TelSmsCode;
 import com.company.news.entity.User;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
 import com.company.news.rest.RestConstants;
@@ -46,12 +47,13 @@ import com.company.web.listener.SessionListener;
 public class UserinfoService extends AbstractServcice {
 	@Autowired
 	private StudentService studentService;
-	
+
 	@Autowired
 	private GroupService groupService;
-	
+
 	@Autowired
 	private SmsService smsService;
+
 	/**
 	 * 用户注册
 	 * 
@@ -74,12 +76,11 @@ public class UserinfoService extends AbstractServcice {
 			responseMessage.setMessage("电话号码已被注册！");
 			return false;
 		}
-		
-		if(!smsService.VerifySmsCode(responseMessage, parentRegJsonform.getTel(), parentRegJsonform.getSmscode())){
+
+		if (!smsService.VerifySmsCode(responseMessage,
+				parentRegJsonform.getTel(), parentRegJsonform.getSmscode())) {
 			return false;
 		}
-		
-		
 
 		if (parentRegJsonform.getType() == null)
 			parentRegJsonform.setType(1);
@@ -92,40 +93,39 @@ public class UserinfoService extends AbstractServcice {
 		parent.setDisable(SystemConstants.USER_disable_default);
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
-		
-		//电话保密
-		if(StringUtils.isBlank(parent.getName())){
-			parent.setName(StringUtils.substring(parent.getLoginname(), 0,3)+"****"+StringUtils.substring(parent.getLoginname(), 7));
+
+		// 电话保密
+		if (StringUtils.isBlank(parent.getName())) {
+			parent.setName(StringUtils.substring(parent.getLoginname(), 0, 3)
+					+ "****" + StringUtils.substring(parent.getLoginname(), 7));
 		}
 
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
 
-		
 		/**
-		 * 1.根据注册手机,绑定和学生的关联关心.
-		 * 2.更新孩子数据时,也会自动绑定学生和家长的数据.
+		 * 1.根据注册手机,绑定和学生的关联关心. 2.更新孩子数据时,也会自动绑定学生和家长的数据.
 		 */
-		List<StudentContactRealation> list = studentService.getStudentByPhone(parent.getTel());
-		
-		
-		
+		List<StudentContactRealation> list = studentService
+				.getStudentByPhone(parent.getTel());
+
 		if (list != null)
 			for (StudentContactRealation s : list) {
-				//更新家长姓名和头像.多个孩子已最后保存为准
-				parent.setName(PxStringUtil.getParentNameByStudentContactRealation(s));
+				// 更新家长姓名和头像.多个孩子已最后保存为准
+				parent.setName(PxStringUtil
+						.getParentNameByStudentContactRealation(s));
 				parent.setImg(s.getStudent_img());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
-				
+
 				// 有事务管理，统一在Controller调用时处理异常
 				s.setIsreg(SystemConstants.USER_isreg_1);
 				s.setParent_uuid(parent.getUuid());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
 			}
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * 用户注册
 	 * 
@@ -150,29 +150,69 @@ public class UserinfoService extends AbstractServcice {
 			responseMessage.setMessage("user不存在！");
 			return null;
 		}
-		boolean needUpdateCreateImg=false;
-		//头像有变化,更新相应的表.
-		if(userRegJsonform.getImg()!=null&&!userRegJsonform.getImg().equals(user.getImg())){
-			needUpdateCreateImg=true;
+		boolean needUpdateCreateImg = false;
+		// 头像有变化,更新相应的表.
+		if (userRegJsonform.getImg() != null
+				&& !userRegJsonform.getImg().equals(user.getImg())) {
+			needUpdateCreateImg = true;
 		}
-		//名字有变化更新相应的表.
-		else if(!userRegJsonform.getName().equals(user.getName())){
-			needUpdateCreateImg=true;
+		// 名字有变化更新相应的表.
+		else if (!userRegJsonform.getName().equals(user.getName())) {
+			needUpdateCreateImg = true;
 		}
 
 		user.setName(userRegJsonform.getName());
 		user.setEmail(userRegJsonform.getEmail());
 		user.setImg(userRegJsonform.getImg());
 
-		
-		
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().update(user);
-		
 
-		if(needUpdateCreateImg)this.nSimpleHibernateDao.relUpdate_updateSessionUserInfoInterface(user);
-		
+		if (needUpdateCreateImg)
+			this.relUpdate_updateSessionUserInfoInterface(user);
+
 		return user;
+	}
+
+	/**
+	 * 用户或老师资料修改时变更数据.
+	 * 
+	 * @param uuid
+	 * @param name
+	 * @param img
+	 */
+	public void relUpdate_updateSessionUserInfoInterface(
+			SessionUserInfoInterface user) {
+
+		int count = 0;
+
+		count = this.nSimpleHibernateDao
+				.getHibernateTemplate()
+				.bulkUpdate(
+						"update ClassNewsReply set create_user=?,create_img=? where create_useruuid =?",
+						user.getName(), user.getImg(), user.getUuid());
+
+		this.logger.info("update ClassNewsReply count=" + count);
+
+		// 这个根据学生uuid生成
+		// count= this.getHibernateTemplate().bulkUpdate(
+		// "update ClassNews set create_user=?,create_img=? where
+		// create_useruuid =?",
+		// user.getName(),user.getImg(), user.getUuid());
+		// this.logger.info("update ClassNews count="+count);
+
+		count = this.nSimpleHibernateDao
+				.getHibernateTemplate()
+				.bulkUpdate(
+						"update Message set send_user=?,send_userimg=? where send_useruuid =?",
+						user.getName(), user.getImg(), user.getUuid());
+		this.logger.info("update Message count=" + count);
+
+		count = this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
+				"update Message set revice_user=? where revice_useruuid =?",
+				user.getName(), user.getUuid());
+		this.logger.info("update Message count=" + count);
+
 	}
 
 	/**
@@ -201,12 +241,14 @@ public class UserinfoService extends AbstractServcice {
 
 		Parent parent = (Parent) this.nSimpleHibernateDao.getObjectByAttribute(
 				Parent.class, attribute, loginname);
-	
+
 		if (parent == null) {
 			responseMessage.setMessage("用户名:" + loginname + ",不存在!");
 			return false;
 		}
-		if(parent.getDisable()!=null&&SystemConstants.USER_disable_true==parent.getDisable().intValue()){
+		if (parent.getDisable() != null
+				&& SystemConstants.USER_disable_true == parent.getDisable()
+						.intValue()) {
 			responseMessage.setMessage("帐号被禁用,请联系互动家园");
 			return false;
 		}
@@ -255,28 +297,30 @@ public class UserinfoService extends AbstractServcice {
 			}
 		}
 
-		
 		session = request.getSession(true);
 		// this.nSimpleHibernateDao.getHibernateTemplate().evict(user);
 		SessionListener.putSessionByJSESSIONID(session);
 
 		session.setAttribute(RestConstants.Session_UserInfo, parent);
-		
-		//移到CONTROLLER调用，减少长事务执行
-		//List<StudentOfSession>  studentOfSessionlist=this.getStudentOfSessionByParentuuid(parent.getUuid());
-		//session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
-		
+
+		// 移到CONTROLLER调用，减少长事务执行
+		// List<StudentOfSession>
+		// studentOfSessionlist=this.getStudentOfSessionByParentuuid(parent.getUuid());
+		// session.setAttribute(RestConstants.Session_StudentslistOfParent,
+		// studentOfSessionlist);
+
 		// 返回客户端用户信息放入Map
-		//putUserInfoReturnToModel(model, request);
+		// putUserInfoReturnToModel(model, request);
 
 		model.put(RestConstants.Return_JSESSIONID, session.getId());
 		// model.put(RestConstants.Return_UserInfo, userInfoReturn);
 
-		
 		// 更新登陆日期,最近一次登陆日期
-		String sql="update px_parent set count=count+1,last_login_time=login_time,login_time=now() where uuid='"+parent.getUuid()+"'";
-		this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery(sql).executeUpdate();
-//
+		String sql = "update px_parent set count=count+1,last_login_time=login_time,login_time=now() where uuid='"
+				+ parent.getUuid() + "'";
+		this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory()
+				.getCurrentSession().createSQLQuery(sql).executeUpdate();
+		//
 		return true;
 	}
 
@@ -327,13 +371,14 @@ public class UserinfoService extends AbstractServcice {
 				.createSQLQuery(
 						"select {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
 								+ uuid + "'").addEntity("t1", Student.class);
-		List<Student> list=q.list();
+		List<Student> list = q.list();
 		s.clear();
-		for(Student o:list){
+		for (Student o : list) {
 			o.setHeadimg(PxStringUtil.imgSmallUrlByUuid(o.getHeadimg()));
 		}
 		return list;
 	}
+
 	/**
 	 * 查询指定机构的用户列表
 	 * 
@@ -346,7 +391,8 @@ public class UserinfoService extends AbstractServcice {
 		Query q = s
 				.createSQLQuery(
 						"select {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
-								+ uuid + "'").addEntity("t1", StudentOfSession.class);
+								+ uuid + "'").addEntity("t1",
+						StudentOfSession.class);
 
 		return q.list();
 	}
@@ -450,9 +496,9 @@ public class UserinfoService extends AbstractServcice {
 			responseMessage.setMessage("密码不能为空！");
 			return false;
 		}
-		
-		
-		if(!smsService.VerifySmsCode(responseMessage, userRegJsonform.getTel(), userRegJsonform.getSmscode())){
+
+		if (!smsService.VerifySmsCode(responseMessage,
+				userRegJsonform.getTel(), userRegJsonform.getSmscode())) {
 			return false;
 		}
 
@@ -462,23 +508,25 @@ public class UserinfoService extends AbstractServcice {
 		return true;
 
 	}
-	
+
 	/**
 	 * 获取园长通信录
+	 * 
 	 * @param group_uuids
 	 * @return
 	 */
 	public List getKDTeacherPhoneList(String group_uuids) {
-		List list=new ArrayList();
+		List list = new ArrayList();
 		if (StringUtils.isNotBlank(group_uuids)) {
 			String[] uuid = group_uuids.split(",");
 			for (String s : uuid) {
-				Group cb = (Group) CommonsCache.get(s,Group.class);
-				if(cb==null)continue;
-				TeacherPhone teacherPhone=new TeacherPhone();
+				Group cb = (Group) CommonsCache.get(s, Group.class);
+				if (cb == null)
+					continue;
+				TeacherPhone teacherPhone = new TeacherPhone();
 				teacherPhone.setType(SystemConstants.TeacherPhone_type_0);
 				teacherPhone.setTeacher_uuid(s);
-				teacherPhone.setName(cb.getBrand_name()+"园长");
+				teacherPhone.setName(cb.getBrand_name() + "园长");
 				teacherPhone.setTel("");
 				teacherPhone.setImg("http://img.wenjienet.com/i/KD_header.png");
 				list.add(teacherPhone);
@@ -486,18 +534,22 @@ public class UserinfoService extends AbstractServcice {
 		}
 		return list;
 	}
+
 	/**
 	 * 获取关联老师通信录
+	 * 
 	 * @param group_uuids
 	 * @return
 	 */
 	public List getTeacherPhoneList(String class_uuids) {
-		
-		String hql = "from User4Q where uuid in (select useruuid from UserClassRelation where classuuid in("+DBUtil.stringsToWhereInValue(class_uuids)+"))";
-		List<User4Q> userList=(List<User4Q> )this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
-		List list=new ArrayList();
+
+		String hql = "from User4Q where uuid in (select useruuid from UserClassRelation where classuuid in("
+				+ DBUtil.stringsToWhereInValue(class_uuids) + "))";
+		List<User4Q> userList = (List<User4Q>) this.nSimpleHibernateDao
+				.getHibernateTemplate().find(hql, null);
+		List list = new ArrayList();
 		for (User4Q user : userList) {
-			TeacherPhone teacherPhone=new TeacherPhone();
+			TeacherPhone teacherPhone = new TeacherPhone();
 			teacherPhone.setType(SystemConstants.TeacherPhone_type_1);
 			teacherPhone.setTeacher_uuid(user.getUuid());
 			teacherPhone.setName(user.getName());
@@ -525,21 +577,27 @@ public class UserinfoService extends AbstractServcice {
 	}
 
 	public List getDynamicMenu() {
-		return  this.nSimpleHibernateDao.getHibernateTemplate()
-				.find("from DynamicMenu where enable=1 and type=1 order by index", null);
+		return this.nSimpleHibernateDao.getHibernateTemplate().find(
+				"from DynamicMenu where enable=1 and type=1 order by index",
+				null);
 	}
+
 	public List getGroupVObyUuids(String uuids) {
-		if(StringUtils.isBlank(uuids))return new ArrayList();
-		List list=  this.nSimpleHibernateDao.getHibernateTemplate()
-				.find("from Group4Q where type=1 and uuid in("+DBUtil.stringsToWhereInValue(uuids)+")");
+		if (StringUtils.isBlank(uuids))
+			return new ArrayList();
+		List list = this.nSimpleHibernateDao.getHibernateTemplate().find(
+				"from Group4Q where type=1 and uuid in("
+						+ DBUtil.stringsToWhereInValue(uuids) + ")");
 		groupService.warpVoList(list);
 		return list;
 	}
 
 	public List getPClassbyUuids(String uuids) {
-		if(StringUtils.isBlank(uuids))return new ArrayList();
-		return  this.nSimpleHibernateDao.getHibernateTemplate()
-				.find("from PClass where  uuid in("+DBUtil.stringsToWhereInValue(uuids)+")");
+		if (StringUtils.isBlank(uuids))
+			return new ArrayList();
+		return this.nSimpleHibernateDao.getHibernateTemplate().find(
+				"from PClass where  uuid in("
+						+ DBUtil.stringsToWhereInValue(uuids) + ")");
 	}
 
 }
