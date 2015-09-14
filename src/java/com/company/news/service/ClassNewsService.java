@@ -206,7 +206,7 @@ public class ClassNewsService extends AbstractServcice {
 	private ClassNews warpVo(ClassNews o,String cur_user_uuid){
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		
-		o.setImgsList(PxStringUtil.uuids_to_imgurlList(o.getImgs()));
+		o.setImgsList(PxStringUtil.uuids_to_imgMiddleurlList(o.getImgs()));
 		o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
 		try {
 			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));
