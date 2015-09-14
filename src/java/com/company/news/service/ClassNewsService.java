@@ -140,10 +140,10 @@ public class ClassNewsService extends AbstractServcice {
 		String hql = "from ClassNews where status=0 ";
 		if (StringUtils.isNotBlank(classuuid)){
 			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
+		}else{
+			hql += " and  groupuuid not in ('group_wj1','group_wj2')";
 		}
-		else if("myByTeacher".equals(type)){
-			hql += " and  classuuid in (select classuuid from UserClassRelation where useruuid='"+ user.getUuid() + "')";
-		}
+	
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao

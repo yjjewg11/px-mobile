@@ -94,7 +94,13 @@ public class AnnouncementsController extends AbstractRESTController {
 			if(StringUtils.isBlank(groupuuids)){
 				groupuuids=this.getMyChildrenGroupUuidsBySession(request);
 			}
-			PageQueryResult pageQueryResult = announcementsService.query(groupuuids,pData);
+			PageQueryResult pageQueryResult=null;
+			if(StringUtils.isBlank(groupuuids)){
+				pageQueryResult=new PageQueryResult();
+			}else{
+				
+				pageQueryResult = announcementsService.query(groupuuids,pData);
+			}
 			model.addAttribute(RestConstants.Return_ResponseMessage_list,
 					pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

@@ -325,7 +325,7 @@ public class UserinfoService extends AbstractServcice {
 		String sql = "";
 		Query q = s
 				.createSQLQuery(
-						"select {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
+						"select DISTINCT {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
 								+ uuid + "'").addEntity("t1", Student.class);
 		List<Student> list=q.list();
 		s.clear();
@@ -345,7 +345,7 @@ public class UserinfoService extends AbstractServcice {
 		String sql = "";
 		Query q = s
 				.createSQLQuery(
-						"select {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
+						"select DISTINCT {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
 								+ uuid + "'").addEntity("t1", StudentOfSession.class);
 
 		return q.list();
