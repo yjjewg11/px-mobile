@@ -147,8 +147,10 @@ public class CookbookPlanService extends AbstractServcice {
 			String[] uuid = uuids.split(",");
 			for (String s : uuid) {
 				Cookbook cb = (Cookbook) CommonsCache.get(s,Cookbook.class);
-				cb.setImg(PxStringUtil.imgUrlByUuid(cb.getImg()));
-				list.add(cb);
+				if(cb!=null){
+					cb.setImg(PxStringUtil.imgUrlByUuid(cb.getImg()));
+					list.add(cb);
+				}
 			}
 		}
 		return list;
