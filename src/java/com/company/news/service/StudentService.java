@@ -7,6 +7,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
@@ -29,7 +30,8 @@ import com.company.news.vo.ResponseMessage;
  */
 @Service
 public class StudentService extends AbstractServcice {
-
+	@Autowired
+	private UserinfoService userinfoService;
 	/**
 	 * 用户注册
 	 * 
@@ -211,7 +213,7 @@ public class StudentService extends AbstractServcice {
 			}
 			if(newParentName!=null&&!newParentName.equals(parent.getName())){
 				parent.setName(newParentName);
-				nSimpleHibernateDao.relUpdate_updateSessionUserInfoInterface(parent);
+				userinfoService.relUpdate_updateSessionUserInfoInterface(parent);
 			}
 			nSimpleHibernateDao.save(parent);
 		}
