@@ -30,6 +30,41 @@ public class StudentBindController extends AbstractRESTController {
 	private StudentBindService studentBindService;
 
 
+	
+	/**
+	 * 获取机构信息
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryByClassuuid", method = RequestMethod.GET)
+	public String getStudentByClassuuid(ModelMap model,
+			HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			String classuuid =request.getParameter("classuuid");
+			String groupuuid =request.getParameter("groupuuid");
+			String studentuuid =request.getParameter("studentuuid");
+			if(StringUtils.isBlank(classuuid)){
+				responseMessage.setMessage("班级必须选择.");
+				return "";
+			}
+			List<Object[]> list = studentBindService.query(classuuid,groupuuid,studentuuid);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+			.setStatus(RestConstants.Return_ResponseMessage_failed);
+	responseMessage.setMessage("服务器异常:"+e.getMessage());
+	return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
 
 	/**
 	 * 班级删除

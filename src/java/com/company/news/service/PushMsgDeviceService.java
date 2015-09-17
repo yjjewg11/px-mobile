@@ -48,6 +48,7 @@ public class PushMsgDeviceService extends AbstractServcice {
 				message = new PushMsgDevice();
 			}else{
 				message=(PushMsgDevice)list.get(0);
+				jsonform.setUuid(message.getUuid());
 			}
 			BeanUtils.copyProperties(message, jsonform);
 			message.setGroup_uuid(o);

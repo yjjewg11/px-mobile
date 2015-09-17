@@ -71,7 +71,9 @@ public class CookbookPlanService extends AbstractServcice {
 
 		if (cookbookPlan == null)
 			cookbookPlan = new CookbookPlan();
-
+		else{
+			cookbookPlanJsonform.setUuid(cookbookPlan.getUuid());
+		}
 		BeanUtils.copyProperties(cookbookPlan, cookbookPlanJsonform);
 		cookbookPlan.setPlandate(plandate);
 		// 有事务管理，统一在Controller调用时处理异常

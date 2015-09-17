@@ -1,24 +1,15 @@
 package com.company.news.service;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 
-import com.company.news.entity.PClass;
-import com.company.news.entity.Student;
 import com.company.news.entity.StudentBind;
-import com.company.news.entity.StudentContactRealation;
-import com.company.news.entity.TeacherJudge;
-import com.company.news.entity.Teachingplan;
 import com.company.news.entity.User;
 import com.company.news.jsonform.StudentBindJsonform;
-import com.company.news.jsonform.StudentJsonform;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
@@ -185,5 +176,33 @@ public class StudentBindService extends AbstractServcice {
 			return true;
 		
 		return false;
+	}
+
+	/**
+	 * 查询学生绑定卡号信息.
+	 * @param classuuid
+	 * @param groupuuid
+	 * @param uuid
+	 * @return
+	 */
+	public List<Object[]> query(String classuuid, String groupuuid,String uuid) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		
+		String sql = "select b2.studentuuid,b2.cardid,b2.userid,s1.name ";
+		sql+=" from px_student s1  left join px_studentbind b2 on  s1.uuid=b2.studentuuid  ";
+		sql+=" where 1=1 ";
+		if (StringUtils.isNotBlank(classuuid))
+			sql += " and   s1.groupuuid in(" + DBUtil.stringsToWhereInValue(groupuuid) + ")";
+		if (StringUtils.isNotBlank(classuuid))
+			sql += " and  s1.classuuid in(" + DBUtil.stringsToWhereInValue(classuuid) + ")";
+		if (StringUtils.isNotBlank(uuid))
+			sql += " and  s1.uuid in(" + DBUtil.stringsToWhereInValue(uuid) + ")";
+		
+		sql += "order by s1.classuuid,CONVERT( s1.name USING gbk)";
+		
+		//student_uuid,cardid,userid,student_name
+		List<Object[]> list = s.createSQLQuery(sql).list();
+		
+		return list;
 	}
 }

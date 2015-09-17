@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
 import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User4Q;
@@ -484,11 +485,12 @@ public class UserinfoController extends AbstractRESTController {
 				responseMessage.setMessage("uuid 不能空");
 				return "";
 			}
-			Object user=CommonsCache.get(uuid, User4Q.class);
+			User4Q user=(User4Q)CommonsCache.get(uuid, User4Q.class);
 			if(user==null){
 				responseMessage.setMessage("没有查询到老师数据.uuid="+uuid);
 				return "";
 			}
+			user.setImg(PxStringUtil.imgSmallUrlByUuid(user.getImg()));
 			model.addAttribute(RestConstants.Return_G_entity, user);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 			return "";
