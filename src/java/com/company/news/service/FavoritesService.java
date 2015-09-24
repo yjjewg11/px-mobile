@@ -33,7 +33,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class FavoritesService extends AbstractServcice {
+public class FavoritesService extends AbstractService {
 
 
 	/**

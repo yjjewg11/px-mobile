@@ -18,7 +18,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class ClassNewsDianzanService extends AbstractServcice {
+public class ClassNewsDianzanService extends AbstractService {
 	public static final int USER_type_default = 1;// 0:老师
 	@Autowired
 	private CountService countService;

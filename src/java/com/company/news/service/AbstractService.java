@@ -17,9 +17,9 @@ import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.vo.DianzanListVO;
 
-public abstract class AbstractServcice {
+public abstract class AbstractService {
   public static final String ID_SPLIT_MARK = ",";
-  protected static Logger logger = LoggerFactory.getLogger(AbstractServcice.class);
+  protected static Logger logger = LoggerFactory.getLogger(AbstractService.class);
   @Autowired
   @Qualifier("NSimpleHibernateDao")
   protected NSimpleHibernateDao nSimpleHibernateDao;

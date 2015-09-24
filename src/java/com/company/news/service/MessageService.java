@@ -27,7 +27,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class MessageService extends AbstractServcice {
+public class MessageService extends AbstractService {
 	public static final int announcements_isread_yes = 1;// 已读
 	public static final int announcements_isread_no = 0;// 未读
 	public static final int announcements_isdelete_yes = 1;// 已读

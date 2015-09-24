@@ -20,7 +20,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class StudentBindService extends AbstractServcice {
+public class StudentBindService extends AbstractService {
 
 	/**
 	 * 用户注册

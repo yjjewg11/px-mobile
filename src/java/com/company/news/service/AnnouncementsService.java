@@ -32,7 +32,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class AnnouncementsService extends AbstractServcice {
+public class AnnouncementsService extends AbstractService {
 	public static final int announcements_type_class = 2;// 班级
 	public static final int announcements_type_general = 0;// 默认公开通知
 	public static final int announcements_type_secret = 1;// 机密

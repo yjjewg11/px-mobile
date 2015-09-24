@@ -21,7 +21,7 @@ import com.ucpaas.restDemo.SysConfig;
 import com.ucpaas.restDemo.client.JsonReqClient;
 
 @Service
-public class SmsService extends AbstractServcice {
+public class SmsService extends AbstractService {
 	public static final int SMS_TYPE_USER = 1;// 家长类型
 	@Autowired
 	private UserinfoService userinfoService;

@@ -27,7 +27,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class ClassNewsService extends AbstractServcice {
+public class ClassNewsService extends AbstractService {
 	public static final int USER_type_default = 1;// 0:老师
 	@Autowired
 	private CountService countService;
@@ -141,7 +141,7 @@ public class ClassNewsService extends AbstractServcice {
 		if (StringUtils.isNotBlank(classuuid)){
 			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
 		}else{
-			hql += " and  groupuuid not in ('group_wj1','group_wj2')";
+			hql += " and  groupuuid not in ('group_wj1','group_wj2','group_px1')";
 		}
 	
 		pData.setOrderFiled("create_time");

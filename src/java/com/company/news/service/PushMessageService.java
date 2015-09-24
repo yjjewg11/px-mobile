@@ -14,7 +14,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class PushMessageService extends AbstractServcice {
+public class PushMessageService extends AbstractService {
 	public static final int announcements_isread_yes = 1;// 已读
 	public static final int announcements_isread_no = 0;// 未读
 	public static final int announcements_isdelete_yes = 1;// 已读

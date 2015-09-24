@@ -29,7 +29,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class StudentService extends AbstractServcice {
+public class StudentService extends AbstractService {
 	@Autowired
 	private UserinfoService userinfoService;
 	/**

@@ -12,7 +12,7 @@ import com.company.news.rest.util.TimeUtils;
  * 
  */
 @Service
-public class CountService extends AbstractServcice {
+public class CountService extends AbstractService {
 	// 20150610 去掉对用户表的TYPE定义，默认都为0
 	public static final int count_type_classnews = 1;// 互动类
 

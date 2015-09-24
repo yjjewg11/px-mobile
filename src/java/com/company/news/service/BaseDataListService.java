@@ -18,7 +18,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class BaseDataListService extends AbstractServcice {
+public class BaseDataListService extends AbstractService {
 	public static final int enable_default = 1;// 可用
 
 	/**

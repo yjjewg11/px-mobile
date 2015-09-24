@@ -27,7 +27,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class GroupService extends AbstractServcice {
+public class GroupService extends AbstractService {
 	/**
 	 * 增加机构
 	 * 

@@ -39,7 +39,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class UploadFileService extends AbstractServcice {
+public class UploadFileService extends AbstractService {
 	private static Logger logger = Logger.getLogger(UploadFileService.class);
 
 	private static final String imgFormat = ".png";

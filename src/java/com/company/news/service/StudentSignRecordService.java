@@ -16,7 +16,7 @@ import com.company.news.rest.util.DBUtil;
  * 
  */
 @Service
-public class StudentSignRecordService extends AbstractServcice {
+public class StudentSignRecordService extends AbstractService {
 
 	@Override
 	public Class getEntityClass() {

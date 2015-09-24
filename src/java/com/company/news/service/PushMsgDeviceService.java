@@ -17,7 +17,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class PushMsgDeviceService extends AbstractServcice {
+public class PushMsgDeviceService extends AbstractService {
 
 	/**
 	 * 增加

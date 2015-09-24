@@ -37,7 +37,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public class TeachingPlanService extends AbstractServcice {
+public class TeachingPlanService extends AbstractService {
 
 	/**
 	 * 增加班级

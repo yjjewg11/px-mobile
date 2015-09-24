@@ -26,7 +26,7 @@ import com.company.news.vo.TeacherPhone;
  * 
  */
 @Service
-public class TeachingJudgeService extends AbstractServcice {
+public class TeachingJudgeService extends AbstractService {
 
 	/**
 	 * 增加班级

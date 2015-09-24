@@ -44,7 +44,7 @@ import com.company.web.listener.SessionListener;
  * @author Administrator 家长模块
  */
 @Service
-public class UserinfoService extends AbstractServcice {
+public class UserinfoService extends AbstractService {
 	@Autowired
 	private StudentService studentService;
 
