@@ -66,7 +66,7 @@ public class PxClassService extends AbstractClassService {
 		List l = new ArrayList<PxClass>();
 			l = (List<PxClass>) this.nSimpleHibernateDao
 					.getHibernateTemplate()
-					.find("from PxClass where uuid in(select class_uuid from PxStudentPXClassRelation where student_uuid=?) order by  convert(name, 'gbk') ",
+					.find("from PxClass where uuid in(select class_uuid from PxStudentPXClassRelation where student_uuid=?) ",
 							student_uuid);
 
 		//warpVoList(l);

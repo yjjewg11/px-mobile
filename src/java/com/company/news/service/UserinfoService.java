@@ -423,7 +423,7 @@ public class UserinfoService extends AbstractService {
 	public String getPxClassuuidsByMyChild(String parentuuid) {
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql = "select class_uuid from px_pxstudentpxclassrelation student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+		String sql = "select class_uuid from px_pxstudentpxclassrelation where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
 								+ parentuuid + "' )";
 		Query q = s
 				.createSQLQuery(sql);
