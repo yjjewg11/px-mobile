@@ -70,7 +70,9 @@ public class PxTeachingPlanService extends AbstractService {
 		Date begDate = TimeUtils.string2Timestamp(null, begDateStr);
 
 		Date endDate = TimeUtils.string2Timestamp(null, endDateStr);
-
+		endDate.setHours(23);
+		endDate.setMinutes(59);
+		endDate.setSeconds(59);
 		return (List<PxTeachingplan>) this.nSimpleHibernateDao
 				.getHibernateTemplate()
 				.find("from PxTeachingplan where classuuid=? and plandate<=? and plandate >=?  order by plandate asc",

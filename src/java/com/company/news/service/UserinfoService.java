@@ -93,7 +93,7 @@ public class UserinfoService extends AbstractService {
 		parent.setDisable(SystemConstants.USER_disable_default);
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
-
+		parent.setCount(0l);
 		// 电话保密
 		if (StringUtils.isBlank(parent.getName())) {
 			parent.setName(StringUtils.substring(parent.getLoginname(), 0, 3)
@@ -395,6 +395,40 @@ public class UserinfoService extends AbstractService {
 						StudentOfSession.class);
 
 		return q.list();
+	}
+	
+
+	/**
+	 * 返回孩子在培训机构登记的uuid.
+	 * 
+	 * @return
+	 */
+	public String getPxStudentuuidsByMy(String parentuuid) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql = "";
+		Query q = s
+				.createSQLQuery(
+						"select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+								+ parentuuid + "'");
+		List list=q.list();
+		return StringUtils.join(list, ",");
+	}
+	
+	/**
+	 * 返回孩子在培训机构登记的uuid.
+	 * 
+	 * @return
+	 */
+	public String getPxClassuuidsByMyChild(String parentuuid) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql = "select class_uuid from px_pxstudentpxclassrelation student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+								+ parentuuid + "' )";
+		Query q = s
+				.createSQLQuery(sql);
+		List list=q.list();
+		return StringUtils.join(list, ",");
 	}
 
 	/**

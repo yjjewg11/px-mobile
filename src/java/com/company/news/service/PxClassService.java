@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.entity.PClass;
+import com.company.news.entity.Parent;
 import com.company.news.entity.PxClass;
 import com.company.news.entity.User;
 import com.company.news.entity.UserClassRelation;
@@ -57,22 +58,18 @@ public class PxClassService extends AbstractClassService {
 	}
 
 	/**
-	 * 查询所有班级
+	 * 查询我的孩子参加的班级
 	 * 
 	 * @return
 	 */
-	public List<PxClass> query(String groupuuid) {
+	public List<PxClass> listByStudent(String student_uuid) {
 		List l = new ArrayList<PxClass>();
-		if (StringUtils.isBlank(groupuuid))
-			l = (List<PxClass>) this.nSimpleHibernateDao.getHibernateTemplate()
-					.find("from PxClass", null);
-		else
 			l = (List<PxClass>) this.nSimpleHibernateDao
 					.getHibernateTemplate()
-					.find("from PxClass where groupuuid=? order by  convert(name, 'gbk') ",
-							groupuuid);
+					.find("from PxClass where uuid in(select class_uuid from PxStudentPXClassRelation where student_uuid=?) order by  convert(name, 'gbk') ",
+							student_uuid);
 
-		warpVoList(l);
+		//warpVoList(l);
 		return l;
 	}
 

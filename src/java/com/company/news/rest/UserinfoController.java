@@ -58,9 +58,12 @@ public class UserinfoController extends AbstractRESTController {
 		// 将关联系学生信息放入
 		HttpSession session = SessionListener
 						.getSession((HttpServletRequest) request);
-		List<StudentOfSession> studentOfSessionlist=userinfoService.getStudentOfSessionByParentuuid(this.getUserInfoBySession(request).getUuid());
-		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
 		
+		Parent parent=this.getUserInfoBySession(request);
+		List<StudentOfSession> studentOfSessionlist=userinfoService.getStudentOfSessionByParentuuid(parent.getUuid());
+		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
+		//我的孩子参加的培训班
+		session.setAttribute(RestConstants.Session_MyStudentClassUuids, userinfoService.getPxClassuuidsByMyChild(parent.getUuid()));
 		
 		flag = this.getUserAndStudent(model, request, responseMessage);
 		if (!flag)// 请求服务返回失败标示

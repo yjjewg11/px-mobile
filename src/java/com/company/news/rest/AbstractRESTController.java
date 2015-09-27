@@ -91,6 +91,16 @@ public class AbstractRESTController   {
 		  }
 	  
 	  /**
+	   *  获取session中的值,根据key
+	   * @param request
+	   * @return
+	   */
+	  protected Object  getValueOfSession(HttpServletRequest request,String key){
+		  HttpSession session =SessionListener.getSession(request);
+		    return session.getAttribute(key);
+		  }
+	  
+	  /**
 	   * 获取我的孩子关联班级的uuid
 	   * 
 	   * @param request

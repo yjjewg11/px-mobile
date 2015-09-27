@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PClass;
+import com.company.news.entity.Parent;
 import com.company.news.entity.PxClass;
 import com.company.news.entity.PxStudent;
 import com.company.news.entity.PxStudentPXClassRelation;
@@ -97,21 +98,13 @@ public class PxStudentService extends AbstractStudentService {
 	}
 
 	/**
-	 * 查询所有机构列表
+	 * 查询我的孩子.
 	 * 
 	 * @return
 	 */
-	public List<PxStudent> query(String classuuid, String groupuuid) {
-		String hql = "from PxStudent where 1=1";
-
-		if (StringUtils.isNotBlank(groupuuid))
-			hql += " and  groupuuid in(" + DBUtil.stringsToWhereInValue(groupuuid) + ")";
-		if (StringUtils.isNotBlank(classuuid))
-			hql += " and  uuid in (select student_uuid from PxStudentPXClassRelation where class_uuid in("+DBUtil.stringsToWhereInValue(classuuid)+"))";
-
-		hql += " order by classuuid, convert(name, 'gbk') ";
+	public List<PxStudent> listByMy(	Parent parent) {
+		String hql = "from PxStudent where uuid in(select student_uuid from PxStudentContactRealation where parent_uuid ='"+parent.getUuid()+"')";
 		List list = (List<PxStudent>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
-
 		warpVoList(list);
 
 		return list;

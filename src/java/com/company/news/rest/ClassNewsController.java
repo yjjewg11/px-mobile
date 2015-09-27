@@ -97,7 +97,7 @@ public class ClassNewsController extends AbstractRESTController {
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 
-			PageQueryResult pageQueryResult = classNewsService.query(null,null,
+			PageQueryResult pageQueryResult = classNewsService.query(null,
 					request.getParameter("classuuid"), pData);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list,
 					pageQueryResult);
@@ -131,8 +131,11 @@ public class ClassNewsController extends AbstractRESTController {
 			String classuuids=request.getParameter("classuuid");
 			if(StringUtils.isBlank(classuuids)){
 				classuuids=this.getMyChildrenClassuuidsBySession(request);
+				String pxclassuuids=(String)this.getValueOfSession(request,RestConstants.Session_MyStudentClassUuids);
+				classuuids+=","+pxclassuuids;
+				
 			}
-			PageQueryResult pageQueryResult = classNewsService.query(user,"myByParent",
+			PageQueryResult pageQueryResult = classNewsService.query(user,
 					classuuids, pData);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list,
 					pageQueryResult);
