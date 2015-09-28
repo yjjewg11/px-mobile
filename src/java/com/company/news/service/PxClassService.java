@@ -3,24 +3,17 @@ package com.company.news.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
 
-import com.company.news.SystemConstants;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.PxClass;
+import com.company.news.entity.PxStudentPXClassRelation;
 import com.company.news.entity.User;
-import com.company.news.entity.UserClassRelation;
-import com.company.news.jsonform.PxClassRegJsonform;
-import com.company.news.rest.util.TimeUtils;
-import com.company.news.right.RightConstants;
-import com.company.news.right.RightUtils;
-import com.company.news.vo.ResponseMessage;
+import com.company.news.rest.util.DBUtil;
 
 /**
  * 
@@ -71,6 +64,44 @@ public class PxClassService extends AbstractClassService {
 
 		//warpVoList(l);
 		return l;
+	}
+	
+
+	/**
+	 * 查询我的孩子参加的班级
+	 * 
+	 * @return
+	 */
+	public List<PxClass> listByuuids(String uuids) {
+		List l = new ArrayList<PxClass>();
+			l = (List<PxClass>) this.nSimpleHibernateDao
+					.getHibernateTemplate()
+					.find("from PxClass where uuid in("+DBUtil.stringsToWhereInValue(uuids)+") ");
+		return l;
+	}
+	/**
+	 * 查询我的孩子参加的班级关联列表
+	 * 
+	 * @return
+	 */
+	public List listPxStudentPXClassRelationByStudent(Parent parent) {
+		
+		
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql = "select student_uuid,class_uuid from px_pxstudentpxclassrelation where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+								+ parent.getUuid() + "' ) order by student_uuid";
+		Query q = s
+				.createSQLQuery(sql);
+		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		List list=q.list();
+//		
+//		List	l = (List<PxStudentPXClassRelation>) this.nSimpleHibernateDao
+//					.getHibernateTemplate()
+//					.find("from PxStudentPXClassRelation where student_uuid  in (select student_uuid from PxStudentContactRealation where parent_uuid ='"+parent.getUuid()+"') order by student_uuid");
+
+		//warpVoList(l);
+		return list;
 	}
 
 	/**

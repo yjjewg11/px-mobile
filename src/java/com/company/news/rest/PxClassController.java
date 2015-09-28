@@ -54,6 +54,33 @@ public class PxClassController extends AbstractRESTController {
 	}
 
 	
+
+	/**
+	 * 查询班级列表,根据uuid
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/listByuuids", method = RequestMethod.GET)
+	public String listByuuids(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		
+		String uuids=request.getParameter("uuids");
+		if(StringUtils.isBlank(uuids)){//查询全部班级时,只有管理员可以.
+				responseMessage.setMessage("uuids 不能为空!");
+				return "";
+		}
+		List<PxClass> list = pxClassService.listByuuids(uuids);
+
+		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+
+	
 	/**
 	 * 获取班级信息
 	 * 

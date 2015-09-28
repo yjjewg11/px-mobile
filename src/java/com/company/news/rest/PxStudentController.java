@@ -23,7 +23,9 @@ import com.company.news.vo.ResponseMessage;
 public class PxStudentController extends AbstractRESTController {
 	@Autowired
 	private PxStudentService pxStudentService;
-	
+
+	@Autowired
+	private PxClassService pxClassService;
 	/**
 	 * 获取我的孩子列表
 	 * 
@@ -40,7 +42,9 @@ public class PxStudentController extends AbstractRESTController {
 		Parent parent=this.getUserInfoBySession(request);
 		
 		List<PxStudent> list = pxStudentService.listByMy(parent);
+		List list1= pxClassService.listPxStudentPXClassRelationByStudent(parent);
 		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		model.addAttribute("class_list", list1);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}

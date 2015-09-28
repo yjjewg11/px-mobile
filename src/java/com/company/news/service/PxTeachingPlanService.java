@@ -58,17 +58,24 @@ public class PxTeachingPlanService extends AbstractService {
 		if (StringUtils.isBlank(classuuid)) {
 			return null;
 		}
-
-		if (StringUtils.isBlank(begDateStr)) {
-			return null;
+		//查询一个班级所有课程
+		if (StringUtils.isBlank(begDateStr)&&StringUtils.isBlank(endDateStr)) {
+			return (List<PxTeachingplan>) this.nSimpleHibernateDao
+					.getHibernateTemplate()
+					.find("from PxTeachingplan where classuuid=?  order by plandate asc",
+							classuuid);
 		}
-
-		if (StringUtils.isBlank(endDateStr)) {
-			return null;
-		}
-
+		//查询一个班级一个日期后的所有课程
 		Date begDate = TimeUtils.string2Timestamp(null, begDateStr);
+		if (StringUtils.isBlank(endDateStr)) {
+			return (List<PxTeachingplan>) this.nSimpleHibernateDao
+					.getHibernateTemplate()
+					.find("from PxTeachingplan where classuuid=? and plandate<=?   order by plandate asc",
+							classuuid, begDate);
+		}
 
+	
+		//查询一段时间的所有课程
 		Date endDate = TimeUtils.string2Timestamp(null, endDateStr);
 		endDate.setHours(23);
 		endDate.setMinutes(59);
