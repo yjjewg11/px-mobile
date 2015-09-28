@@ -576,12 +576,15 @@ public class UserinfoService extends AbstractService {
 	 * @return
 	 */
 	public List getTeacherPhoneList(String class_uuids) {
-
+		List list = new ArrayList();
+		if(StringUtils.isBlank(class_uuids)){
+			return list;
+		}
 		String hql = "from User4Q where uuid in (select useruuid from UserClassRelation where classuuid in("
 				+ DBUtil.stringsToWhereInValue(class_uuids) + "))";
 		List<User4Q> userList = (List<User4Q>) this.nSimpleHibernateDao
 				.getHibernateTemplate().find(hql, null);
-		List list = new ArrayList();
+		
 		for (User4Q user : userList) {
 			TeacherPhone teacherPhone = new TeacherPhone();
 			teacherPhone.setType(SystemConstants.TeacherPhone_type_1);

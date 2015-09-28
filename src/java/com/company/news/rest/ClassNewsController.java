@@ -133,7 +133,7 @@ public class ClassNewsController extends AbstractRESTController {
 				classuuids=this.getMyChildrenClassuuidsBySession(request);
 				String pxclassuuids=(String)this.getValueOfSession(request,RestConstants.Session_MyStudentClassUuids);
 				classuuids+=","+pxclassuuids;
-				
+				classuuids=PxStringUtil.StringDecComma(classuuids);
 			}
 			PageQueryResult pageQueryResult = classNewsService.query(user,
 					classuuids, pData);

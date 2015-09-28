@@ -138,7 +138,7 @@ public class ClassNewsService extends AbstractService {
 	 */
 	public PageQueryResult query(Parent user ,String classuuid, PaginationData pData) {
 		String hql = "from ClassNews where status=0 ";
-		if (StringUtils.isNotBlank(classuuid)){
+		if (StringUtils.isNotEmpty(classuuid)){
 			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
 		}else{
 			hql += " and  groupuuid not in ('group_wj1','group_wj2','group_px1')";
