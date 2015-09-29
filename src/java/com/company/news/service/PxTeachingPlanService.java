@@ -1,41 +1,13 @@
 package com.company.news.service;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.company.news.SystemConstants;
-import com.company.news.cache.CommonsCache;
-import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.Cookbook;
-import com.company.news.entity.CookbookPlan;
-import com.company.news.entity.Group;
-import com.company.news.entity.PClass;
-import com.company.news.entity.PxClass;
 import com.company.news.entity.PxTeachingplan;
-import com.company.news.entity.Right;
-import com.company.news.entity.Teachingplan;
 import com.company.news.entity.User;
-import com.company.news.entity.UserClassRelation;
-import com.company.news.entity.UserGroupRelation;
-import com.company.news.jsonform.ClassRegJsonform;
-import com.company.news.jsonform.CookbookPlanJsonform;
-import com.company.news.jsonform.GroupRegJsonform;
-import com.company.news.jsonform.PxClassRegJsonform;
-import com.company.news.jsonform.PxTeachingPlanJsonform;
-import com.company.news.jsonform.TeachingPlanJsonform;
-import com.company.news.rest.util.TimeUtils;
-import com.company.news.right.RightConstants;
-import com.company.news.right.RightUtils;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -53,37 +25,26 @@ public class PxTeachingPlanService extends AbstractService {
 	 * 
 	 * @return
 	 */
-	public List<PxTeachingplan> query(String begDateStr, String endDateStr,
-			String classuuid) {
+	public PageQueryResult query(String begDateStr, String endDateStr,
+			String classuuid,PaginationData pData) {
 		if (StringUtils.isBlank(classuuid)) {
 			return null;
 		}
-		//查询一个班级所有课程
-		if (StringUtils.isBlank(begDateStr)&&StringUtils.isBlank(endDateStr)) {
-			return (List<PxTeachingplan>) this.nSimpleHibernateDao
-					.getHibernateTemplate()
-					.find("from PxTeachingplan where classuuid=?  order by plandate asc",
-							classuuid);
+		String hql="from PxTeachingplan where classuuid='"+classuuid+"' ";
+		if (StringUtils.isNotBlank(begDateStr)) {
+			hql+=" and  plandate>="+DBUtil.stringToDateByDBType(begDateStr);
 		}
-		//查询一个班级一个日期后的所有课程
-		Date begDate = TimeUtils.string2Timestamp(null, begDateStr);
-		if (StringUtils.isBlank(endDateStr)) {
-			return (List<PxTeachingplan>) this.nSimpleHibernateDao
-					.getHibernateTemplate()
-					.find("from PxTeachingplan where classuuid=? and plandate<=?   order by plandate asc",
-							classuuid, begDate);
+		if (StringUtils.isNotBlank(endDateStr)) {
+			endDateStr=endDateStr.split(" ")[0]+" 23:59:59";
+			hql+=" and  plandate<="+DBUtil.stringToDateByDBType(endDateStr);
 		}
-
-	
-		//查询一段时间的所有课程
-		Date endDate = TimeUtils.string2Timestamp(null, endDateStr);
-		endDate.setHours(23);
-		endDate.setMinutes(59);
-		endDate.setSeconds(59);
-		return (List<PxTeachingplan>) this.nSimpleHibernateDao
-				.getHibernateTemplate()
-				.find("from PxTeachingplan where classuuid=? and plandate<=? and plandate >=?  order by plandate asc",
-						classuuid, endDate, begDate);
+		pData.setOrderFiled("plandate");
+		pData.setOrderType(PaginationData.SORT_ASC);
+		
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+		
+		
+		return pageQueryResult;
 	}
 
 	/**

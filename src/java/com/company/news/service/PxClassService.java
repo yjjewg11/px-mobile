@@ -89,8 +89,8 @@ public class PxClassService extends AbstractClassService {
 		
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql = "select student_uuid,class_uuid from px_pxstudentpxclassrelation where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
-								+ parent.getUuid() + "' ) order by student_uuid";
+		String sql = "select t0.student_uuid,t0.class_uuid,t1.name as class_name from px_pxstudentpxclassrelation t0 inner join px_pxclass t1 on t0.class_uuid=t1.uuid  where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+								+ parent.getUuid() + "' ) order by t0.student_uuid";
 		Query q = s
 				.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);

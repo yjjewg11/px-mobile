@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.entity.PxTeachingplan;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.PxTeachingPlanService;
 import com.company.news.vo.ResponseMessage;
@@ -35,11 +37,14 @@ public class PxTeachingPlanController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 
-		List<PxTeachingplan> list = pxTeachingPlanService.query(
+		
+		PaginationData pData = this.getPaginationDataByRequest(request);
+		
+		PageQueryResult pageQueryResult = pxTeachingPlanService.query(
 				request.getParameter("begDateStr"),
 				request.getParameter("endDateStr"),
-				request.getParameter("classuuid"));
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+				request.getParameter("classuuid"),pData);
+		model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
