@@ -43,7 +43,7 @@ public class PxTeachingPlanController extends AbstractRESTController {
 		PageQueryResult pageQueryResult = pxTeachingPlanService.query(
 				request.getParameter("begDateStr"),
 				request.getParameter("endDateStr"),
-				request.getParameter("classuuid"),pData);
+				request.getParameter("classuuid"),pData,this.getUserInfoBySession(request).getUuid());
 		model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

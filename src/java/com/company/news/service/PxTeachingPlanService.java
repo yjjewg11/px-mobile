@@ -1,9 +1,14 @@
 package com.company.news.service;
 
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
 import com.company.news.entity.PxTeachingplan;
+import com.company.news.entity.Teachingplan;
 import com.company.news.entity.User;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -26,7 +31,7 @@ public class PxTeachingPlanService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult query(String begDateStr, String endDateStr,
-			String classuuid,PaginationData pData) {
+			String classuuid,PaginationData pData,String cur_user_uuid) {
 		if (StringUtils.isBlank(classuuid)) {
 			return null;
 		}
@@ -43,10 +48,41 @@ public class PxTeachingPlanService extends AbstractService {
 		
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
 		
-		
+
+		this.warpVoList(pageQueryResult.getData(), cur_user_uuid);
 		return pageQueryResult;
 	}
-
+	 @Autowired
+     private CountService countService ;
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private PxTeachingplan warpVo(PxTeachingplan o,String cur_user_uuid){
+		if(o==null)return null;
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		try {
+			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_jiaoxuejihua));
+			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List<PxTeachingplan> warpVoList(List<PxTeachingplan> list,String cur_user_uuid){
+		for(PxTeachingplan o:list){
+			warpVo(o,cur_user_uuid);
+		}
+		return list;
+	}
 	/**
 	 * 
 	 * @param uuid
