@@ -18,6 +18,9 @@ import com.company.news.entity.Message;
 import com.company.news.entity.User;
 import com.company.news.entity.UserGroupRelation;
 import com.company.news.jsonform.GroupRegJsonform;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
@@ -169,7 +172,7 @@ public class GroupService extends AbstractService {
 	}
 	
 	/**
-	 * 查询所有机构列表
+	 * 查询所有培训机构列表
 	 * @return
 	 */
 	public Group get(String uuid){
@@ -236,9 +239,17 @@ public class GroupService extends AbstractService {
 	@Override
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
-		return User.class;
+		return null;
 	}
-	
+
+	public PageQueryResult pxlistByPage( PaginationData pData) {
+		String hql = "from Group4Q where type="+SystemConstants.Group_type_2+" and status=9";
+		hql += " order by create_time asc";
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+		this.warpVoList(pageQueryResult.getData());
+		return pageQueryResult;
+	}
 	/**
 	 * vo输出转换
 	 * @param list
@@ -275,4 +286,6 @@ public class GroupService extends AbstractService {
 		}
 		return list;
 	}
+	
+	
 }

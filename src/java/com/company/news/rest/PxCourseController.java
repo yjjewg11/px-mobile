@@ -1,10 +1,7 @@
 package com.company.news.rest;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -13,15 +10,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.entity.PxCourse;
-import com.company.news.entity.User;
-import com.company.news.jsonform.PxCourseJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
-import com.company.news.right.RightUtils;
 import com.company.news.service.PxCourseService;
 import com.company.news.vo.ResponseMessage;
 
+/**
+ * 培训机构对外发布课程
+ * @author Administrator
+ *
+ */
 @Controller
 @RequestMapping(value = "/pxCourse")
 public class PxCourseController extends AbstractRESTController {
@@ -32,31 +31,20 @@ public class PxCourseController extends AbstractRESTController {
 	
 
 	/**
-	 * 获取班级信息
+	 * 获取培训机构对外发布课程列表分页
 	 * 
 	 * @param model
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/list", method = RequestMethod.GET)
-	public String list(ModelMap model, HttpServletRequest request) {
+	@RequestMapping(value = "/queryByPage", method = RequestMethod.GET)
+	public String queryByPage(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
-			pData.setPageSize(50);
+//			pData.setPageSize(50);
 			String groupuuid = request.getParameter("groupuuid");
-			String name = request.getParameter("name");
-			if (StringUtils.isEmpty(groupuuid)){// 查询所有用户
-				if(!RightUtils.isAdmin(request)){//不是管理员,只能查询当前用户的学校.
-					//groupuuid=this.getMyGroupUuidsBySession(request);
-					if (StringUtils.isEmpty(groupuuid)){
-						responseMessage.setMessage("非法用户,没有关联的学校!");
-						return "";
-					}
-				}
-			
-			}
 			PageQueryResult list = pxCourseService.queryByPage(groupuuid,pData);
 
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
@@ -75,7 +63,13 @@ public class PxCourseController extends AbstractRESTController {
 	}
 	
 
-
+/**
+ * 获取培训机构对外发布课程详细
+ * @param uuid
+ * @param model
+ * @param request
+ * @return
+ */
 	@RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
 	public String get(@PathVariable String uuid, ModelMap model,
 			HttpServletRequest request) {

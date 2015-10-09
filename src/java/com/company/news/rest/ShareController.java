@@ -64,7 +64,7 @@ public class ShareController extends AbstractRESTController {
 	 
 	 @Autowired
      private GroupService groupService;
-
+	
 		/**
 		 * 获取表情列表(url)
 		 * @param model
@@ -143,7 +143,7 @@ public class ShareController extends AbstractRESTController {
 	 * @return
 	 */
 	@RequestMapping(value = "/articleList", method = RequestMethod.GET)
-	public String list(ModelMap model, HttpServletRequest request) {
+	public String articleList(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
@@ -507,7 +507,7 @@ public class ShareController extends AbstractRESTController {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 //			String uuid_not_in=SystemConstants.Group_uuid_wjd+",group_wj1,group_wj2";
 //			String hql = "from Group4Q where type=1 and status=9 and uuid not in("+DBUtil.stringsToWhereInValue(uuid_not_in)+")";
-			String hql = "from Group4Q where type=1 and status=9";
+			String hql = "from Group4Q where type="+SystemConstants.Group_type_1+" and status=9";
 			
 			hql += " order by create_time asc";
 			PageQueryResult pageQueryResult = this.nSimpleHibernateDao
@@ -523,5 +523,72 @@ public class ShareController extends AbstractRESTController {
 		}
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "/allKDGroupList";
+	}
+	
+	/**
+	 * 获取所有幼儿园列表
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/allPxGroupList", method = RequestMethod.GET)
+	public String allPxGroupList(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+//			String uuid_not_in=SystemConstants.Group_uuid_wjd+",group_wj1,group_wj2";
+//			String hql = "from Group4Q where type=1 and status=9 and uuid not in("+DBUtil.stringsToWhereInValue(uuid_not_in)+")";
+			String hql = "from Group4Q where type="+SystemConstants.Group_type_2+" and status=9";
+			hql += " order by create_time asc";
+			PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+					.findByPaginationToHql(hql, pData);
+			groupService.warpVoList(pageQueryResult.getData());
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "/404";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "/allKDGroupList";
+	}
+	
+	 /**
+	 * 获取培训课程分类(用于培训对外发布课程分类）
+	 *	/share/getCourseType.json
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getCourseType", method = RequestMethod.GET)
+	public String getCourseType(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			List<BaseDataList> list= (List<BaseDataList>) this.nSimpleHibernateDao
+					.getHibernateTemplate().find(
+							"from BaseDataList where typeuuid='course_type' and enable=1 order by datakey asc");
+			this.nSimpleHibernateDao
+			.getHibernateTemplate().clear();
+			String share_url_course_type=ProjectProperties.getProperty("share_url_course_type", "http://img.wenjienet.com/i/course_type/");
+			for(BaseDataList o:list){
+				//o.getDescription()=laugh.gif
+				o.setDescription(share_url_course_type+o.getDescription());
+			}
+			
+			model.addAttribute(RestConstants.Return_ResponseMessage_list,list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
 	}
 }
