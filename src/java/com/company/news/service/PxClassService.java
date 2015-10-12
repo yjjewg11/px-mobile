@@ -12,9 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.common.PxStringUtils;
+import com.company.news.cache.CommonsCache;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.PxClass;
+import com.company.news.entity.PxStudent;
 import com.company.news.entity.PxStudentPXClassRelation;
 import com.company.news.entity.User;
 import com.company.news.rest.util.DBUtil;
@@ -93,7 +95,7 @@ public class PxClassService extends AbstractClassService {
 
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql = "select t0.class_uuid,t1.name,t1.isdisable,t1.disable_time,t3.uuid as groupuuid,t3.brand_name as brand_name "
+		String sql = "select t0.student_uuid,t0.class_uuid,t1.name,t1.isdisable,t1.disable_time,t3.uuid as groupuuid,t3.brand_name as brand_name "
 				+ "from px_pxstudentpxclassrelation t0 "
 				+ "inner join px_pxclass t1 on t0.class_uuid=t1.uuid "
 				+ "inner join px_group t3 on t1.groupuuid=t3.uuid  "
@@ -106,7 +108,12 @@ public class PxClassService extends AbstractClassService {
 		
 		String classuuids="";
 		for(Map m:list)
+		{
 			classuuids+=("'"+m.get("class_uuid")+"',");
+			//增加学生姓名
+			PxStudent pxStudent=(PxStudent) CommonsCache.get((String) m.get("student_uuid"), PxStudent.class);
+			m.put("student_name",pxStudent.getName());
+		}
 		
 		Map<String, Date> plandateMap=pxTeachingPlanService.getMinPlandateByClassuuids(PxStringUtils.StringDecComma(classuuids));
 		//组合返回最近培训时间
