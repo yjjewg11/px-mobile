@@ -16,6 +16,7 @@ import com.company.news.entity.ClassNewsReply;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.vo.DianzanListVO;
+import com.company.news.vo.ResponseMessage;
 
 public abstract class AbstractService {
   public static final String ID_SPLIT_MARK = ",";
@@ -148,6 +149,43 @@ public abstract class AbstractService {
 			return true;
 
 	}
+	
+	/**
+	 * 
+	 * @param s 检验的字符串
+	 * @param length 允许的最大长度
+	 * @param columnname 错误时提示的字段名
+	 * @return
+	 */
+	protected boolean validateRequireAndLengthByRegJsonform(Object s,int length,String columnname,ResponseMessage responseMessage){
+		if(s==null)
+			return true;
+		
+		if (StringUtils.isBlank(s.toString()) || s.toString().length() > length) {
+			responseMessage.setMessage(columnname+"不能为空！，且长度不能超过"+length+"位！");
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 
+	 * @param s 检验的字符串
+	 * @param length 允许的最大长度
+	 * @param columnname 错误时提示的字段名
+	 * @return
+	 */
+	protected boolean validateRequireByRegJsonform(Object s,String columnname,ResponseMessage responseMessage){
+		if(s==null)
+			return true;
+		
+		if (StringUtils.isBlank(s.toString())) {
+			responseMessage.setMessage(columnname+"不能为空！");
+			return true;
+		}
+		return false;
+	}
+
 	
 
 }

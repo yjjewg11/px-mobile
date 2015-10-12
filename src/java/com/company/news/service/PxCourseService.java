@@ -114,6 +114,10 @@ public class PxCourseService extends AbstractService {
 		{
 			Group group=(Group) CommonsCache.get(pxCourse4Q.getGroupuuid(), Group.class);
 			pxCourse4Q.setGroup(group);
+			
+			//当课程LOGO为空时，取机构的LOGO
+			if(StringUtils.isBlank(pxCourse4Q.getLogo()))
+				pxCourse4Q.setLogo(group.getImg());
 		
 			//当前坐标点参数不为空时，进行距离计算
 			if(StringUtils.isNotBlank(point))
