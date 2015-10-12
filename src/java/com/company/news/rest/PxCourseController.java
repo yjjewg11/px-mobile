@@ -45,7 +45,8 @@ public class PxCourseController extends AbstractRESTController {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 //			pData.setPageSize(50);
 			String groupuuid = request.getParameter("groupuuid");
-			PageQueryResult list = pxCourseService.queryByPage(groupuuid,pData);
+			String mappoint = request.getParameter("mappoint");
+			PageQueryResult list = pxCourseService.queryByPage(groupuuid,pData,mappoint);
 
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

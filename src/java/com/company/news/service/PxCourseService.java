@@ -7,7 +7,11 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.DistanceUtil;
+import com.company.news.entity.Group;
 import com.company.news.entity.PxCourse;
+import com.company.news.entity.PxCourse4Q;
 import com.company.news.entity.User;
 import com.company.news.jsonform.PxCourseJsonform;
 import com.company.news.query.PageQueryResult;
@@ -90,7 +94,14 @@ public class PxCourseService extends AbstractService {
 	}
 
 
-	public PageQueryResult queryByPage(String groupuuid, PaginationData pData) {
+	/**
+	 * 
+	 * @param groupuuid
+	 * @param pData
+	 * @param point
+	 * @return
+	 */
+	public PageQueryResult queryByPage(String groupuuid, PaginationData pData,String point) {
 		String hql = "from PxCourse4Q  where  status=0 ";
 		if(StringUtils.isNotBlank(groupuuid)){
 			hql+=" and groupuuid in(" + DBUtil.stringsToWhereInValue(groupuuid) + ")";
@@ -98,6 +109,17 @@ public class PxCourseService extends AbstractService {
 		hql += " order by updatetime desc ";
 
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+		List<PxCourse4Q> list=pageQueryResult.getData();
+		for(PxCourse4Q pxCourse4Q:list)
+		{
+			Group group=(Group) CommonsCache.get(pxCourse4Q.getGroupuuid(), Group.class);
+			pxCourse4Q.setGroup(group);
+		
+			//当前坐标点参数不为空时，进行距离计算
+			if(StringUtils.isNotBlank(point))
+				pxCourse4Q.setDistance(DistanceUtil.getDistance(point, group.getMap_point()));
+		}
+		
 		return pageQueryResult;
 	}
 
