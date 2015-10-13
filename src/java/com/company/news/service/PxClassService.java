@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
@@ -109,16 +110,21 @@ public class PxClassService extends AbstractClassService {
 		String classuuids="";
 		for(Map m:list)
 		{
+			//只查询当前正在学习中的
+			if(!(m.get("isdisable")!=null&&m.get("isdisable").toString().equals("1")))
 			classuuids+=("'"+m.get("class_uuid")+"',");
 			//增加学生姓名
 			PxStudent pxStudent=(PxStudent) CommonsCache.get((String) m.get("student_uuid"), PxStudent.class);
 			m.put("student_name",pxStudent.getName());
 		}
 		
+		if(StringUtils.isNotBlank(classuuids))
+		{
 		Map<String, Date> plandateMap=pxTeachingPlanService.getMinPlandateByClassuuids(PxStringUtils.StringDecComma(classuuids));
 		//组合返回最近培训时间
 		for(Map m:list)
 			m.put("plandate", plandateMap.get(m.get("class_uuid")));
+		}
 		
 		//
 		// List l = (List<PxStudentPXClassRelation>) this.nSimpleHibernateDao
