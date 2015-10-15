@@ -38,15 +38,24 @@ public class PxTeachingPlanController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 
 		
-		PaginationData pData = this.getPaginationDataByRequest(request);
-		
-		PageQueryResult pageQueryResult = pxTeachingPlanService.query(
-				request.getParameter("begDateStr"),
-				request.getParameter("endDateStr"),
-				request.getParameter("classuuid"),pData,this.getUserInfoBySession(request).getUuid());
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+			
+			PageQueryResult pageQueryResult = pxTeachingPlanService.query(
+					request.getParameter("begDateStr"),
+					request.getParameter("endDateStr"),
+					request.getParameter("classuuid"),pData,this.getUserInfoBySession(request).getUuid());
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 
-		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+			.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
 		return "";
 	}
 
@@ -91,6 +100,38 @@ public class PxTeachingPlanController extends AbstractRESTController {
 
 		model.addAttribute(RestConstants.Return_G_entity, t);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+	
+
+	/**
+	 * 根据当前时间显示下一次课表的时间。
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/nextList", method = RequestMethod.GET)
+	public String nextList(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+
+		
+		try {
+			
+			List list = pxTeachingPlanService.nextList(this.getUserInfoBySession(request).getUuid());
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+			.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
 		return "";
 	}
 

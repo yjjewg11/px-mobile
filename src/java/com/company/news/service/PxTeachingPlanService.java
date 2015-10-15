@@ -8,10 +8,12 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxTeachingplan;
 import com.company.news.entity.Teachingplan;
 import com.company.news.entity.User;
@@ -162,6 +164,51 @@ public class PxTeachingPlanService extends AbstractService {
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
 		return User.class;
+	}
+
+	/**
+	 * 根据当前时间显示下一次课表的时间。
+	 * @param parentuuid
+	 * @return
+SELECT * from (
+SELECT t1.classuuid,t1.uuid,t1.plandate,t1.name,t1.address,t1.readyfor,t4.headimg as student_headimg,t5.brand_name as group_name,t2.name as class_name
+FROM
+px_pxteachingplan t1 
+LEFT JOIN  px_pxclass t2 on t1.classuuid=t2.uuid 
+LEFT JOIN  px_pxstudentpxclassrelation t3 on t3.class_uuid=t2.uuid
+LEFT JOIN  px_pxstudent t4 on t3.student_uuid=t4.uuid
+LEFT JOIN  px_group t5 on t2.groupuuid=t5.uuid 
+ where  t1.plandate>=curdate() 
+and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='' )
+order by t1.plandate asc
+) t GROUP BY t.classuuid
+
+
+	 */
+	public List nextList(String parentuuid) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql = " SELECT * from (";
+		sql+=" SELECT t1.classuuid,t1.uuid,t1.plandate,t1.name,t1.address,t1.readyfor,t4.headimg as student_headimg,t5.brand_name as group_name,t2.name as class_name";
+		sql+=" FROM px_pxteachingplan t1 ";
+		sql+=" LEFT JOIN  px_pxclass t2 on t1.classuuid=t2.uuid ";
+		sql+=" LEFT JOIN  px_pxstudentpxclassrelation t3 on t3.class_uuid=t2.uuid";
+		sql+=" LEFT JOIN  px_pxstudent t4 on t3.student_uuid=t4.uuid";
+		sql+=" LEFT JOIN  px_group t5 on t2.groupuuid=t5.uuid ";
+		sql+=" where  t1.plandate>=curdate() ";
+		sql+=" and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"+parentuuid+"' )";
+		sql+=" order by t1.plandate asc";
+		sql+=" ) t GROUP BY t.classuuid";
+		sql+="";
+		Query q = s.createSQLQuery(sql);
+		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		List<Map> list = q.list();
+		for(Map m:list)
+		{
+			String student_headimg=(String)m.get("student_headimg");
+			m.put("student_headimg", PxStringUtil.imgSmallUrlByUuid(student_headimg));
+		}
+		return list;
 	}
 
 }
