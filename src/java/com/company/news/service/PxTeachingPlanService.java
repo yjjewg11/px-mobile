@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxTeachingplan;
-import com.company.news.entity.Teachingplan;
 import com.company.news.entity.User;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -57,6 +56,23 @@ public class PxTeachingPlanService extends AbstractService {
 
 		this.warpVoList(pageQueryResult.getData(), cur_user_uuid);
 		return pageQueryResult;
+	}
+	/**
+	 * 查询一个班级所有课程
+	 * 
+	 * @return
+	 */
+	public PageQueryResult listAllByclassuuid(
+			String classuuid,PaginationData pData) {
+		if (StringUtils.isBlank(classuuid)) {
+			return null;
+		}
+		String hql = "from PxTeachingplan where classuuid='" + classuuid + "' order by  plandate  asc";
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+
+		return pageQueryResult;
+
 	}
 
 	@Autowired
@@ -147,8 +163,8 @@ public class PxTeachingPlanService extends AbstractService {
 		Map<String, Date> map=new HashMap();
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql = "SELECT MIN(plandate),classuuid FROM pxdb.px_pxteachingplan"
-				+ " where classuuid in(" + classuuids + ") and plandate>now() group by classuuid";
+		String sql = "SELECT MIN(plandate),classuuid FROM px_pxteachingplan"
+				+ " where classuuid in(" + classuuids + ") and plandate>=curdate() group by classuuid";
 		Query q = s.createSQLQuery(sql);
 		List<Object[]> list = q.list();
 
@@ -185,7 +201,7 @@ order by t1.plandate asc
 
 
 	 */
-	public List nextList(String parentuuid) {
+	public List nextList(String cur_user_uuid) {
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
 		String sql = " SELECT * from (";
@@ -196,17 +212,57 @@ order by t1.plandate asc
 		sql+=" LEFT JOIN  px_pxstudent t4 on t3.student_uuid=t4.uuid";
 		sql+=" LEFT JOIN  px_group t5 on t2.groupuuid=t5.uuid ";
 		sql+=" where  t1.plandate>=curdate() ";
-		sql+=" and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"+parentuuid+"' )";
+//		sql+=" and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"+cur_user_uuid+"' )";
 		sql+=" order by t1.plandate asc";
 		sql+=" ) t GROUP BY t.classuuid";
 		sql+="";
 		Query q = s.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		List<Map> list = q.list();
-		for(Map m:list)
-		{
-			String student_headimg=(String)m.get("student_headimg");
-			m.put("student_headimg", PxStringUtil.imgSmallUrlByUuid(student_headimg));
+		warpVoList_Map(list,cur_user_uuid);
+		return list;
+	}
+	
+	
+	/**
+	 * vo输出转换
+	 * 
+	 * @param list
+	 * @return
+	 */
+	private Map warpVo_Map(Map
+		o, String cur_user_uuid) {
+		if (o == null)
+			return null;
+		//this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		try {
+		
+			String student_headimg=(String)o.get("student_headimg");
+			o.put("student_headimg", PxStringUtil.imgSmallUrlByUuid(student_headimg));
+			
+			
+			o.put("count",countService.count((String)o.get("uuid"),
+					SystemConstants.common_type_pxteachingPlan));
+			o.put("dianzan", this.getDianzanDianzanListVO((String)o.get("uuid"),
+					cur_user_uuid));
+			o.put("replyPage", this.getReplyPageList((String)o.get("uuid")));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
+
+	/**
+	 * vo输出转换
+	 * 
+	 * @param list
+	 * @return
+	 */
+	private List<Map> warpVoList_Map(List<Map> list,
+			String cur_user_uuid) {
+		for (Map o : list) {
+			warpVo_Map(o, cur_user_uuid);
 		}
 		return list;
 	}

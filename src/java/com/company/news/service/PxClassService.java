@@ -13,13 +13,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.common.PxStringUtils;
+import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.DistanceUtil;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.PxClass;
 import com.company.news.entity.PxStudent;
 import com.company.news.entity.PxStudentPXClassRelation;
 import com.company.news.entity.User;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 
 /**
@@ -148,6 +153,72 @@ public class PxClassService extends AbstractClassService {
 						useruuid);
 		warpVoList(l);
 		return l;
+	}
+	
+	
+
+	/**
+	 * 
+	 * @param groupuuid
+	 * @param pData
+	 * @param point
+	 * @return
+	 */
+	public PageQueryResult listMyChildClassByPage(String cur_user_uuid,PaginationData pData,String isdisable) {
+//		String hql = "from PxCourse4Q  where  status=0 ";
+//		if(StringUtils.isNotBlank(groupuuid)){
+//			hql+=" and groupuuid in(" + DBUtil.stringsToWhereInValue(groupuuid) + ")";
+//		}
+//		hql += " order by updatetime desc ";
+//
+//		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+//		List<PxCourse4Q> list=pageQueryResult.getData();
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+		.getSessionFactory().openSession();
+String sql = "select t1.uuid,t2.logo,t3.img as group_img,t2.title as course_title,t4.name as student_name,t1.name as class_name,t3.brand_name as group_name"
+		+ " from px_pxstudentpxclassrelation t0 "
+		+ " inner join px_pxclass t1 on t0.class_uuid=t1.uuid "
+		+ " inner join px_pxcourse t2 on t1.courseuuid=t2.uuid  "
+		+ " inner join px_group t3 on t1.groupuuid=t3.uuid  "
+		+ " inner join px_pxstudent t4 on t0.student_uuid=t4.uuid  "
+		+ " where student_uuid  in( "
+		+ " select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+		+ cur_user_uuid + "' ) ";
+	if(StringUtils.isNotBlank(isdisable)){
+		sql+=" and t1.isdisable ="+isdisable;
+	}
+	
+Query q = s.createSQLQuery(sql);
+q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		
+		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
+		List<Map> list=pageQueryResult.getData();
+		String classuuids="";
+		if(SystemConstants.Class_isdisable_0.toString().equals(isdisable)){
+			for(Map m:list)
+			{
+				//只查询当前正在学习中的
+				classuuids+=("'"+m.get("uuid")+"',");
+			}
+		}
+	
+		Map<String, Date> plandateMap=null;
+		if(StringUtils.isNotBlank(classuuids))
+		{
+		 plandateMap=pxTeachingPlanService.getMinPlandateByClassuuids(PxStringUtils.StringDecComma(classuuids));
+		
+		}
+		for(Map map:list)
+		{
+			//当课程LOGO为空时，取机构的LOGO
+			if(StringUtils.isBlank((String)map.get("logo")))
+				map.put("logo", map.get("group_img"));
+			map.put("logo", PxStringUtil.imgSmallUrlByUuid((String)map.get("logo")));
+			
+			if(plandateMap!=null)map.put("plandate", plandateMap.get(map.get("uuid")));
+		}
+		
+		return pageQueryResult;
 	}
 
 	/**

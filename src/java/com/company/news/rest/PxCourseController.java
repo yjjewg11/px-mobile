@@ -45,8 +45,10 @@ public class PxCourseController extends AbstractRESTController {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 //			pData.setPageSize(50);
 			String groupuuid = request.getParameter("groupuuid");
-			String mappoint = request.getParameter("mappoint");
-			PageQueryResult list = pxCourseService.queryByPage(groupuuid,pData,mappoint);
+			String mappoint = request.getParameter("map_point");
+			String type = request.getParameter("type");
+			String sort = request.getParameter("sort");
+			PageQueryResult list = pxCourseService.queryByPage(groupuuid,type,pData,mappoint);
 
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -63,7 +65,39 @@ public class PxCourseController extends AbstractRESTController {
 		return "";
 	}
 	
+	/**
+	 * 
+	 * 热门课程
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/hotByPage", method = RequestMethod.GET)
+	public String hotByPage(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+			String groupuuid = request.getParameter("groupuuid");
+			String mappoint = request.getParameter("mappoint");
+			String type = request.getParameter("type");
+			PageQueryResult list = pxCourseService.queryByPage(groupuuid,type,pData,mappoint);
 
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+					.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
 /**
  * 获取培训机构对外发布课程详细
  * @param uuid

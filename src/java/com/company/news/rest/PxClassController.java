@@ -12,11 +12,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
 import com.company.news.entity.PxClass;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
-import com.company.news.right.RightConstants;
-import com.company.news.right.RightUtils;
 import com.company.news.service.PxClassService;
 import com.company.news.vo.ResponseMessage;
 
@@ -26,6 +25,38 @@ public class PxClassController extends AbstractRESTController {
 
 	@Autowired
 	private PxClassService pxClassService;
+
+	
+
+	/**
+	 * 我孩子参加的培训班级列表(正在学习,完成学习)
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/listMyChildClassByPage", method = RequestMethod.GET)
+	public String listMyChildClassByPage(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+			String isdisable=request.getParameter("isdisable");
+			PageQueryResult list = pxClassService.listMyChildClassByPage(this.getUserInfoBySession(request).getUuid(),pData,isdisable);
+
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+			.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
 
 
 	/**
