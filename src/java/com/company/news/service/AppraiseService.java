@@ -10,11 +10,13 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
+import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Appraise;
 import com.company.news.entity.Group;
+import com.company.news.entity.PxClass;
 import com.company.news.entity.PxCourse4Q;
 import com.company.news.entity.TeacherJudge;
 import com.company.news.entity.User;
@@ -46,13 +48,32 @@ public class AppraiseService extends AbstractService {
 	 */
 	public boolean add(AppraiseJsonform appraiseJsonform,
 			ResponseMessage responseMessage) throws Exception {
-
+		
+		if (this.validateRequireByRegJsonform(
+						appraiseJsonform.getType(), "type", responseMessage)) {
+			return false;
+		}
+		
+		if(StringUtils.isBlank(appraiseJsonform.getClass_uuid())){
+			PxClass pxClass=this.nSimpleHibernateDao.getHibernateTemplate().get(PxClass.class, appraiseJsonform.getClass_uuid());
+			if(pxClass==null){
+				responseMessage.setMessage("异常数据,没有该班级信息.Class_uuid="+appraiseJsonform.getClass_uuid());
+				return false;
+			}
+			
+			if(SystemConstants.common_type_pxgroup==appraiseJsonform.getType().intValue()){
+				appraiseJsonform.setExt_uuid(pxClass.getGroupuuid());
+			}else if(SystemConstants.common_type_pxgroup==appraiseJsonform.getType().intValue()){
+				appraiseJsonform.setExt_uuid(pxClass.getGroupuuid());
+			}
+			
+		}
+		
+		
 		if (this.validateRequireByRegJsonform(appraiseJsonform.getExt_uuid(),
 				"Ext_uuid", responseMessage)
 				|| this.validateRequireByRegJsonform(
-						appraiseJsonform.getScore(), "Score", responseMessage)
-				|| this.validateRequireByRegJsonform(
-						appraiseJsonform.getType(), "type", responseMessage)) {
+						appraiseJsonform.getScore(), "Score", responseMessage)) {
 			return false;
 		}
 
@@ -117,7 +138,30 @@ public class AppraiseService extends AbstractService {
 			return null;
 		}
 		String hql = "from Appraise where ext_uuid='" + ext_uuid
-				+ "' order by create_time";
+				+ "' order by create_time desc";
+
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+
+		return pageQueryResult;
+	}
+
+	
+
+	/**
+	 * 
+	 * @param groupuuid
+	 * @param pData
+	 * @param point
+	 * @return
+	 */
+	public PageQueryResult queryMyByPage(String class_uuid,String create_useruuid, PaginationData pData) {
+
+		if (StringUtils.isBlank(class_uuid)) {
+			return null;
+		}
+		String hql = "from Appraise where class_uuid='" + "create_useruuid+='"+create_useruuid+"'"
+				+ "' order by create_time desc";
 
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);

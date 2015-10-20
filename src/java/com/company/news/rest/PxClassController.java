@@ -149,4 +149,40 @@ public class PxClassController extends AbstractRESTController {
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}
+	
+
+
+	/**
+	 * 班级老师列表.
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/listclassTeacher", method = RequestMethod.GET)
+	public String listclassTeacher(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			String classuuid=request.getParameter("classuuid");
+			
+			if(StringUtils.isBlank(classuuid)){
+				responseMessage.setMessage("classuuid 不能为空!");
+				return "";
+		}
+			List list = pxClassService.listclassTeacher(classuuid);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+			.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+
 }

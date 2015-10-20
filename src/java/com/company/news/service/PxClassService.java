@@ -15,13 +15,11 @@ import org.springframework.stereotype.Service;
 import com.company.common.PxStringUtils;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
-import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.PxClass;
 import com.company.news.entity.PxStudent;
-import com.company.news.entity.PxStudentPXClassRelation;
 import com.company.news.entity.User;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -175,13 +173,13 @@ public class PxClassService extends AbstractClassService {
 //		List<PxCourse4Q> list=pageQueryResult.getData();
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 		.getSessionFactory().openSession();
-String sql = "select t1.uuid,t2.logo,t3.img as group_img,t2.title as course_title,t4.name as student_name,t1.name as class_name,t3.brand_name as group_name"
+String sql = "select t1.uuid,t1.courseuuid,t1.groupuuid,t1.disable_time,t2.logo,t3.img as group_img,t2.title as course_title,t4.name as student_name,t1.name as class_name,t3.brand_name as group_name"
 		+ " from px_pxstudentpxclassrelation t0 "
 		+ " inner join px_pxclass t1 on t0.class_uuid=t1.uuid "
-		+ " inner join px_pxcourse t2 on t1.courseuuid=t2.uuid  "
-		+ " inner join px_group t3 on t1.groupuuid=t3.uuid  "
+		+ " left join px_pxcourse t2 on t1.courseuuid=t2.uuid  "
+		+ " left join px_group t3 on t1.groupuuid=t3.uuid  "
 		+ " inner join px_pxstudent t4 on t0.student_uuid=t4.uuid  "
-		+ " where student_uuid  in( "
+		+ " where t0.student_uuid  in( "
 		+ " select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
 		+ cur_user_uuid + "' ) ";
 	if(StringUtils.isNotBlank(isdisable)){
@@ -219,6 +217,29 @@ q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		}
 		
 		return pageQueryResult;
+	}
+	
+
+	/**
+	 * 
+	 * @param groupuuid
+	 * @param pData
+	 * @param point
+	 * @return
+	 */
+	public List listclassTeacher(String classuuid) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+		.getSessionFactory().openSession();
+String sql = "select t0.uuid,t0.name"
+		+ " from px_user t0 "
+		+ " inner join px_userclassrelation t1 on t1.useruuid=t0.uuid and t1.type="+SystemConstants.class_usertype_teacher
+		+ " where t1.classuuid ='"+classuuid + "'  ";
+		
+	Query q = s.createSQLQuery(sql);
+	q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+	
+		
+		return q.list();
 	}
 
 	/**
