@@ -148,8 +148,11 @@ public class ShareController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
-			
-			String hql = "from Announcements4Q where  status=0 and  type="+SystemConstants.common_type_jingpinwenzhang;
+			String type=request.getParameter("type");
+			if(!StringUtils.isNumeric(type)){
+				type=SystemConstants.common_type_jingpinwenzhang+"";
+			}
+			String hql = "from Announcements4Q where status=0 and type="+type;
 			hql += " order by create_time desc";
 			PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 					.findByPaginationToHqlNoTotal(hql, pData);

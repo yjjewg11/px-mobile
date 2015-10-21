@@ -76,7 +76,7 @@ public class ReplyController extends AbstractRESTController {
 		}
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("修改成功");
+		responseMessage.setMessage("操作成功");
 		return "";
 	}
 

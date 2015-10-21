@@ -156,13 +156,12 @@ public class AppraiseService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult queryMyByPage(String class_uuid,String create_useruuid, PaginationData pData) {
-
 		if (StringUtils.isBlank(class_uuid)) {
 			return null;
 		}
-		String hql = "from Appraise where class_uuid='" + "create_useruuid+='"+create_useruuid+"'"
-				+ "' order by create_time desc";
-
+		String hql = "from Appraise where  class_uuid='" + class_uuid+" and create_useruuid='"+create_useruuid+"'";
+				hql+= "' order by create_time desc";
+		pData.setPageSize(50);
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
 

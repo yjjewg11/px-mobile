@@ -323,9 +323,12 @@ public class AnnouncementsService extends AbstractService {
 	 * @return
 	 */
 	public Announcements4Q warpVo(Announcements4Q o,String cur_user_uuid){
-		//this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		try {
 			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			if(StringUtils.isBlank(o.getUrl())){
+				o.setUrl(PxStringUtil.getArticleByUuid(o.getUuid()));
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -343,6 +346,9 @@ public class AnnouncementsService extends AbstractService {
 			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
 			o.setReplyPage(this.getReplyPageListAndRelyDianzan(o.getUuid(),cur_user_uuid));
 			o.setMessage(PxStringUtil.warpHtml5Responsive(o.getMessage()));
+			if(StringUtils.isBlank(o.getUrl())){
+				o.setUrl(PxStringUtil.getArticleByUuid(o.getUuid()));
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
