@@ -8,6 +8,7 @@ import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.AbstractClass;
 import com.company.news.entity.User;
 import com.company.news.entity.UserClassRelation;
+import com.company.news.entity.UserForJsCache;
 import com.company.news.rest.util.DBUtil;
 
 public class AbstractClassService extends AbstractService {
@@ -31,19 +32,17 @@ public class AbstractClassService extends AbstractService {
 			String headTeacher_name = "";
 			String teacher_name = "";
 			for (UserClassRelation u : l) {
-				User user = (User) CommonsCache
-						.get(u.getUseruuid(), User.class);
+				UserForJsCache user = (UserForJsCache) CommonsCache
+						.get(u.getUseruuid(), UserForJsCache.class);
 				if (user != null) {
 					if (u.getType().intValue() == SystemConstants.class_usertype_head) {
 
 						headTeacher += (u.getUseruuid() + ",");
-						headTeacher_name += (((User) CommonsCache.get(
-								u.getUseruuid(), User.class)).getName() + ",");
+						headTeacher_name += (user.getName() + ",");
 
 					} else {
 						teacher += (u.getUseruuid() + ",");
-						teacher_name += (((User) CommonsCache.get(
-								u.getUseruuid(), User.class)).getName() + ",");
+						teacher_name += (user.getName() + ",");
 					}
 				}
 			}
