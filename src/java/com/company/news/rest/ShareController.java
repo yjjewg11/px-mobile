@@ -2,11 +2,15 @@ package com.company.news.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
@@ -20,6 +24,7 @@ import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.Announcements;
+import com.company.news.entity.Announcements4Q;
 import com.company.news.entity.BaseDataList;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
@@ -76,16 +81,24 @@ public class ShareController extends AbstractRESTController {
 			ResponseMessage responseMessage = RestUtil
 					.addResponseMessageForModelMap(model);
 			try {
-				List<BaseDataList> list= (List<BaseDataList>) this.nSimpleHibernateDao
-						.getHibernateTemplate().find(
-								"from BaseDataList where typeuuid='emot' and enable=1 order by datakey asc");
-				this.nSimpleHibernateDao
-				.getHibernateTemplate().clear();
+
+				Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+						.getSessionFactory().openSession();
+				//description ios 的关键词,不使用.
+				String sql=" SELECT datavalue,description";
+				sql+=" from px_basedatalist where typeuuid='emot' and enable=1 order by datakey asc ";
+				
+				Query q = s.createSQLQuery(sql);
+				q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+				List<Map> list= q.list();
+				
 				String share_url_getEmot=ProjectProperties.getProperty("share_url_getEmot", "http://jz.wenjienet.com/px-rest/i/emoji/");
-				for(BaseDataList o:list){
+				
+				for(Map o:list){
 					//o.getDescription()=laugh.gif
-					o.setDescription(share_url_getEmot+o.getDescription());
+					o.put("description", share_url_getEmot+o.get("description"));
 				}
+				
 				
 				model.addAttribute(RestConstants.Return_ResponseMessage_list,list);
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -208,6 +221,58 @@ public class ShareController extends AbstractRESTController {
 				announcementsService.warpVo(vo, cur_user_uuid);
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,vo);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+	/**
+	 * 获取精品文章详细
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getArticleUrlJSON", method = RequestMethod.GET)
+	public String getArticleUrlJSON(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String uuid=request.getParameter("uuid");
+		if(StringUtils.isBlank(uuid)){
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("uuid 不能为空!");
+			return "";
+		}
+		AnnouncementsVo  vo = new AnnouncementsVo();
+		try {
+			Announcements4Q a = (Announcements4Q)nSimpleHibernateDao.getObject(Announcements4Q.class,uuid);
+			if(a==null){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("数据不存在.");
+				return "";
+			}
+			
+			Parent user = this.getUserInfoBySession(request);
+			String cur_user_uuid=null;
+			if(user!=null){
+				cur_user_uuid=user.getUuid();
+			}
+				BeanUtils.copyProperties(vo, a);
+				announcementsService.warpNoReplyVo(vo, cur_user_uuid);
+				if(StringUtils.isBlank(vo.getUrl())){
+					vo.setUrl(PxStringUtil.getArticleByUuid(uuid));
+				}
+				model.put(RestConstants.Return_ResponseMessage_share_url,vo.getUrl());
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
+		
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -572,15 +637,22 @@ public class ShareController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
-			List<BaseDataList> list= (List<BaseDataList>) this.nSimpleHibernateDao
-					.getHibernateTemplate().find(
-							"from BaseDataList where typeuuid='course_type' and enable=1 order by datakey asc");
-			this.nSimpleHibernateDao
-			.getHibernateTemplate().clear();
+			
+			
+			Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+					.getSessionFactory().openSession();
+			//description ios 的关键词,不使用.
+			String sql=" SELECT datakey ,datavalue,description as img";
+			sql+=" from px_basedatalist where typeuuid='course_type' and enable=1 order by datakey asc ";
+			
+			Query q = s.createSQLQuery(sql);
+			q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+			List<Map> list= q.list();
+			
 			String share_url_course_type=ProjectProperties.getProperty("share_url_course_type", "http://img.wenjienet.com/i/course_type/");
-			for(BaseDataList o:list){
+			for(Map o:list){
 				//o.getDescription()=laugh.gif
-				o.setDescription(share_url_course_type+o.getDescription());
+				o.put("img", share_url_course_type+o.get("img"));
 			}
 			
 			model.addAttribute(RestConstants.Return_ResponseMessage_list,list);

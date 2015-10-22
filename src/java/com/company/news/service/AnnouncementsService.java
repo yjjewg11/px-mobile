@@ -345,6 +345,9 @@ public class AnnouncementsService extends AbstractService {
 		try {
 			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
 			o.setReplyPage(this.getReplyPageListAndRelyDianzan(o.getUuid(),cur_user_uuid));
+			if(StringUtils.isNotBlank(o.getUrl())){
+				o.setMessage("请升级问界互动家园最新版本,才可以浏览."+o.getMessage());
+			}
 			o.setMessage(PxStringUtil.warpHtml5Responsive(o.getMessage()));
 			if(StringUtils.isBlank(o.getUrl())){
 				o.setUrl(PxStringUtil.getArticleByUuid(o.getUuid()));
@@ -355,6 +358,31 @@ public class AnnouncementsService extends AbstractService {
 		}
 		return o;
 	}
+	
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public AnnouncementsVo warpNoReplyVo(AnnouncementsVo o,String cur_user_uuid){
+		//this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		try {
+			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			//o.setReplyPage(this.getReplyPageListAndRelyDianzan(o.getUuid(),cur_user_uuid));
+//			if(StringUtils.isNotBlank(o.getUrl())&&StringUtils.isBlank(o.getMessage())){
+//				o.setMessage("请升级最新版本,才可以浏览.");
+//			}
+		//	o.setMessage(PxStringUtil.warpHtml5Responsive(o.getMessage()));
+			if(StringUtils.isBlank(o.getUrl())){
+				o.setUrl(PxStringUtil.getArticleByUuid(o.getUuid()));
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
+	
 	@Override
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
