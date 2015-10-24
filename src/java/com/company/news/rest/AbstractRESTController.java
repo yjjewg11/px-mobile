@@ -21,7 +21,7 @@ import org.springframework.ui.ModelMap;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
 import com.company.news.entity.StudentOfSession;
-import com.company.news.entity.User;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.StringOperationUtil;
 import com.company.news.vo.UserInfoReturn;
@@ -42,7 +42,7 @@ public class AbstractRESTController   {
 	   * @return
 	   */
 	  protected void putUserInfoReturnToModel( ModelMap model,HttpServletRequest request){
-	    Parent user = SessionListener.getUserInfoBySession(request);
+		  SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 	    // 返回用户信息
 	    UserInfoReturn userInfoReturn = new UserInfoReturn();
 	    try {
@@ -74,8 +74,8 @@ public class AbstractRESTController   {
 	   * @param request
 	   * @return
 	   */
-	  protected Parent getUserInfoBySession(HttpServletRequest request){
-		    Parent user = SessionListener.getUserInfoBySession(request);
+	  protected SessionUserInfoInterface getUserInfoBySession(HttpServletRequest request){
+		  SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 		    // 返回用户信息
 		    return user;
 		  }

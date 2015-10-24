@@ -2,6 +2,8 @@ package com.company.news.service;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +15,14 @@ import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.ClassNewsReply;
+import com.company.news.entity.Operate;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.DianzanListVO;
 import com.company.news.vo.ResponseMessage;
+import com.company.web.listener.SessionListener;
 
 public abstract class AbstractService {
   public static final String ID_SPLIT_MARK = ",";
@@ -30,7 +36,37 @@ public abstract class AbstractService {
    */
   public abstract Class getEntityClass();
   
-  
+
+	/**
+	 * 重要的操作记录到 日志.
+	 * 
+	 * @param doorRecord
+	 * @throws Exception
+	 */
+	public void addStudentOperate(String groupuuid,String studentuuid,String message, String note, HttpServletRequest request) {
+		try {
+			Operate operate = new Operate();
+			operate.setCreate_time(TimeUtils.getCurrentTimestamp());
+
+			
+			operate.setGroupuuid(groupuuid);
+			operate.setStudentuuid(studentuuid);
+			SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+			if (user != null) {
+				operate.setCreate_user(user.getName());
+				operate.setCreate_useruuid(user.getUuid());
+			}
+			operate.setMessage(message);
+			operate.setNote(note);
+			// 有事务管理，统一在Controller调用时处理异常
+			this.nSimpleHibernateDao.getHibernateTemplate().save(operate);
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
   
   /**
 	 * 查询回复列表分页

@@ -11,11 +11,8 @@ import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
-import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.PxCourseCache;
 import com.company.news.entity.PxTeacher;
-import com.company.news.entity.PxTeacher4Q;
 import com.company.news.jsonform.PxTeacherJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -74,9 +71,9 @@ public class PxTeacherService extends AbstractService {
 		
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql=" SELECT t1.uuid,t1.img,t1.name,t1.ct_stars,t1.ct_stars,t1.summary,t2.title as course_title";
+		String sql=" SELECT t1.uuid,t1.img,t1.name,t1.ct_stars,t1.ct_stars,t1.summary,t1.course_title";
 		sql+=" FROM px_pxteacher t1 ";
-		sql+=" LEFT JOIN  px_pxcourse t2 on t1.course_uuid=t2.uuid ";
+//		sql+=" LEFT JOIN  px_pxcourse t2 on t1.course_uuid=t2.uuid ";
 		sql+=" where  t1.status="+SystemConstants.PxCourse_status_fabu;
 		
 		if(StringUtils.isNotBlank(groupuuid)){
@@ -117,12 +114,6 @@ public class PxTeacherService extends AbstractService {
 	protected PxTeacher warpVo(PxTeacher o) {
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		o.setImg(PxStringUtil.imgUrlByUuid(o.getImg()));
-		if(o.getCourse_uuid()!=null){
-			PxCourseCache course=(PxCourseCache) this.nSimpleHibernateDao.getHibernateTemplate().get(PxCourseCache.class, o.getCourse_uuid());
-			if(course!=null){
-				o.setCourse_title(course.getTitle());
-			}
-		}
 		
 		return o;
 	}

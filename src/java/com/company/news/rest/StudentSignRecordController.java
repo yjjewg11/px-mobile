@@ -9,7 +9,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
@@ -43,7 +43,7 @@ public class StudentSignRecordController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		PaginationData pData = this.getPaginationDataByRequest(request);
-		Parent user = this.getUserInfoBySession(request);
+		SessionUserInfoInterface user = this.getUserInfoBySession(request);
 		String student_uuid=request.getParameter("studentuuid");
 		if(StringUtils.isBlank(student_uuid)){
 			student_uuid=this.getMyChildrenUuidsBySession(request);

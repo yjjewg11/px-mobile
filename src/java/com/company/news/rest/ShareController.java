@@ -25,15 +25,14 @@ import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.Announcements;
 import com.company.news.entity.Announcements4Q;
-import com.company.news.entity.BaseDataList;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
 import com.company.news.entity.CookbookPlan;
 import com.company.news.entity.Group;
 import com.company.news.entity.Group4Q;
 import com.company.news.entity.PClass;
-import com.company.news.entity.Parent;
 import com.company.news.entity.User4Q;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
@@ -169,7 +168,7 @@ public class ShareController extends AbstractRESTController {
 			hql += " order by create_time desc";
 			PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 					.findByPaginationToHqlNoTotal(hql, pData);
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			String cur_user_uuid=null;
 			if(user!=null){
 				cur_user_uuid=user.getUuid();
@@ -212,7 +211,7 @@ public class ShareController extends AbstractRESTController {
 				return "";
 			}
 			
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			String cur_user_uuid=null;
 			if(user!=null){
 				cur_user_uuid=user.getUuid();
@@ -260,7 +259,7 @@ public class ShareController extends AbstractRESTController {
 				return "";
 			}
 			
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			String cur_user_uuid=null;
 			if(user!=null){
 				cur_user_uuid=user.getUuid();
@@ -311,7 +310,7 @@ public class ShareController extends AbstractRESTController {
 				responseMessage.setMessage("数据不存在.");
 				return "/404";
 			}
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			String cur_user_uuid=null;
 			if(user!=null){
 				cur_user_uuid=user.getUuid();
@@ -481,7 +480,7 @@ public class ShareController extends AbstractRESTController {
 			Announcements a=(Announcements)list.get(0);
 			vo=new AnnouncementsVo();
 			
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			String cur_user_uuid=null;
 			if(user!=null){
 				cur_user_uuid=user.getUuid();

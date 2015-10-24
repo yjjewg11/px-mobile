@@ -17,10 +17,10 @@ import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PClass;
-import com.company.news.entity.Parent;
 import com.company.news.entity.PxClass;
 import com.company.news.entity.PxStudent;
 import com.company.news.entity.User;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
@@ -95,7 +95,7 @@ public class PxClassService extends AbstractClassService {
 	 * 
 	 * @return
 	 */
-	public List listPxStudentPXClassRelationByStudent(Parent parent) {
+	public List listPxStudentPXClassRelationByStudent(SessionUserInfoInterface parent) {
 
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();

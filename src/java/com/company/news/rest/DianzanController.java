@@ -11,7 +11,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsDianzanJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.ClassNewsDianzanService;
@@ -44,7 +44,7 @@ public class DianzanController extends AbstractRESTController {
 		}
 
 		// 设置当前用户
-		Parent user = this.getUserInfoBySession(request);
+		SessionUserInfoInterface user = this.getUserInfoBySession(request);
 		classNewsJsonform.setCreate_user(user.getName());
 		classNewsJsonform.setCreate_useruuid(user.getUuid());
 		if(classNewsJsonform.getType()>1000){
@@ -82,7 +82,7 @@ public class DianzanController extends AbstractRESTController {
 			
 			Boolean canDianzan=true;
 			if(list.size()>0){
-				Parent user = this.getUserInfoBySession(request);
+				SessionUserInfoInterface user = this.getUserInfoBySession(request);
 				canDianzan=classNewsDianzanService.canDianzan(newsuuid,user.getUuid());
 			}
 			model.addAttribute("names", StringUtils.join(list,","));
@@ -119,7 +119,7 @@ public class DianzanController extends AbstractRESTController {
 		}
 
 		// 设置当前用户
-		Parent user = this.getUserInfoBySession(request);
+		SessionUserInfoInterface user = this.getUserInfoBySession(request);
 		classNewsJsonform.setCreate_user(user.getName());
 		classNewsJsonform.setCreate_useruuid(user.getUuid());
 

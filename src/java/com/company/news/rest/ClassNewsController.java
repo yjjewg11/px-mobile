@@ -14,7 +14,7 @@ import com.company.news.SystemConstants;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.ClassNews;
-import com.company.news.entity.Parent;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -56,7 +56,7 @@ public class ClassNewsController extends AbstractRESTController {
 		}
 
 		// 设置当前用户
-		Parent user = this.getUserInfoBySession(request);
+		SessionUserInfoInterface user = this.getUserInfoBySession(request);
 		//转换特定格式.
 		classNewsJsonform.setContent(MyUbbUtils.htmlToMyUbb(classNewsJsonform.getContent()));
 		classNewsJsonform.setImgs(PxStringUtil.imgUrlToUuid(classNewsJsonform.getImgs()));
@@ -127,7 +127,7 @@ public class ClassNewsController extends AbstractRESTController {
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			pData.setPageSize(5);
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			String classuuids=request.getParameter("classuuid");
 			if(StringUtils.isBlank(classuuids)){
 				classuuids=this.getMyChildrenClassuuidsBySession(request);

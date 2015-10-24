@@ -1,7 +1,5 @@
 package com.company.news.rest;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,17 +8,12 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
-import com.company.news.entity.TeacherJudge;
-import com.company.news.entity.User;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.AppraiseJsonform;
-import com.company.news.jsonform.TeachingJudgeJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
-import com.company.news.rest.util.TimeUtils;
 import com.company.news.service.AppraiseService;
-import com.company.news.service.TeachingJudgeService;
 import com.company.news.vo.ResponseMessage;
 
 @Controller
@@ -58,7 +51,7 @@ public class AppraiseController extends AbstractRESTController {
 		try {
 
 			// 设置当前用户
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			appraiseJsonform.setCreate_user(user.getName());
 			appraiseJsonform.setCreate_useruuid(user.getUuid());
 			boolean flag = appraiseService.add(appraiseJsonform,

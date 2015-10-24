@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
 import com.company.news.entity.PushMessage;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
@@ -40,7 +40,7 @@ public class PushMessageController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			//设置当前用户
-			Parent user=this.getUserInfoBySession(request);
+			SessionUserInfoInterface user=this.getUserInfoBySession(request);
 			
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			PageQueryResult pageQueryResult= pushMessageService.query(request.getParameter("type"),user.getUuid(),pData);

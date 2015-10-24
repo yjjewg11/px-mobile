@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
 import com.company.news.entity.PxStudent;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.PxClassService;
 import com.company.news.service.PxStudentService;
@@ -39,7 +39,7 @@ public class PxStudentController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		
-		Parent parent=this.getUserInfoBySession(request);
+		SessionUserInfoInterface parent=this.getUserInfoBySession(request);
 		
 		List<PxStudent> list = pxStudentService.listByMy(parent);
 		List list1= pxClassService.listPxStudentPXClassRelationByStudent(parent);

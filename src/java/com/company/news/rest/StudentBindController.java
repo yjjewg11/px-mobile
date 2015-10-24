@@ -12,16 +12,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
-import com.company.news.entity.Student;
 import com.company.news.entity.StudentBind;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.StudentBindJsonform;
-import com.company.news.jsonform.StudentJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.StudentBindService;
-import com.company.news.service.StudentService;
 import com.company.news.vo.ResponseMessage;
-import com.company.web.listener.SessionListener;
 
 @Controller
 @RequestMapping(value = "/studentbind")
@@ -173,7 +169,7 @@ public class StudentBindController extends AbstractRESTController {
 			return "";
 		}
 		
-		Parent parent=this.getUserInfoBySession(request);
+		SessionUserInfoInterface parent=this.getUserInfoBySession(request);
 		studentBindJsonform.setCreate_user(parent.getName());
 		studentBindJsonform.setCreate_useruuid(parent.getUuid());
 		studentBindJsonform.setType(1);//1 门禁卡

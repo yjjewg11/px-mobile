@@ -1,7 +1,5 @@
 package com.company.news.rest;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
@@ -15,18 +13,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.entity.Message;
-import com.company.news.entity.Parent;
-import com.company.news.entity.User;
-import com.company.news.jsonform.AnnouncementsJsonform;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.MessageJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.right.RightConstants;
 import com.company.news.right.RightUtils;
-import com.company.news.service.AnnouncementsService;
 import com.company.news.service.MessageService;
-import com.company.news.vo.AnnouncementsVo;
 import com.company.news.vo.ResponseMessage;
 
 @Controller
@@ -66,7 +60,7 @@ public class MessageController extends AbstractRESTController {
 		}
 		
 		//设置当前用户
-		Parent user=this.getUserInfoBySession(request);
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
 		messageJsonform.setSend_user(user.getName());
 		messageJsonform.setSend_useruuid(user.getUuid());
 		messageJsonform.setSend_userimg(user.getImg());
@@ -120,7 +114,7 @@ public class MessageController extends AbstractRESTController {
 		}
 		
 		//设置当前用户
-		Parent user=this.getUserInfoBySession(request);
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
 		messageJsonform.setSend_user(user.getName());
 		messageJsonform.setSend_useruuid(user.getUuid());
 		messageJsonform.setSend_userimg(user.getImg());
@@ -158,7 +152,7 @@ public class MessageController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			//设置当前用户
-			Parent user=this.getUserInfoBySession(request);
+			SessionUserInfoInterface user=this.getUserInfoBySession(request);
 			
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			PageQueryResult pageQueryResult= messageService.query(null,user.getUuid(),pData);
@@ -186,7 +180,7 @@ public class MessageController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			//设置当前用户
-			Parent user=this.getUserInfoBySession(request);
+			SessionUserInfoInterface user=this.getUserInfoBySession(request);
 			String parent_uuid=request.getParameter("uuid");
 			if(StringUtils.isBlank(parent_uuid)){
 				responseMessage.setMessage("参数必填:uuid");
@@ -218,7 +212,7 @@ public class MessageController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			//设置当前用户
-			Parent user=this.getUserInfoBySession(request);
+			SessionUserInfoInterface user=this.getUserInfoBySession(request);
 			String parent_uuid=request.getParameter("uuid");
 			if(StringUtils.isBlank(parent_uuid)){
 				responseMessage.setMessage("参数必填:uuid");
@@ -269,7 +263,7 @@ public class MessageController extends AbstractRESTController {
 		}
 		
 		//设置当前用户
-		Parent user=this.getUserInfoBySession(request);
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
 		messageJsonform.setSend_user(user.getName());
 		messageJsonform.setSend_useruuid(user.getUuid());
 		

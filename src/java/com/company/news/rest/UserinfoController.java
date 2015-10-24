@@ -19,6 +19,7 @@ import com.company.news.entity.Parent;
 import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
 import com.company.news.rest.util.RestUtil;
@@ -59,7 +60,7 @@ public class UserinfoController extends AbstractRESTController {
 		HttpSession session = SessionListener
 						.getSession((HttpServletRequest) request);
 		
-		Parent parent=this.getUserInfoBySession(request);
+		SessionUserInfoInterface parent=this.getUserInfoBySession(request);
 		List<StudentOfSession> studentOfSessionlist=userinfoService.getStudentOfSessionByParentuuid(parent.getUuid());
 		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
 		//我的孩子参加的培训班

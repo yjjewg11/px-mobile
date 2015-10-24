@@ -12,8 +12,7 @@ import javax.servlet.http.HttpSessionListener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import com.company.news.entity.Parent;
-import com.company.news.entity.User;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.rest.RestConstants;
 
 public class SessionListener implements HttpSessionListener {
@@ -80,10 +79,10 @@ public class SessionListener implements HttpSessionListener {
    * @param request
    * @return
    */
-  public static Parent   getUserInfoBySession(HttpServletRequest request){
+  public static SessionUserInfoInterface   getUserInfoBySession(HttpServletRequest request){
     HttpSession session =SessionListener.getSession(request);
     if(session==null)return null;
-    return (Parent)session.getAttribute(RestConstants.Session_UserInfo);
+    return (SessionUserInfoInterface)session.getAttribute(RestConstants.Session_UserInfo);
   }
     /**
      * Logger for this class

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.SystemConstants;
-import com.company.news.entity.Parent;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.PushMsgDeviceJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.PushMsgDeviceService;
@@ -59,7 +59,7 @@ public class PushMsgDeviceController extends AbstractRESTController {
 			return "";
 		}
 		//设置当前用户
-		Parent user=this.getUserInfoBySession(request);
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
 		jsonform.setUser_uuid(user.getUuid());
 		if(jsonform.getStatus()==null){
 			jsonform.setStatus(0);

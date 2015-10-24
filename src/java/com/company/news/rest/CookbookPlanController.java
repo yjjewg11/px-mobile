@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.CookbookPlan;
-import com.company.news.entity.Parent;
-import com.company.news.jsonform.ClassRegJsonform;
-import com.company.news.jsonform.CookbookPlanJsonform;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.CookbookPlanService;
 import com.company.news.service.CountService;
@@ -62,7 +60,7 @@ public class CookbookPlanController extends AbstractRESTController {
 				responseMessage.setMessage("参数groupuuid不能为空!");
 				return "";
 			}
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			List<CookbookPlan> list = cookbookPlanService.query(
 					begDateStr,
 					endDateStr,
@@ -89,7 +87,7 @@ public class CookbookPlanController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			CookbookPlan c = cookbookPlanService.get(uuid,user.getUuid());
 			//定义接口,返回浏览总数.
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_shipu));

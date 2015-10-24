@@ -136,7 +136,7 @@ public class ClassNewsService extends AbstractService {
 	 * 
 	 * @return
 	 */
-	public PageQueryResult query(Parent user ,String classuuid, PaginationData pData) {
+	public PageQueryResult query(SessionUserInfoInterface user ,String classuuid, PaginationData pData) {
 		String hql = "from ClassNews where status=0 ";
 		if (StringUtils.isNotEmpty(classuuid)){
 			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
@@ -181,7 +181,7 @@ public class ClassNewsService extends AbstractService {
 		return true;
 	}
 
-	public ClassNews get(Parent user ,String uuid) throws Exception {
+	public ClassNews get(SessionUserInfoInterface user ,String uuid) throws Exception {
 		ClassNews cn = (ClassNews) this.nSimpleHibernateDao.getObjectById(
 				ClassNews.class, uuid);
 		this.warpVo(cn, user.getUuid());

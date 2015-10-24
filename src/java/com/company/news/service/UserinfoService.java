@@ -23,8 +23,6 @@ import com.company.news.entity.Parent;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
 import com.company.news.entity.StudentOfSession;
-import com.company.news.entity.TelSmsCode;
-import com.company.news.entity.User;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -38,6 +36,7 @@ import com.company.news.vo.ResponseMessage;
 import com.company.news.vo.TeacherPhone;
 import com.company.plugin.security.LoginLimit;
 import com.company.web.listener.SessionListener;
+import com.company.web.session.UserOfSession;
 
 /**
  * 
@@ -290,7 +289,7 @@ public class UserinfoService extends AbstractService {
 				.getSession((HttpServletRequest) request);
 
 		if (session != null) {
-			Parent userInfo = (Parent) session
+			SessionUserInfoInterface userInfo = (SessionUserInfoInterface) session
 					.getAttribute(RestConstants.Session_UserInfo);
 			if (userInfo != null && loginname.equals(userInfo.getLoginname())) {
 				return true;
@@ -300,8 +299,14 @@ public class UserinfoService extends AbstractService {
 		session = request.getSession(true);
 		// this.nSimpleHibernateDao.getHibernateTemplate().evict(user);
 		SessionListener.putSessionByJSESSIONID(session);
-
-		session.setAttribute(RestConstants.Session_UserInfo, parent);
+		
+		UserOfSession userOfSession = new UserOfSession();
+		try {
+			BeanUtils.copyProperties(userOfSession, parent);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
 
 		// 移到CONTROLLER调用，减少长事务执行
 		// List<StudentOfSession>

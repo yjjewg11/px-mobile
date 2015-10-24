@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.commons.util.MyUbbUtils;
-import com.company.news.entity.Parent;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsReplyJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -56,7 +56,7 @@ public class ReplyController extends AbstractRESTController {
 			return "";
 		}
 		//设置当前用户
-		Parent user=this.getUserInfoBySession(request);
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
 		//转换特定格式.
 		classNewsReplyJsonform.setContent(MyUbbUtils.htmlToMyUbb(classNewsReplyJsonform.getContent()));
 
@@ -95,7 +95,7 @@ public class ReplyController extends AbstractRESTController {
 		try {
 			PaginationData pData=this.getPaginationDataByRequest(request);
 			PageQueryResult pageQueryResult = classNewsReplyService.query(request.getParameter("newsuuid"), pData);
-			Parent parent=this.getUserInfoBySession(request);
+			SessionUserInfoInterface parent=this.getUserInfoBySession(request);
 			String cur_user_uuid="";
 			if(parent!=null)cur_user_uuid=parent.getUuid();
 			classNewsReplyService.warpVoList(pageQueryResult.getData(), cur_user_uuid);

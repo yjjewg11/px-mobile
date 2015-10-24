@@ -1,7 +1,5 @@
 package com.company.news.rest;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +8,8 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
 import com.company.news.entity.TeacherJudge;
-import com.company.news.entity.User;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.TeachingJudgeJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.rest.util.TimeUtils;
@@ -61,7 +58,7 @@ public class TeachingJudgeController extends AbstractRESTController {
 				return "";
 			}
 			// 设置当前用户
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			teachingJudgeJsonform.setCreate_user(user.getName());
 			teachingJudgeJsonform.setCreate_useruuid(user.getUuid());
 			boolean flag = teachingJudgeService.add(teachingJudgeJsonform,
@@ -89,7 +86,7 @@ public class TeachingJudgeController extends AbstractRESTController {
 
 		try {
 			// 设置当前用户
-			Parent user = this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			TeacherJudge t = teachingJudgeService.getJudgeByDate(
 					request.getParameter("teacheruuid"),
 					TimeUtils.getCurrentTimestamp(), user.getUuid());
@@ -121,7 +118,7 @@ public class TeachingJudgeController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		
 		try {
-			Parent user=this.getUserInfoBySession(request);	
+			SessionUserInfoInterface user=this.getUserInfoBySession(request);	
 			String class_uuids=this.getMyChildrenClassuuidsBySession(request);
 			
 			 teachingJudgeService.getTeachersAndJudges(user.getUuid(),class_uuids,model);

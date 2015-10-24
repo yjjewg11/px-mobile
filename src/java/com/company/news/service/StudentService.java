@@ -3,6 +3,8 @@ package com.company.news.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
@@ -86,7 +88,7 @@ public class StudentService extends AbstractService {
 	 * @return
 	 */
 	public boolean update(StudentJsonform studentJsonform,
-			ResponseMessage responseMessage) throws Exception {
+			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
 
 		Student student = (Student) this.nSimpleHibernateDao.getObjectById(
 				Student.class, studentJsonform.getUuid());
@@ -118,6 +120,9 @@ public class StudentService extends AbstractService {
 			this.updateStudentContactRealation(student, SystemConstants.USER_type_waipo, student.getWaipo_tel());
 			this.updateStudentContactRealation(student, SystemConstants.USER_type_other, student.getOther_tel());
 			
+			String msg=student.getName()+"|家长修改孩子资料|"+"]|爸爸电话:"+student.getBa_tel()+"|妈妈电话:"+student.getMa_tel();
+			this.addStudentOperate(student.getGroupuuid(), student.getUuid(), msg, null, request);
+		
 			return true;
 		} else {
 			responseMessage.setMessage("更新记录不存在");

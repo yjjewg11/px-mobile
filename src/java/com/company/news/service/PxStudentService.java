@@ -3,8 +3,6 @@ package com.company.news.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
@@ -13,12 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.PClass;
-import com.company.news.entity.Parent;
-import com.company.news.entity.PxClass;
 import com.company.news.entity.PxStudent;
 import com.company.news.entity.PxStudentPXClassRelation;
 import com.company.news.entity.Student;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.PxStudentJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -102,7 +98,7 @@ public class PxStudentService extends AbstractStudentService {
 	 * 
 	 * @return
 	 */
-	public List<PxStudent> listByMy(	Parent parent) {
+	public List<PxStudent> listByMy(	SessionUserInfoInterface parent) {
 		String hql = "from PxStudent where uuid in(select student_uuid from PxStudentContactRealation where parent_uuid ='"+parent.getUuid()+"')";
 		List list = (List<PxStudent>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
 		warpVoList(list);

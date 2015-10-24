@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.company.news.entity.Parent;
 import com.company.news.entity.Student;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.StudentJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.StudentService;
@@ -61,7 +61,7 @@ public class StudentController extends AbstractRESTController {
 	@RequestMapping(value = "/listByMyChildren", method = RequestMethod.GET)
 	public String listByMyChildren(ModelMap model,
 			HttpServletRequest request) {
-		Parent parent=SessionListener.getUserInfoBySession(request);
+		SessionUserInfoInterface parent=SessionListener.getUserInfoBySession(request);
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
@@ -136,7 +136,7 @@ public class StudentController extends AbstractRESTController {
 			if (StringUtils.isBlank(studentJsonform.getUuid()))
 				flag = studentService.add(studentJsonform, responseMessage);
 			else
-				flag = studentService.update(studentJsonform, responseMessage);
+				flag = studentService.update(studentJsonform, responseMessage,request);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {
