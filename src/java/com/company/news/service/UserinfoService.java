@@ -1,5 +1,6 @@
 package com.company.news.service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,12 +21,15 @@ import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
 import com.company.news.entity.Parent;
+import com.company.news.entity.ParentData;
+import com.company.news.entity.PxTeacher;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
 import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.jsonform.ParentDataJsonform;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
 import com.company.news.rest.RestConstants;
@@ -35,6 +39,7 @@ import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
 import com.company.news.vo.TeacherPhone;
 import com.company.plugin.security.LoginLimit;
+import com.company.web.filter.UserInfoFilter;
 import com.company.web.listener.SessionListener;
 import com.company.web.session.UserOfSession;
 
@@ -640,6 +645,47 @@ public class UserinfoService extends AbstractService {
 		return this.nSimpleHibernateDao.getHibernateTemplate().find(
 				"from PClass where  uuid in("
 						+ DBUtil.stringsToWhereInValue(uuids) + ")");
+	}
+
+	public boolean saveParentData(ParentDataJsonform jsonform,
+			HttpServletRequest request, ResponseMessage responseMessage){
+		
+		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		ParentData ut=(ParentData) this.nSimpleHibernateDao.getObjectByAttribute(ParentData.class, "parent_uuid", user.getUuid());
+				if(ut==null){
+					ut = new ParentData();
+					
+				}else{
+					jsonform.setUuid(ut.getUuid());
+				}
+//				try {
+//					BeanUtils.copyProperties(ut, jsonform);
+//				} catch (Exception e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//					
+//				}
+				if(StringUtils.isNotBlank(jsonform.getApp_verion())){
+					ut.setApp_verion(jsonform.getApp_verion());
+				}
+				if(StringUtils.isNotBlank(jsonform.getCity())){
+					ut.setCity(jsonform.getCity());
+				}
+				if(StringUtils.isNotBlank(jsonform.getPhone_type())){
+					ut.setPhone_type(jsonform.getPhone_type());
+				}
+				if(StringUtils.isNotBlank(jsonform.getPhone_version())){
+					ut.setPhone_version(jsonform.getPhone_version());
+				}
+					ut.setParent_uuid(user.getUuid());	
+				ut.setUpdate_time(TimeUtils.getCurrentTimestamp());
+				ut.setIp(UserInfoFilter.getIpAddr(request));
+				ut.setLoginname(user.getLoginname());
+				ut.setSessionid(SessionListener.getSession(request).getId());
+				
+				this.nSimpleHibernateDao.getHibernateTemplate().saveOrUpdate(ut);
+
+				return true;
 	}
 
 }

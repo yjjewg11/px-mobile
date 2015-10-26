@@ -20,6 +20,7 @@ import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.jsonform.ParentDataJsonform;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
 import com.company.news.rest.util.RestUtil;
@@ -75,6 +76,50 @@ public class UserinfoController extends AbstractRESTController {
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		responseMessage.setMessage("登陆成功");
 		return "";
+	}
+
+	
+	/**
+	 * 保存我的城市,或其他信息.
+	 * @param userLoginForm
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/saveParentData", method = RequestMethod.POST)
+	public String saveCity(UserLoginForm userLoginForm, ModelMap model,
+			HttpServletRequest request) {
+		model.clear();
+		// 返回消息体
+				ResponseMessage responseMessage = RestUtil
+						.addResponseMessageForModelMap(model);
+				// 请求消息体
+				String bodyJson = RestUtil.getJsonStringByRequest(request);
+				ParentDataJsonform jsonform;
+				try {
+					jsonform = (ParentDataJsonform) this.bodyJsonToFormObject(
+							bodyJson, ParentDataJsonform.class);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					responseMessage.setMessage(error_bodyJsonToFormObject);
+					return "";
+				}
+				try {
+					boolean flag = userinfoService
+							.saveParentData(jsonform,request, responseMessage);
+					if (!flag)// 请求服务返回失败标示
+						return "";
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					responseMessage.setMessage(e.getMessage());
+					return "";
+				}
+
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+				responseMessage.setMessage("保存成功");
+				return "";
 	}
 
 	/**
