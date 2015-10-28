@@ -71,7 +71,7 @@ public class PxTeacherService extends AbstractService {
 		
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql=" SELECT t1.uuid,t1.img,t1.name,t1.ct_stars,t1.ct_stars,t1.summary,t1.course_title";
+		String sql=" SELECT t1.uuid,t1.img,t1.name,t1.ct_stars,t1.summary,t1.course_title";
 		sql+=" FROM px_pxteacher t1 ";
 //		sql+=" LEFT JOIN  px_pxcourse t2 on t1.course_uuid=t2.uuid ";
 		sql+=" where  t1.status="+SystemConstants.PxCourse_status_fabu;

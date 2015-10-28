@@ -104,8 +104,11 @@ public class PxCourseService extends AbstractService {
 	 * @param pData
 	 * @param point
 	 * @return
+	 * 
+	 * 	//sort	 否	排序.取值: intelligent(智能排序). appraise(评价最高).distance(距离最近)
+			String sort = request.getParameter("sort");
 	 */
-	public PageQueryResult queryByPage(String groupuuid, String type,PaginationData pData,String point) {
+	public PageQueryResult queryByPage(String groupuuid, String type,PaginationData pData,String point,String teacheruuid ,String sort ) {
 //		String hql = "from PxCourse4Q  where  status=0 ";
 //		if(StringUtils.isNotBlank(groupuuid)){
 //			hql+=" and groupuuid in(" + DBUtil.stringsToWhereInValue(groupuuid) + ")";
@@ -127,10 +130,16 @@ public class PxCourseService extends AbstractService {
 			sql+=" and t1.groupuuid in(" + DBUtil.stringsToWhereInValue(groupuuid) + ")";
 		}
 		if(StringUtils.isNotBlank(type)){
-			sql+=" and t1.type in(" + DBUtil.stringsToWhereInValue(type) + ")";
+			sql+=" and t1.type="+type;
 		}
-		
-		sql+=" order by t1.ct_stars asc,t1.ct_study_students asc";
+		if(StringUtils.isNotBlank(teacheruuid)){
+			sql+=" and t1.uuid in ( select courseuuid  from px_userpxcourserelation where useruuid ='" + teacheruuid + "')";
+		}
+		if("distance".equals(sort)){
+			sql+=" order by t1.updatetime asc";
+		}else{
+			sql+=" order by t1.ct_stars desc,t1.ct_study_students desc";
+		}
 		Query q = s.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
@@ -147,7 +156,7 @@ public class PxCourseService extends AbstractService {
 			if(StringUtils.isNotBlank(point)){
 				pxCourse4Q.put("distance", DistanceUtil.getDistance(point, (String)pxCourse4Q.get("map_point")));
 			}else{
-				pxCourse4Q.put("distance", null);
+				pxCourse4Q.put("distance", "");
 			}
 		}
 		

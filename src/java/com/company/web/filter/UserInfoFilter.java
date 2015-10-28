@@ -53,6 +53,7 @@ public class UserInfoFilter implements Filter {
     
     public static String  getJSESSIONIDCookies(HttpServletRequest request) {  
         Cookie[] getCookies = request.getCookies();  
+        if(getCookies==null)return null;
         for (Cookie cook : getCookies) {  
            	if(RestConstants.Return_JSESSIONID.equalsIgnoreCase(cook.getName())){
            		return cook.getValue();

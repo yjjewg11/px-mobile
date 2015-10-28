@@ -52,8 +52,10 @@ public class PxCourseController extends AbstractRESTController {
 			String groupuuid = request.getParameter("groupuuid");
 			String mappoint = request.getParameter("map_point");
 			String type = request.getParameter("type");
+			String teacheruuid = request.getParameter("teacheruuid");
+			//sort	 否	排序.取值: intelligent(智能排序). appraise(评价最高).distance(距离最近)
 			String sort = request.getParameter("sort");
-			PageQueryResult list = pxCourseService.queryByPage(groupuuid,type,pData,mappoint);
+			PageQueryResult list = pxCourseService.queryByPage(groupuuid,type,pData,mappoint,teacheruuid,sort);
 
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -84,9 +86,12 @@ public class PxCourseController extends AbstractRESTController {
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			String groupuuid = request.getParameter("groupuuid");
-			String mappoint = request.getParameter("mappoint");
+			String mappoint = request.getParameter("map_point");
 			String type = request.getParameter("type");
-			PageQueryResult list = pxCourseService.queryByPage(groupuuid,type,pData,mappoint);
+			String teacheruuid = request.getParameter("teacheruuid");
+			//sort	 否	排序.取值: intelligent(智能排序). appraise(评价最高).distance(距离最近)
+			String sort = request.getParameter("sort");
+			PageQueryResult list = pxCourseService.queryByPage(groupuuid,type,pData,mappoint,teacheruuid,sort);
 
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

@@ -1,15 +1,18 @@
 package com.company.news.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
@@ -242,13 +245,47 @@ public class GroupService extends AbstractService {
 		return null;
 	}
 
-	public PageQueryResult pxlistByPage( PaginationData pData) {
-		String hql = "from Group4Q where type="+SystemConstants.Group_type_2+" and status=9";
-		hql += " order by create_time asc";
-		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHql(hql, pData);
-		this.warpVoList(pageQueryResult.getData());
+	public PageQueryResult pxlistByPage(String type,String sort, PaginationData pData,String point) {
+		
+		
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql=" SELECT DISTINCT t1.uuid,t1.brand_name,t1.img,t1.ct_stars,t1.ct_study_students,t1.link_tel,t1.map_point,t1.address";
+		sql+=" FROM px_group t1 ";
+		
+		if(StringUtils.isNotBlank(type)){
+			sql+=" LEFT JOIN  px_pxcourse t2 on t2.groupuuid=t1.uuid ";
+			sql+=" where  t1.type="+type;
+		}
+		sql+=" order by t1.create_time asc";
+		
+		Query q = s.createSQLQuery(sql);
+		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		
+		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
+		List<Map> list=pageQueryResult.getData();
+		for(Map obj:list)
+		{
+			//当课程LOGO为空时，取机构的LOGO
+			if(StringUtils.isBlank((String)obj.get("img")))
+				obj.put("img", PxStringUtil.imgSmallUrlByUuid((String)obj.get("img")));
+			
+			//当前坐标点参数不为空时，进行距离计算
+			if(StringUtils.isNotBlank(point)){
+				obj.put("distance", DistanceUtil.getDistance(point, (String)obj.get("map_point")));
+			}else{
+				obj.put("distance", "");
+			}
+		}
+		
 		return pageQueryResult;
+//		
+//		String hql = "from Group4Q where type="+SystemConstants.Group_type_2+" and status=9";
+//		hql += " order by create_time asc";
+//		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+//				.findByPaginationToHql(hql, pData);
+//		this.warpVoList(pageQueryResult.getData());
+//		return pageQueryResult;
 	}
 	/**
 	 * vo输出转换

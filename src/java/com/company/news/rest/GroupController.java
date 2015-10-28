@@ -76,8 +76,12 @@ public class GroupController extends AbstractRESTController {
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 //			pData.setPageSize(50);
-			PageQueryResult list = groupService.pxlistByPage(pData);
-
+		
+			String type = request.getParameter("type");
+			//sort	 否	排序.取值: intelligent(智能排序). appraise(评价最高).distance(距离最近)
+			String sort = request.getParameter("sort");
+			String mappoint = request.getParameter("map_point");
+			PageQueryResult list = groupService.pxlistByPage(type,sort,pData,mappoint);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		} catch (Exception e) {
