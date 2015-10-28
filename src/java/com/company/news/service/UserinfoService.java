@@ -1,6 +1,5 @@
 package com.company.news.service;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +10,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
@@ -22,10 +22,10 @@ import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
 import com.company.news.entity.Parent;
 import com.company.news.entity.ParentData;
-import com.company.news.entity.PxTeacher;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
 import com.company.news.entity.StudentOfSession;
+import com.company.news.entity.User;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -326,7 +326,7 @@ public class UserinfoService extends AbstractService {
 		// model.put(RestConstants.Return_UserInfo, userInfoReturn);
 
 		// 更新登陆日期,最近一次登陆日期
-		String sql = "update px_parent set count=count+1,last_login_time=login_time,login_time=now() where uuid='"
+		String sql = "update px_parent set count=count+1,last_login_time=login_time,login_time=now(),sessionid='"+session.getId()+"' where uuid='"
 				+ parent.getUuid() + "'";
 		this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory()
 				.getCurrentSession().createSQLQuery(sql).executeUpdate();
@@ -669,6 +669,9 @@ public class UserinfoService extends AbstractService {
 					ut.setApp_verion(jsonform.getApp_verion());
 				}
 				if(StringUtils.isNotBlank(jsonform.getCity())){
+					if(jsonform.getCity().endsWith("市")){
+						jsonform.setCity(StringUtils.substring(jsonform.getCity(), 0, jsonform.getCity().length()-1));
+					}
 					ut.setCity(jsonform.getCity());
 				}
 				if(StringUtils.isNotBlank(jsonform.getPhone_type())){
@@ -681,11 +684,86 @@ public class UserinfoService extends AbstractService {
 				ut.setUpdate_time(TimeUtils.getCurrentTimestamp());
 				ut.setIp(UserInfoFilter.getIpAddr(request));
 				ut.setLoginname(user.getLoginname());
-				ut.setSessionid(SessionListener.getSession(request).getId());
+				
 				
 				this.nSimpleHibernateDao.getHibernateTemplate().saveOrUpdate(ut);
 
 				return true;
 	}
+	
+	/**
+	 * 根据手机号码获取
+	 * 
+	 * @param loginname
+	 * @return
+	 */
+	public Parent getUserBySessionid(String sessionid) {
+		String attribute = "sessionid";
+		return (Parent) nSimpleHibernateDao.getObjectByAttribute(Parent.class,
+				attribute, sessionid);
+
+	}
+	public boolean updateAndloginForJessionid(String jessionid,
+			HttpServletRequest request) {
+
+		// 登录验证.验证失败则返回.
+		try {
+			Parent user = null;
+			HttpSession session = null;
+			synchronized (this) {
+				session=SessionListener.getSession(request);
+				// 同步加锁情况下,再次判断,防止多次创建session
+				if (session != null&&session.getAttribute(RestConstants.Session_UserInfo)!=null) {
+					return true;
+				}
+				user = getUserBySessionid(jessionid);
+				if (user == null)// 请求服务返回失败标示
+					return false;
+				session = request.getSession(true);
+				SessionListener.putSessionByToken(jessionid, session);
+			}
+
+			UserOfSession userOfSession = new UserOfSession();
+			try {
+				BeanUtils.copyProperties(userOfSession, user);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			// 设置session数据
+			this.putSession(session, userOfSession, request);
+
+			// 更新登陆日期,最近一次登陆日期
+			String sql = "update px_parent set sessionid='" + session.getId() + "' where uuid='"
+					+ user.getUuid() + "'";
+			Session session1=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+			Transaction transaction=session1.beginTransaction();
+			session1.createSQLQuery(sql).executeUpdate();
+			transaction.commit();
+			return true;
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+
+	}
+	/**
+	 * 返回客户端用户信息放入Map
+	 * 
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	public void putSession( HttpSession session,
+			SessionUserInfoInterface parent, HttpServletRequest request)
+			 {
+		List<StudentOfSession> studentOfSessionlist=getStudentOfSessionByParentuuid(parent.getUuid());
+		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
+		//我的孩子参加的培训班
+		session.setAttribute(RestConstants.Session_MyStudentClassUuids, getPxClassuuidsByMyChild(parent.getUuid()));
+		
+	}
+
 
 }

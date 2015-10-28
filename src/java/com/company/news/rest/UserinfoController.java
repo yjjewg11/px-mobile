@@ -62,11 +62,13 @@ public class UserinfoController extends AbstractRESTController {
 						.getSession((HttpServletRequest) request);
 		
 		SessionUserInfoInterface parent=this.getUserInfoBySession(request);
-		List<StudentOfSession> studentOfSessionlist=userinfoService.getStudentOfSessionByParentuuid(parent.getUuid());
-		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
-		//我的孩子参加的培训班
-		session.setAttribute(RestConstants.Session_MyStudentClassUuids, userinfoService.getPxClassuuidsByMyChild(parent.getUuid()));
-		
+		userinfoService.putSession(session, parent, request);
+//		
+//		List<StudentOfSession> studentOfSessionlist=userinfoService.getStudentOfSessionByParentuuid(parent.getUuid());
+//		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
+//		//我的孩子参加的培训班
+//		session.setAttribute(RestConstants.Session_MyStudentClassUuids, userinfoService.getPxClassuuidsByMyChild(parent.getUuid()));
+//		
 		flag = this.getUserAndStudent(model, request, responseMessage);
 		if (!flag)// 请求服务返回失败标示
 			return "";

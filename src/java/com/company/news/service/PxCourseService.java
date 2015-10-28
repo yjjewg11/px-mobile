@@ -61,7 +61,11 @@ public class PxCourseService extends AbstractService {
 
 	}
 
-
+	public PxCourse warpVo(PxCourse o){
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		o.setLogo(PxStringUtil.imgSmallUrlByUuid(o.getLogo()));
+		return o;
+	}
 	/**
 	 * 删除 支持多个，用逗号分隔
 	 * 

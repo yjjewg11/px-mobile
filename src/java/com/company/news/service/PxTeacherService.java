@@ -112,6 +112,7 @@ public class PxTeacherService extends AbstractService {
 	 * @return
 	 */
 	protected PxTeacher warpVo(PxTeacher o) {
+		if(o==null)return o;
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		o.setImg(PxStringUtil.imgUrlByUuid(o.getImg()));
 		

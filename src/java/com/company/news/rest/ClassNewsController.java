@@ -119,6 +119,40 @@ public class ClassNewsController extends AbstractRESTController {
 	 * @param request
 	 * @return
 	 */
+	@RequestMapping(value = "/queryPxClassNewsBy", method = RequestMethod.GET)
+	public String queryPxClassNewsBy(ModelMap model,
+			HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+			pData.setPageSize(5);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			String courseuuid=request.getParameter("courseuuid");
+			String groupuuid=request.getParameter("groupuuid");
+			PageQueryResult pageQueryResult = classNewsService.queryPxClassNewsBy(user,
+					courseuuid,groupuuid, pData);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list,
+					pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+	
+	
+	/**
+	 * 获取我的孩子相关班级的互动信息
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value = "/getClassNewsByMy", method = RequestMethod.GET)
 	public String getClassNewsByMy(ModelMap model,
 			HttpServletRequest request) {

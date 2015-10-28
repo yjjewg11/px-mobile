@@ -60,8 +60,8 @@ public class PxTeacherController extends AbstractRESTController {
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/listByPage", method = RequestMethod.GET)
-	public String listByPage(ModelMap model, HttpServletRequest request) {
+	@RequestMapping(value = "/queryByPage", method = RequestMethod.GET)
+	public String queryByPage(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {

@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,7 @@ import com.company.news.entity.ClassNews;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.StudentContactRealation;
+import com.company.news.entity.User4Q;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
@@ -148,6 +151,32 @@ public class ClassNewsService extends AbstractService {
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHqlNoTotal(hql, pData);
+		this.warpVoList(pageQueryResult.getData(), user.getUuid());
+		
+		return pageQueryResult;
+
+	}
+	
+	/**
+	 * 查询所有班级
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryPxClassNewsBy(SessionUserInfoInterface user ,String courseuuid,String groupuuid, PaginationData pData) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		String sql = "select DISTINCT {t1.*} from px_classnews  {t1} ";
+		if (StringUtils.isNotBlank(courseuuid)) {
+			sql += " LEFT JOIN  px_pxclass t2 on  {t1}.classuuid=t2.uuid ";
+			sql += " where t2.courseuuid ='"+courseuuid+"'";
+		}else if (StringUtils.isNotBlank(groupuuid)) {
+			sql += " where  {t1}.groupuuid ='"+groupuuid+"'";
+		}
+		sql += "order by {t1}.create_time desc";
+		
+		SQLQuery q = s.createSQLQuery(sql).addEntity("t1", ClassNews.class);
+
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
+		
 		this.warpVoList(pageQueryResult.getData(), user.getUuid());
 		
 		return pageQueryResult;

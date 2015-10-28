@@ -136,9 +136,9 @@ public class FavoritesService extends AbstractService {
 
 		}
 		this.logger.info("delete Favorites count="+count);
-		if(count==0){
-			return false;
-		}
+//		if(count==0){
+//			return false;
+//		}
 		return true;
 	}
 

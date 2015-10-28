@@ -9,10 +9,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxCourse;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
+import com.company.news.service.CountService;
 import com.company.news.service.PxCourseService;
 import com.company.news.vo.ResponseMessage;
 
@@ -28,7 +32,8 @@ public class PxCourseController extends AbstractRESTController {
 	@Autowired
 	private PxCourseService pxCourseService;
 
-	
+	 @Autowired
+     private CountService countService ;
 
 	/**
 	 * 获取培训机构对外发布课程列表分页
@@ -112,12 +117,18 @@ public class PxCourseController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			PxCourse t = pxCourseService.get(uuid);
+			pxCourseService.warpVo(t);
 			if(t==null){
 				responseMessage.setMessage("数据不存在,uuid="+uuid);
 				return "";
 			}
 			model.addAttribute(RestConstants.Return_G_entity, t);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			 countService.count(uuid, SystemConstants.common_type_pxcourse);
+			 SessionUserInfoInterface user = this.getUserInfoBySession(request);
+//			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_pxcourse));
+			 model.put(RestConstants.Return_ResponseMessage_isFavorites,pxCourseService.isFavorites( user.getUuid(),uuid));
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
