@@ -729,6 +729,7 @@ public class UserinfoService extends AbstractService {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
 			// 设置session数据
 			this.putSession(session, userOfSession, request);
 
