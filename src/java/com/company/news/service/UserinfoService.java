@@ -647,7 +647,7 @@ public class UserinfoService extends AbstractService {
 						+ DBUtil.stringsToWhereInValue(uuids) + ")");
 	}
 
-	public boolean saveParentData(ParentDataJsonform jsonform,
+	public boolean updateParentData(ParentDataJsonform jsonform,
 			HttpServletRequest request, ResponseMessage responseMessage){
 		
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);

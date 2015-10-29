@@ -109,7 +109,7 @@ public class UserinfoController extends AbstractRESTController {
 				}
 				try {
 					boolean flag = userinfoService
-							.saveParentData(jsonform,request, responseMessage);
+							.updateParentData(jsonform,request, responseMessage);
 					if (!flag)// 请求服务返回失败标示
 						return "";
 				} catch (Exception e) {
