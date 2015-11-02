@@ -1,5 +1,7 @@
 package com.company.news.rest;
 
+import java.net.URLDecoder;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,8 @@ public class PxCourseController extends AbstractRESTController {
 //			pData.setPageSize(50);
 			String groupuuid = request.getParameter("groupuuid");
 			String mappoint = request.getParameter("map_point");
+			
+			
 			String type = request.getParameter("type");
 			String teacheruuid = request.getParameter("teacheruuid");
 			//sort	 否	排序.取值: intelligent(智能排序). appraise(评价最高).distance(距离最近)

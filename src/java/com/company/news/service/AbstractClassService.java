@@ -1,6 +1,11 @@
 package com.company.news.service;
 
 import java.util.List;
+import java.util.Map;
+
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
@@ -21,35 +26,55 @@ public class AbstractClassService extends AbstractService {
 	protected AbstractClass warpVo(AbstractClass o) {
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		try {
-
-			List<UserClassRelation> l = (List<UserClassRelation>) this.nSimpleHibernateDao
-					.getHibernateTemplate().find(
-							"from UserClassRelation where classuuid=?",
-							o.getUuid());
-
-			String headTeacher = "";
-			String teacher = "";
-			String headTeacher_name = "";
-			String teacher_name = "";
-			for (UserClassRelation u : l) {
-				UserForJsCache user = (UserForJsCache) CommonsCache
-						.get(u.getUseruuid(), UserForJsCache.class);
-				if (user != null) {
-					if (u.getType().intValue() == SystemConstants.class_usertype_head) {
-
-						headTeacher += (u.getUseruuid() + ",");
-						headTeacher_name += (user.getName() + ",");
-
-					} else {
-						teacher += (u.getUseruuid() + ",");
-						teacher_name += (user.getName() + ",");
-					}
+			
+			Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+					.getSessionFactory().openSession();
+			String sql="select t2.type  ,group_concat( t1.name) as user_names,group_concat( t1.uuid) as user_uuids from px_user  t1 ";
+			sql+=" LEFT JOIN  px_userclassrelation t2 on t2.useruuid=t1.uuid  ";
+			sql+=" where t2.type is not null and t2.classuuid='"+o.getUuid()+"'";
+			sql+=" GROUP BY t2.type  ";
+			Query q = s.createSQLQuery(sql);
+			q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+			List<Map> list=q.list();
+			
+			for(Map map:list){
+				if(String.valueOf(SystemConstants.class_usertype_head).equals(map.get("type")+"")){
+					o.setHeadTeacher((String)map.get("user_uuids"));
+					o.setHeadTeacher_name((String)map.get("user_names"));
+				}else {
+					o.setTeacher((String)map.get("user_uuids"));
+					o.setTeacher_name((String)map.get("user_names"));
 				}
 			}
-			o.setHeadTeacher(PxStringUtil.StringDecComma(headTeacher));
-			o.setTeacher(PxStringUtil.StringDecComma(teacher));
-			o.setHeadTeacher_name(PxStringUtil.StringDecComma(headTeacher_name));
-			o.setTeacher_name(PxStringUtil.StringDecComma(teacher_name));
+//
+//			List<UserClassRelation> l = (List<UserClassRelation>) this.nSimpleHibernateDao
+//					.getHibernateTemplate().find(
+//							"from UserClassRelation where classuuid=?",
+//							o.getUuid());
+//
+//			String headTeacher = "";
+//			String teacher = "";
+//			String headTeacher_name = "";
+//			String teacher_name = "";
+//			for (UserClassRelation u : l) {
+//				UserForJsCache user = (UserForJsCache) CommonsCache
+//						.get(u.getUseruuid(), UserForJsCache.class);
+//				if (user != null) {
+//					if (u.getType().intValue() == SystemConstants.class_usertype_head) {
+//
+//						headTeacher += (u.getUseruuid() + ",");
+//						headTeacher_name += (user.getName() + ",");
+//
+//					} else {
+//						teacher += (u.getUseruuid() + ",");
+//						teacher_name += (user.getName() + ",");
+//					}
+//				}
+//			}
+//			o.setHeadTeacher(PxStringUtil.StringDecComma(headTeacher));
+//			o.setTeacher(PxStringUtil.StringDecComma(teacher));
+//			o.setHeadTeacher_name(PxStringUtil.StringDecComma(headTeacher_name));
+//			o.setTeacher_name(PxStringUtil.StringDecComma(teacher_name));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

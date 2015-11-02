@@ -8,22 +8,17 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.DistanceUtil;
-import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
 import com.company.news.entity.Group4Q;
-import com.company.news.entity.Message;
-import com.company.news.entity.User;
 import com.company.news.entity.UserGroupRelation;
 import com.company.news.jsonform.GroupRegJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
-import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
@@ -255,7 +250,10 @@ public class GroupService extends AbstractService {
 		
 		if(StringUtils.isNotBlank(type)){
 			sql+=" LEFT JOIN  px_pxcourse t2 on t2.groupuuid=t1.uuid ";
-			sql+=" where  t1.type="+type;
+			sql+=" where t1.type=2 and t2.type="+type;
+		}else{
+			sql+=" where t1.type=2 ";
+			
 		}
 		sql+=" order by t1.create_time asc";
 		
@@ -267,7 +265,7 @@ public class GroupService extends AbstractService {
 		for(Map obj:list)
 		{
 			//当课程LOGO为空时，取机构的LOGO
-			if(StringUtils.isBlank((String)obj.get("img")))
+			if(StringUtils.isNotBlank((String)obj.get("img")))
 				obj.put("img", PxStringUtil.imgSmallUrlByUuid((String)obj.get("img")));
 			
 			//当前坐标点参数不为空时，进行距离计算
