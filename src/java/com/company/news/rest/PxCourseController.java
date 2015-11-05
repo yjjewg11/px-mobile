@@ -135,9 +135,10 @@ public class PxCourseController extends AbstractRESTController {
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 			 countService.count(uuid, SystemConstants.common_type_pxcourse);
 			 SessionUserInfoInterface user = this.getUserInfoBySession(request);
-//			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_pxcourse));
 			 model.put(RestConstants.Return_ResponseMessage_isFavorites,pxCourseService.isFavorites( user.getUuid(),uuid));
-			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
+//			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_pxcourse));
+			 model.put(RestConstants.Return_ResponseMessage_link_tel,pxCourseService.getGroupLink_tel( t.getGroupuuid()));
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getPxCourseByUuid(uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

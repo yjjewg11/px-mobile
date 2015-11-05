@@ -1,15 +1,19 @@
 package com.company.news.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Announcements;
 import com.company.news.entity.Announcements4Q;
@@ -387,6 +391,43 @@ public class AnnouncementsService extends AbstractService {
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
 		return User.class;
+	}
+	 @Autowired
+     private CountService countService ;
+	public PageQueryResult pxbenefitListByPage(PaginationData pData,
+			String mappoint, String sort) throws Exception {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql=" SELECT t1.uuid,t2.img as group_img,t1.title,t2.brand_name as group_name,t2.map_point";
+		sql+=" FROM px_announcements t1 ";
+		sql+=" LEFT JOIN  px_group t2 on t1.groupuuid=t2.uuid ";
+		sql+=" where  t1.status=0 and t1.type="+SystemConstants.common_type_pxbenefit;
+		
+		sql+=" order by t1.create_time desc";
+//		if("distance".equals(sort)){
+//			sql+=" order by t1.create_time desc";
+//		}else{
+//			sql+=" order by t1.ct_stars desc,t1.ct_study_students desc";
+//		}
+		Query q = s.createSQLQuery(sql);
+		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		
+		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
+		List<Map> list=pageQueryResult.getData();
+		for(Map pxCourse4Q:list)
+		{
+			
+			pxCourse4Q.put("group_img", PxStringUtil.imgSmallUrlByUuid((String)pxCourse4Q.get("group_img")));
+			
+			pxCourse4Q.put("count", countService.get((String)pxCourse4Q.get("uuid"), SystemConstants.common_type_pxbenefit));
+			//当前坐标点参数不为空时，进行距离计算
+			if(StringUtils.isNotBlank(mappoint)){
+				pxCourse4Q.put("distance", DistanceUtil.getDistance(mappoint, (String)pxCourse4Q.get("map_point")));
+			}else{
+				pxCourse4Q.put("distance", "");
+			}
+		}
+		return pageQueryResult;
 	}
 
 }

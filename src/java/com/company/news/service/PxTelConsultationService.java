@@ -1,34 +1,21 @@
 package com.company.news.service;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.ModelMap;
 
 import com.company.news.SystemConstants;
-import com.company.news.cache.CommonsCache;
-import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Appraise;
-import com.company.news.entity.Group;
-import com.company.news.entity.PxClass;
-import com.company.news.entity.PxCourse4Q;
-import com.company.news.entity.TeacherJudge;
-import com.company.news.entity.User;
-import com.company.news.jsonform.AppraiseJsonform;
-import com.company.news.jsonform.TeachingJudgeJsonform;
+import com.company.news.entity.PxTelConsultation;
+import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.jsonform.PxTelConsultationJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
-import com.company.news.rest.RestConstants;
-import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
-import com.company.news.vo.TeacherPhone;
 
 /**
  * 
@@ -36,7 +23,7 @@ import com.company.news.vo.TeacherPhone;
  * 
  */
 @Service
-public class AppraiseService extends AbstractService {
+public class PxTelConsultationService extends AbstractService {
 
 	/**
 	 * 增加班级
@@ -46,48 +33,67 @@ public class AppraiseService extends AbstractService {
 	 * @param request
 	 * @return
 	 */
-	public boolean add(AppraiseJsonform appraiseJsonform,
-			ResponseMessage responseMessage) throws Exception {
+	public boolean add(PxTelConsultationJsonform jsonform,
+			ResponseMessage responseMessage,SessionUserInfoInterface user) throws Exception {
 		
 		if (this.validateRequireByRegJsonform(
-						appraiseJsonform.getType(), "type", responseMessage)) {
+				jsonform.getType(), "type", responseMessage)) {
 			return false;
 		}
 		
-		if(StringUtils.isBlank(appraiseJsonform.getClass_uuid())){
-			PxClass pxClass=this.nSimpleHibernateDao.getHibernateTemplate().get(PxClass.class, appraiseJsonform.getClass_uuid());
-			if(pxClass==null){
-				responseMessage.setMessage("异常数据,没有该班级信息.Class_uuid="+appraiseJsonform.getClass_uuid());
+		if (this.validateRequireByRegJsonform(
+						jsonform.getExt_uuid(), "Ext_uuid", responseMessage)) {
+			return false;
+		}
+		
+		String ext_context=null;
+		String grouuuid=null;
+		if(SystemConstants.common_type_pxgroup==jsonform.getType().intValue()){
+			List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select brand_name from Group where uuid='"+jsonform.getExt_uuid()+"'");
+			
+			if(list==null){
+				responseMessage.setMessage("学校没找到!Ext_uuid="+jsonform.getExt_uuid());
 				return false;
 			}
-			
-			if(SystemConstants.common_type_pxgroup==appraiseJsonform.getType().intValue()){
-				appraiseJsonform.setExt_uuid(pxClass.getGroupuuid());
-			}else if(SystemConstants.common_type_pxcourse==appraiseJsonform.getType().intValue()){
-				appraiseJsonform.setExt_uuid(pxClass.getCourseuuid());
+			ext_context=(String)list.get(0);
+			grouuuid=jsonform.getExt_uuid();
+		}else if(SystemConstants.common_type_pxcourse==jsonform.getType().intValue()){
+				List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select title,groupuuid from PxCourse where uuid='"+jsonform.getExt_uuid()+"'");
+			if(list==null){
+				responseMessage.setMessage("课程没找到!Ext_uuid="+jsonform.getExt_uuid());
+				return false;
 			}
+			Object[] tmp=(Object[])list.get(0);
+			ext_context=(String)tmp[0];
+			grouuuid=(String)tmp[1];
+		}else if(SystemConstants.common_type_pxbenefit==jsonform.getType().intValue()){
+			List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select title,groupuuid from Announcements where uuid='"+jsonform.getExt_uuid()+"'");
+			if(list==null){
+				responseMessage.setMessage("优惠活动没找到!Ext_uuid="+jsonform.getExt_uuid());
+				return false;
+			}
+			Object[] tmp=(Object[])list.get(0);
+			ext_context=(String)tmp[0];
+			grouuuid=(String)tmp[1];
+		}else{
+			responseMessage.setMessage("type未定义,无效."+jsonform.getType());
+			return false;
+		}
 			
-		}
 		
 		
-		if (this.validateRequireByRegJsonform(appraiseJsonform.getExt_uuid(),
-				"Ext_uuid", responseMessage)
-				|| this.validateRequireByRegJsonform(
-						appraiseJsonform.getScore(), "Score", responseMessage)) {
-			return false;
-		}
+		jsonform.setUuid(null);
+		PxTelConsultation data = new PxTelConsultation();
+
+		BeanUtils.copyProperties(data, jsonform);
+		data.setCreate_time(TimeUtils.getCurrentTimestamp());
+		data.setGroup_uuid(grouuuid);
+		data.setExt_context(PxStringUtil.getSubString(ext_context, 100));
+		data.setTel(user.getLoginname());
+		data.setTel_name(user.getLoginname());
+		data.setUuid(null);
 		
-		if(appraiseJsonform.getScore().intValue()<0||appraiseJsonform.getScore().intValue()>50){
-			responseMessage.setMessage("打分范围在0-50分之间.");
-			return false;
-		}
-
-		Appraise appraise = new Appraise();
-
-		BeanUtils.copyProperties(appraise, appraiseJsonform);
-		appraise.setCreate_time(TimeUtils.getCurrentTimestamp());
-
-		this.nSimpleHibernateDao.getHibernateTemplate().save(appraise);
+		this.nSimpleHibernateDao.getHibernateTemplate().save(data);
 
 		return true;
 	}

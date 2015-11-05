@@ -10,19 +10,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.interfaces.SessionUserInfoInterface;
-import com.company.news.jsonform.AppraiseJsonform;
+import com.company.news.jsonform.PxTelConsultationJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
-import com.company.news.service.AppraiseService;
+import com.company.news.service.PxTelConsultationService;
 import com.company.news.vo.ResponseMessage;
 
 @Controller
-@RequestMapping(value = "/appraise")
-public class AppraiseController extends AbstractRESTController {
+@RequestMapping(value = "/pxTelConsultation")
+public class PxTelConsultationController extends AbstractRESTController {
 
 	@Autowired
-	private AppraiseService appraiseService;
+	private PxTelConsultationService pxTelConsultationService;
 
 	/**
 	 * 
@@ -38,10 +38,10 @@ public class AppraiseController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		// 请求消息体
 		String bodyJson = RestUtil.getJsonStringByRequest(request);
-		AppraiseJsonform appraiseJsonform;
+		PxTelConsultationJsonform appraiseJsonform;
 		try {
-			appraiseJsonform = (AppraiseJsonform) this.bodyJsonToFormObject(
-					bodyJson, AppraiseJsonform.class);
+			appraiseJsonform = (PxTelConsultationJsonform) this.bodyJsonToFormObject(
+					bodyJson, PxTelConsultationJsonform.class);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -52,11 +52,8 @@ public class AppraiseController extends AbstractRESTController {
 		try {
 			// 设置当前用户
 			SessionUserInfoInterface user = this.getUserInfoBySession(request);		
-			//保密用户信息.
-			appraiseJsonform.setCreate_user(PxStringUtil.getSecretCellphone(user.getLoginname()));
-			appraiseJsonform.setCreate_useruuid(user.getUuid());
-			boolean flag = appraiseService.add(appraiseJsonform,
-					responseMessage);
+			boolean flag = pxTelConsultationService.add(appraiseJsonform,
+					responseMessage,user);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {
@@ -81,7 +78,7 @@ public class AppraiseController extends AbstractRESTController {
 		try {
 			String ext_uuid=request.getParameter("ext_uuid");
 			PaginationData pData = this.getPaginationDataByRequest(request);
-			PageQueryResult list = appraiseService.queryByPage(ext_uuid, pData);
+			PageQueryResult list = pxTelConsultationService.queryByPage(ext_uuid, pData);
 
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage
@@ -103,7 +100,7 @@ public class AppraiseController extends AbstractRESTController {
 		try {
 			String class_uuid=request.getParameter("class_uuid");
 			PaginationData pData = this.getPaginationDataByRequest(request);
-			PageQueryResult list = appraiseService.queryMyByPage(class_uuid,this.getUserInfoBySession(request).getUuid(), pData);
+			PageQueryResult list = pxTelConsultationService.queryMyByPage(class_uuid,this.getUserInfoBySession(request).getUuid(), pData);
 
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage

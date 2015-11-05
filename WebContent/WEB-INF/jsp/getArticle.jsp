@@ -26,7 +26,7 @@
  
  <h1>${data.title}</h1>
   <h2> ${group.brand_name}|${group.link_tel}|${group.address}</h2>
-  <h3>作者:${data.create_user},发布时间:${data.create_time}, 浏览${count}次</h3>
+  <h3>作者:${data.create_user},发布日期:${show_time}, 浏览${count}次</h3>
   <div>${data.message}</div>
 </body>
 </html>

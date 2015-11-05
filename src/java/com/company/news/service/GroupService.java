@@ -10,6 +10,7 @@ import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
 
+import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
@@ -245,7 +246,7 @@ public class GroupService extends AbstractService {
 		
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql=" SELECT DISTINCT t1.uuid,t1.brand_name,t1.img,t1.ct_stars,t1.ct_study_students,t1.link_tel,t1.map_point,t1.address";
+		String sql=" SELECT DISTINCT t1.uuid,t1.brand_name,t1.img,t1.ct_stars,t1.ct_study_students,t1.link_tel,t1.map_point,t1.address,t1.summary";
 		sql+=" FROM px_group t1 ";
 		
 		if(StringUtils.isNotBlank(type)){
@@ -255,7 +256,26 @@ public class GroupService extends AbstractService {
 			sql+=" where t1.type=2 ";
 			
 		}
-		sql+=" order by t1.create_time asc";
+		double[] lngLatArr=null;
+		if(StringUtils.isNotBlank(point)){
+			lngLatArr=DistanceUtil.getLongitudeAndLatitude(point);
+		}
+		
+		if("distance".equals(sort)&&lngLatArr!=null){
+			double lng1=lngLatArr[0];
+			double lat1=lngLatArr[1];
+			//String range_of_distance=ProjectProperties.getProperty("range_of_distance","20");
+			
+			sql+=" order by ACOS(SIN(("+lat1+" * 3.1415) / 180 ) *SIN((t1.lat * 3.1415) / 180 ) " +
+					"+COS(("+lat1+" * 3.1415) / 180 ) * COS((t1.lat * 3.1415) / 180 ) " +
+							"*COS(("+lng1+"* 3.1415) / 180 - (t1.lng * 3.1415) / 180 ) ) * 6380 asc";
+			
+//			sql+=" order by t1.updatetime asc";
+		}else if("appraise".equals(sort)){//
+			sql+=" order by t1.ct_stars desc";
+		}else{//自能排序
+			sql+=" order by t1.ct_study_students desc";
+		}
 		
 		Query q = s.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);

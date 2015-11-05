@@ -67,6 +67,15 @@ public abstract class AbstractService {
 		}
 
 	}
+	
+	public String getGroupLink_tel(String groupuuid){
+		String hql="select link_tel from Group4Q where  uuid ='"+groupuuid+"'";
+		List list=this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
+		if(list.size()>0){
+			return (String)list.get(0);
+		}
+		return "";
+	}
   
   /**
 	 * 查询回复列表分页

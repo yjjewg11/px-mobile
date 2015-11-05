@@ -135,11 +135,30 @@ public class PxCourseService extends AbstractService {
 		if(StringUtils.isNotBlank(teacheruuid)){
 			sql+=" and t1.uuid in ( select courseuuid  from px_userpxcourserelation where useruuid ='" + teacheruuid + "')";
 		}
-		if("distance".equals(sort)){
+		
+		
+		double[] lngLatArr=null;
+		if(StringUtils.isNotBlank(point)){
+			lngLatArr=DistanceUtil.getLongitudeAndLatitude(point);
+		}
+		
+		if("distance".equals(sort)&&lngLatArr!=null){
+			double lng1=lngLatArr[0];
+			double lat1=lngLatArr[1];
+			//String range_of_distance=ProjectProperties.getProperty("range_of_distance","20");
+			
+			sql+=" order by ACOS(SIN(("+lat1+" * 3.1415) / 180 ) *SIN((t2.lat * 3.1415) / 180 ) " +
+					"+COS(("+lat1+" * 3.1415) / 180 ) * COS((t2.lat * 3.1415) / 180 ) " +
+							"*COS(("+lng1+"* 3.1415) / 180 - (t2.lng * 3.1415) / 180 ) ) * 6380 asc";
+			
+//			sql+=" order by t1.updatetime asc";
+		}else if("appraise".equals(sort)){//
 			sql+=" order by t1.updatetime asc";
 		}else{
 			sql+=" order by t1.ct_stars desc,t1.ct_study_students desc";
 		}
+		
+		
 		Query q = s.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		

@@ -133,7 +133,8 @@ public class ShareController extends AbstractRESTController {
 				return "/404";
 		}
 			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
-
+			model.put("show_time", TimeUtils.getDateString(a.getCreate_time()));
+			
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_gonggao));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -319,6 +320,8 @@ public class ShareController extends AbstractRESTController {
 			BeanUtils.copyProperties(vo, a);
 			announcementsService.warpVo(vo, cur_user_uuid);
 			model.put("group",CommonsCache.get(a.getGroupuuid(), Group4Q.class));
+			model.put("show_time", TimeUtils.getDateString(a.getCreate_time()));
+			
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getArticleByUuid(uuid));
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
@@ -664,5 +667,95 @@ public class ShareController extends AbstractRESTController {
 			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
+	}
+	
+	
+	
+	/**
+	 * 获取优惠活动列表
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/pxbenefitList", method = RequestMethod.GET)
+	public String pxbenefitList(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+			
+String mappoint = request.getParameter("map_point");
+			
+			
+			String teacheruuid = request.getParameter("teacheruuid");
+			//sort	 否	排序.取值: intelligent(智能排序). appraise(评价最高).distance(距离最近)
+			String sort = request.getParameter("sort");
+			
+			
+			PageQueryResult list = announcementsService.pxbenefitListByPage(pData,mappoint,sort);
+			
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+	
+	/**
+	 * 获取精品文章详细
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getPxbenefitJSON", method = RequestMethod.GET)
+	public String getPxbenefitJSON(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String uuid=request.getParameter("uuid");
+		if(StringUtils.isBlank(uuid)){
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("uuid 不能为空!");
+			return "";
+		}
+		AnnouncementsVo  vo = new AnnouncementsVo();
+		try {
+			Announcements4Q a = (Announcements4Q)nSimpleHibernateDao.getObject(Announcements4Q.class,uuid);
+			if(a==null){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("数据不存在.");
+				return "";
+			}
+			
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			String cur_user_uuid=null;
+			if(user!=null){
+				cur_user_uuid=user.getUuid();
+			}
+				BeanUtils.copyProperties(vo, a);
+				announcementsService.warpNoReplyVo(vo, cur_user_uuid);
+				if(StringUtils.isBlank(vo.getUrl())){
+					vo.setUrl(PxStringUtil.getArticleByUuid(uuid));
+				}
+				model.put(RestConstants.Return_ResponseMessage_share_url,vo.getUrl());
+			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_pxbenefit));
+		
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,vo);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
 	}
 }
