@@ -39,6 +39,7 @@ import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.service.AnnouncementsService;
+import com.company.news.service.ClassNewsService;
 import com.company.news.service.CountService;
 import com.company.news.service.FavoritesService;
 import com.company.news.service.GroupService;
@@ -269,9 +270,11 @@ public class ShareController extends AbstractRESTController {
 				announcementsService.warpNoReplyVo(vo, cur_user_uuid);
 				if(StringUtils.isBlank(vo.getUrl())){
 					vo.setUrl(PxStringUtil.getArticleByUuid(uuid));
+				}else{
+					model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
+					
 				}
 				model.put(RestConstants.Return_ResponseMessage_share_url,vo.getUrl());
-			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_jingpinwenzhang));
 		
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
 		} catch (Exception e) {
@@ -340,7 +343,8 @@ public class ShareController extends AbstractRESTController {
 		return "/getArticle";
 	}
 	
-
+	@Autowired
+	private ClassNewsService classNewsService;
 	/**
 	 * 全校公告
 	 * @param model
@@ -360,7 +364,6 @@ public class ShareController extends AbstractRESTController {
 				responseMessage.setMessage("数据不存在.");
 				return "/404";
 			}
-			
 			PClass pClass=(PClass)CommonsCache.get(a.getClassuuid(), PClass.class);
 			model.put("group",CommonsCache.get(pClass.getGroupuuid(), Group4Q	.class));
 			model.put("pclass",CommonsCache.get(a.getClassuuid(), PClass.class));
@@ -742,10 +745,14 @@ String mappoint = request.getParameter("map_point");
 				announcementsService.warpNoReplyVo(vo, cur_user_uuid);
 				if(StringUtils.isBlank(vo.getUrl())){
 					vo.setUrl(PxStringUtil.getArticleByUuid(uuid));
+				}else{
+					model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_pxbenefit));
+					
 				}
 				model.put(RestConstants.Return_ResponseMessage_share_url,vo.getUrl());
-			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_pxbenefit));
-		
+				//在
+//			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_pxbenefit));
+			 model.put(RestConstants.Return_ResponseMessage_link_tel,announcementsService.getGroupLink_tel( a.getGroupuuid()));
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

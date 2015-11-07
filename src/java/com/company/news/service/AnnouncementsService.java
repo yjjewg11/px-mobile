@@ -377,9 +377,9 @@ public class AnnouncementsService extends AbstractService {
 //				o.setMessage("请升级最新版本,才可以浏览.");
 //			}
 		//	o.setMessage(PxStringUtil.warpHtml5Responsive(o.getMessage()));
-			if(StringUtils.isBlank(o.getUrl())){
-				o.setUrl(PxStringUtil.getArticleByUuid(o.getUuid()));
-			}
+//			if(StringUtils.isBlank(o.getUrl())){
+//				o.setUrl(PxStringUtil.getArticleByUuid(o.getUuid()));
+//			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -398,11 +398,13 @@ public class AnnouncementsService extends AbstractService {
 			String mappoint, String sort) throws Exception {
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
+		String crrentTime=TimeUtils.getCurrentTime(TimeUtils.DEFAULTFORMAT);
 		String sql=" SELECT t1.uuid,t2.img as group_img,t1.title,t2.brand_name as group_name,t2.map_point";
 		sql+=" FROM px_announcements t1 ";
 		sql+=" LEFT JOIN  px_group t2 on t1.groupuuid=t2.uuid ";
 		sql+=" where  t1.status=0 and t1.type="+SystemConstants.common_type_pxbenefit;
-		
+		sql+=" and start_time>="+DBUtil.stringToDateByDBType(crrentTime);
+		sql+=" and end_time<="+DBUtil.stringToDateByDBType(crrentTime);
 		sql+=" order by t1.create_time desc";
 //		if("distance".equals(sort)){
 //			sql+=" order by t1.create_time desc";

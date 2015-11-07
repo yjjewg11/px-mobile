@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -13,15 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
 import com.company.news.entity.Group4Q;
 import com.company.news.interfaces.SessionUserInfoInterface;
-import com.company.news.jsonform.GroupRegJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.RestUtil;
-import com.company.news.right.RightConstants;
-import com.company.news.right.RightUtils;
 import com.company.news.service.CountService;
 import com.company.news.service.GroupService;
 import com.company.news.vo.ResponseMessage;
@@ -105,8 +102,13 @@ public class GroupController extends AbstractRESTController {
 		Group c;
 		try {
 			c = groupService.get(uuid);
-			 countService.count(uuid, SystemConstants.common_type_pxcourse);
+			if(c ==null){
+				responseMessage.setMessage("学校不存在！");
+				return "";
+			}
+			 countService.count(uuid, SystemConstants.common_type_pxgroup);
 			 SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			 model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getGroupShareURLByUuid(uuid));
 			 model.put(RestConstants.Return_ResponseMessage_isFavorites,groupService.isFavorites( user.getUuid(),uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

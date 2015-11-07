@@ -153,9 +153,9 @@ public class PxCourseService extends AbstractService {
 			
 //			sql+=" order by t1.updatetime asc";
 		}else if("appraise".equals(sort)){//
-			sql+=" order by t1.updatetime asc";
-		}else{
 			sql+=" order by t1.ct_stars desc,t1.ct_study_students desc";
+		}else{
+			sql+=" order by t1.updatetime asc";
 		}
 		
 		
