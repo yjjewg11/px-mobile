@@ -223,6 +223,30 @@ public class AnnouncementsService extends AbstractService {
 	}
 
 	
+	
+
+	/**
+	 * 查询我公告
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryMyChildGroup(String useruuid, PaginationData pData) {
+		
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql=" SELECT t1.uuid,t1.create_time,t1.create_user,t1.create_useruuid,t1.groupuuid,t1.title from px_announcements t1 where t1.type=0 and  t1.status="+SystemConstants.Check_status_fabu;
+		sql+=" and (t1.groupuuid IN (select DISTINCT  t2.groupuuid from px_studentcontactrealation t2 where t2.parent_uuid='"+useruuid+"')";
+		sql+=" or t1.groupuuid IN (select DISTINCT  t3.groupuuid from px_pxclass t3 inner JOIN px_pxstudentpxclassrelation t4 on t4.class_uuid=t3.uuid ";
+		sql+=" inner join px_pxstudentcontactrealation t5 on  t5.student_uuid=t4.student_uuid where t5.parent_uuid='"+useruuid+"')";
+		sql+=") ORDER BY t1.create_time desc";
+		
+		Query q = s.createSQLQuery(sql);
+		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		
+		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
+		return pageQueryResult;
+
+	}
 	/**
 	 * 查询我公告
 	 * 
@@ -398,13 +422,13 @@ public class AnnouncementsService extends AbstractService {
 			String mappoint, String sort) throws Exception {
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String crrentTime=TimeUtils.getCurrentTime(TimeUtils.DEFAULTFORMAT);
+		String crrentTime=TimeUtils.getCurrentTime(TimeUtils.YYYY_MM_DD_FORMAT);
 		String sql=" SELECT t1.uuid,t2.img as group_img,t1.title,t2.brand_name as group_name,t2.map_point";
 		sql+=" FROM px_announcements t1 ";
 		sql+=" LEFT JOIN  px_group t2 on t1.groupuuid=t2.uuid ";
 		sql+=" where  t1.status=0 and t1.type="+SystemConstants.common_type_pxbenefit;
-		sql+=" and start_time>="+DBUtil.stringToDateByDBType(crrentTime);
-		sql+=" and end_time<="+DBUtil.stringToDateByDBType(crrentTime);
+		sql+=" and start_time<="+DBUtil.stringToDateByDBType(crrentTime);
+		sql+=" and end_time>="+DBUtil.stringToDateByDBType(crrentTime);
 		sql+=" order by t1.create_time desc";
 //		if("distance".equals(sort)){
 //			sql+=" order by t1.create_time desc";

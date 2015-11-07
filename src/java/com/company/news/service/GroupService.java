@@ -251,9 +251,9 @@ public class GroupService extends AbstractService {
 		
 		if(StringUtils.isNotBlank(type)){
 			sql+=" LEFT JOIN  px_pxcourse t2 on t2.groupuuid=t1.uuid ";
-			sql+=" where t1.type=2 and t2.type="+type;
+			sql+=" where  t1.type=2 and t1.status=9 and t2.type="+type;
 		}else{
-			sql+=" where t1.type=2 ";
+			sql+=" where t1.type=2 and t1.status=9 ";
 			
 		}
 		double[] lngLatArr=null;

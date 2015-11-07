@@ -91,12 +91,12 @@ public class AnnouncementsController extends AbstractRESTController {
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			String groupuuids=request.getParameter("groupuuids");
-			if(StringUtils.isBlank(groupuuids)){
-				groupuuids=this.getMyChildrenGroupUuidsBySession(request);
-			}
+//			if(StringUtils.isBlank(groupuuids)){
+//				groupuuids=this.getMyChildrenGroupUuidsBySession(request);
+//			}
 			PageQueryResult pageQueryResult=null;
 			if(StringUtils.isBlank(groupuuids)){
-				pageQueryResult=new PageQueryResult();
+				pageQueryResult = announcementsService.queryMyChildGroup(this.getUserInfoBySession(request).getUuid(),pData);
 			}else{
 				
 				pageQueryResult = announcementsService.query(groupuuids,pData);

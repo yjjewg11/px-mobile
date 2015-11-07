@@ -42,7 +42,7 @@
 		<div >
 		<c:forEach var="item" items="${data.list_time_1}">   
 				<div className="G_cookplan_Img" >
-	 	       			<img className="G_cookplan_Img_img"    src="${G_imgPath}${item.img}" alt="图片不存在" title="${item.name}" />
+	 	       			<img className="G_cookplan_Img_img"    src="${item.img}" alt="图片不存在" title="${item.name}" />
 	 	       			<span >${item.name}</span>
 	 	       		</div>	
 		</c:forEach>  
@@ -54,7 +54,7 @@
 		 <label>早上加餐:</label> 
 			<c:forEach var="item" items="${data.list_time_1}">   
 				<div className="G_cookplan_Img" >
-	 	       			<img className="G_cookplan_Img_img"    src="${G_imgPath}${item.img}" alt="图片不存在" title="${item.name}" />
+	 	       			<img className="G_cookplan_Img_img"    src="${item.img}" alt="图片不存在" title="${item.name}" />
 	 	       			<span >${item.name}</span>
 	 	       		</div>	
 		</c:forEach>  
@@ -64,7 +64,7 @@
 		 <label>午餐:</label> 
 			<c:forEach var="item" items="${data.list_time_1}">   
 				<div className="G_cookplan_Img" >
-	 	       			<img className="G_cookplan_Img_img"    src="${G_imgPath}${item.img}" alt="图片不存在" title="${item.name}" />
+	 	       			<img className="G_cookplan_Img_img"    src="${item.img}" alt="图片不存在" title="${item.name}" />
 	 	       			<span >${item.name}</span>
 	 	       		</div>	
 		</c:forEach>  
@@ -74,7 +74,7 @@
 		 <label>下午加餐:</label> 
 		 	<c:forEach var="item" items="${data.list_time_1}">   
 				<div className="G_cookplan_Img" >
-	 	       			<img className="G_cookplan_Img_img"    src="${G_imgPath}${item.img}" alt="图片不存在" title="${item.name}" />
+	 	       			<img className="G_cookplan_Img_img"    src="${item.img}" alt="图片不存在" title="${item.name}" />
 	 	       			<span >${item.name}</span>
 	 	       		</div>	
 		</c:forEach>  
@@ -84,7 +84,7 @@
 		 <label>晚餐:</label> 
 		 	<c:forEach var="item" items="${data.list_time_1}">   
 				<div className="G_cookplan_Img" >
-	 	       			<img className="G_cookplan_Img_img"    src="${G_imgPath}${item.img}" alt="图片不存在" title="${item.name}" />
+	 	       			<img className="G_cookplan_Img_img"    src="${item.img}" alt="图片不存在" title="${item.name}" />
 	 	       			<span >${item.name}</span>
 	 	       		</div>	
 		</c:forEach>  
