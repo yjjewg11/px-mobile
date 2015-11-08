@@ -212,7 +212,7 @@ order by t1.plandate asc
 		sql+=" LEFT JOIN  px_pxstudent t4 on t3.student_uuid=t4.uuid";
 		sql+=" LEFT JOIN  px_group t5 on t2.groupuuid=t5.uuid ";
 		sql+=" where  t1.plandate>=curdate() ";
-//		sql+=" and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"+cur_user_uuid+"' )";
+		sql+=" and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"+cur_user_uuid+"' )";
 		sql+=" order by t1.plandate asc";
 		sql+=" ) t GROUP BY t.classuuid";
 		sql+="";
