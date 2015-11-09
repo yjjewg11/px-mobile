@@ -126,11 +126,12 @@ public class PxCourseController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			PxCourse t = pxCourseService.get(uuid);
-			pxCourseService.warpVo(t);
+		
 			if(t==null){
 				responseMessage.setMessage("数据不存在,uuid="+uuid);
 				return "";
 			}
+			pxCourseService.warpVo(t);
 			model.addAttribute(RestConstants.Return_G_entity, t);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 			 countService.count(uuid, SystemConstants.common_type_pxcourse);
