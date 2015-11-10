@@ -165,7 +165,7 @@ public class AppraiseService extends AbstractService {
 			return null;
 		}
 		String hql = "from Appraise where  class_uuid='" + class_uuid+"' and create_useruuid='"+create_useruuid+"'";
-				hql+= "' order by create_time desc";
+				hql+= " order by create_time desc";
 		pData.setPageSize(50);
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
