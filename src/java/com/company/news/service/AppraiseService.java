@@ -54,7 +54,7 @@ public class AppraiseService extends AbstractService {
 			return false;
 		}
 		
-		if(StringUtils.isBlank(appraiseJsonform.getClass_uuid())){
+		if(StringUtils.isNotBlank(appraiseJsonform.getClass_uuid())){
 			PxClass pxClass=this.nSimpleHibernateDao.getHibernateTemplate().get(PxClass.class, appraiseJsonform.getClass_uuid());
 			if(pxClass==null){
 				responseMessage.setMessage("异常数据,没有该班级信息.Class_uuid="+appraiseJsonform.getClass_uuid());

@@ -1,5 +1,6 @@
 package com.company.news.service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,11 +8,14 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxStudent;
+import com.company.news.entity.PxStudentContactRealation;
 import com.company.news.entity.PxStudentPXClassRelation;
 import com.company.news.entity.Student;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -174,6 +178,58 @@ public class PxStudentService extends AbstractStudentService {
 		List list = this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
 		warpStudentContactRealationVoList(list);
 		return list;
+	}
+	/**
+	 * 幼儿园更新学生资料时,同步更新培训机构的学生资料
+	 * @param tel
+	 * @param type
+	 * @return
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 */
+	public void updatePxStudentByKDstudent(Student student)  {
+		try {
+			String sql="select DISTINCT t1.student_uuid from px_pxstudentcontactrealation t1 LEFT JOIN px_studentcontactrealation t2";
+			sql+=" on t1.student_name=t2.student_name and t1.tel=t2.tel";
+			sql+=" where t2.student_uuid='"+student.getUuid()+"'";
+			Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+					.getSessionFactory().openSession();
+			Query q = s.createSQLQuery(sql);
+			List list =q.list();
+			if(list.size()==0){
+				return;
+			}
+			if(list.size()>1){
+				this.logger.error(" duplicate px student,student_uuid="+StringUtils.join(list,","));
+				return;
+			}
+			
+//		PxStudent o = (PxStudent) this.nSimpleHibernateDao.getObjectById(PxStudent.class, (String)list.get(0));
+//		if (o == null)
+//			return ;
+//		
+			PxStudentJsonform form=new PxStudentJsonform();
+
+			BeanUtils.copyProperties(form, student);
+
+			form.setUuid((String)list.get(0));
+			
+			this.update(form, new ResponseMessage());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 根据电话号码,获取孩子信息
+	 * @param tel
+	 * @param type
+	 * @return
+	 */
+	public List<PxStudentContactRealation> getStudentByPhone(String tel) {
+		
+		return (List<PxStudentContactRealation>) this.nSimpleHibernateDao.getHibernateTemplate()
+				.find("from PxStudentContactRealation  where tel=?)", tel);
 	}
 
 }

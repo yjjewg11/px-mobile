@@ -1,21 +1,25 @@
 package com.company.news.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.AbstractClass;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.PClass;
-import com.company.news.entity.Parent;
+import com.company.news.entity.PxClass;
 import com.company.news.entity.StudentContactRealation;
-import com.company.news.entity.User4Q;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
@@ -56,13 +60,16 @@ public class ClassNewsService extends AbstractService {
 			return false;
 		}
 		
+		AbstractClass pClass=(PClass)this.nSimpleHibernateDao.getObject(PClass.class, classNewsJsonform.getClassuuid());
+		//兼容培训机构
+		if(pClass==null){
+			 pClass=(AbstractClass)this.nSimpleHibernateDao.getObject(PxClass.class, classNewsJsonform.getClassuuid());
+		}
 		
-		PClass pClass=(PClass)this.nSimpleHibernateDao.getObject(PClass.class, classNewsJsonform.getClassuuid());
 		if(pClass==null){
 			responseMessage.setMessage("选择的班级不存在");
 			return false;
 		}
-		
 		
 		
 		StudentContactRealation studentContactRealation=this.getStudentContactRealationBy(user.getUuid(), classNewsJsonform.getClassuuid());
@@ -72,9 +79,11 @@ public class ClassNewsService extends AbstractService {
 		BeanUtils.copyProperties(cn, classNewsJsonform);
 		
 		cn.setGroupuuid(pClass.getGroupuuid());
+		
+		cn.setGroup_name(nSimpleHibernateDao.getGroupName(pClass.getGroupuuid()));
+		cn.setClass_name(pClass.getName());
+		
 		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
-		cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
-		cn.setReply_time(TimeUtils.getCurrentTimestamp());
 		cn.setUsertype(USER_type_default);
 		cn.setStatus(SystemConstants.Check_status_fabu);
 		cn.setIllegal(0l);
@@ -87,7 +96,8 @@ public class ClassNewsService extends AbstractService {
 		}
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(cn);
-
+		//初始话计数
+		countService.add(cn.getUuid(), SystemConstants.common_type_hudong);
 		return true;
 	}
 	
@@ -122,8 +132,8 @@ public class ClassNewsService extends AbstractService {
 		if (cn != null) {
 			cn.setImgs(classNewsJsonform.getImgs());
 			cn.setContent(classNewsJsonform.getContent());
-			cn.setTitle(classNewsJsonform.getTitle());
-			cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
+//			cn.setTitle(classNewsJsonform.getTitle());
+//			cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
 
 			this.nSimpleHibernateDao.getHibernateTemplate().update(cn);
 		} else {
@@ -138,47 +148,140 @@ public class ClassNewsService extends AbstractService {
 	 * 查询所有班级
 	 * 
 	 * @return
+	 * @throws Exception 
 	 */
-	public PageQueryResult query(SessionUserInfoInterface user ,String classuuid, PaginationData pData) {
-		String hql = "from ClassNews where status=0 ";
-		if (StringUtils.isNotEmpty(classuuid)){
-			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
-		}else{
-			hql += " and  groupuuid not in ('group_wj1','group_wj2','group_px1')";
+	public PageQueryResult query(SessionUserInfoInterface user ,String classuuid, PaginationData pData) throws Exception {
+		
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name";
+		sql+=" FROM px_classnews t1 ";
+		sql+=" where t1.status=0  ";	
+		if (StringUtils.isNotBlank(classuuid))
+			sql += " and  t1.classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
+		else  {
+			sql += " and  t1.groupuuid not in ('group_wj1','group_wj2','group_px1')";
 		}
-	
-		pData.setOrderFiled("create_time");
-		pData.setOrderType("desc");
-		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHqlNoTotal(hql, pData);
-		this.warpVoList(pageQueryResult.getData(), user.getUuid());
+		
+	    sql += " order by t1.create_time desc";
+		Query  query =session.createSQLQuery(sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
+		List<Map> list=pageQueryResult.getData();
+		String uuids="";
+		for(Map o:list){
+			warpMap(o,user.getUuid());
+			uuids+=o.get("uuid")+",";
+		}
+		countService.update_countBatch(uuids);
+//		
+//		String hql = "from ClassNews where status=0 ";
+//		if (StringUtils.isNotEmpty(classuuid)){
+//			hql += " and  classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
+//		}else{
+//			hql += " and  groupuuid not in ('group_wj1','group_wj2','group_px1')";
+//		}
+//	
+//		pData.setOrderFiled("create_time");
+//		pData.setOrderType("desc");
+//		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+//				.findByPaginationToHqlNoTotal(hql, pData);
+//		this.warpVoList(pageQueryResult.getData(), user.getUuid());
 		
 		return pageQueryResult;
 
 	}
-	
+
+	private List warpMapList(List<Map> list, String cur_user_uuid) {
+		for(Map o:list){
+			warpMap(o,cur_user_uuid);
+		}
+		return list;
+		
+	}
+
+	private void warpMap(Map o, String cur_user_uuid) {
+		try {
+			//网页版本需要转为html显示.
+			//o.put("content", MyUbbUtils.myUbbTohtml((String)o.get("content")));
+			o.put("imgsList", PxStringUtil.uuids_to_imgMiddleurlList((String)o.get("imgs")));
+			o.put("share_url", PxStringUtil.getClassNewsByUuid((String)o.get("uuid")));
+			o.put("dianzan", this.getDianzanDianzanListVO((String)o.get("uuid"),cur_user_uuid));
+			o.put("replyPage", this.getReplyPageList((String)o.get("uuid")));
+			o.put("create_img", PxStringUtil.imgSmallUrlByUuid((String)o.get("create_img")));
+			//显示姓名和学校
+			if(o.get("group_name")!=null)
+				o.put("create_user", o.get("create_user")+"|"+o.get("group_name"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+//		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+//		
+//		o.setImgsList(PxStringUtil.uuids_to_imgMiddleurlList(o.getImgs()));
+//		o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
+//		try {
+//			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));
+//			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+//			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+//			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		return o;
+		
+	}
 	/**
 	 * 查询所有班级
 	 * 
 	 * @return
+	 * @throws Exception 
 	 */
-	public PageQueryResult queryPxClassNewsBy(SessionUserInfoInterface user ,String courseuuid,String groupuuid, PaginationData pData) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
-		String sql = "select DISTINCT {t1.*} from px_classnews  {t1} ";
+	public PageQueryResult queryPxClassNewsBy(SessionUserInfoInterface user ,String courseuuid,String groupuuid, PaginationData pData) throws Exception {
+		
+		
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name";
+		sql+=" FROM px_classnews t1 ";
+		sql+=" where t1.status=0  ";	
+		
 		if (StringUtils.isNotBlank(courseuuid)) {
-			sql += " LEFT JOIN  px_pxclass t2 on  {t1}.classuuid=t2.uuid ";
+			sql += " LEFT JOIN  px_pxclass t2 on  t1.classuuid=t2.uuid ";
 			sql += " where t2.courseuuid ='"+courseuuid+"'";
 		}else if (StringUtils.isNotBlank(groupuuid)) {
-			sql += " where  {t1}.groupuuid ='"+groupuuid+"'";
+			sql += " where  t1.groupuuid ='"+groupuuid+"'";
 		}
-		sql += "order by {t1}.create_time desc";
-		
-		SQLQuery q = s.createSQLQuery(sql).addEntity("t1", ClassNews.class);
-
-		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
-		
-		this.warpVoList(pageQueryResult.getData(), user.getUuid());
-		
+	    sql += " order by t1.create_time desc";
+	    
+	    
+		Query  query =session.createSQLQuery(sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
+		List<Map> list=pageQueryResult.getData();
+		String uuids="";
+		for(Map o:list){
+			warpMap(o,user.getUuid());
+			uuids+=o.get("uuid")+",";
+		}
+		countService.update_countBatch(uuids);
+//		
+//		
+//		Session s = this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+//		String sql = "select DISTINCT {t1.*} from px_classnews  {t1} ";
+//		if (StringUtils.isNotBlank(courseuuid)) {
+//			sql += " LEFT JOIN  px_pxclass t2 on  {t1}.classuuid=t2.uuid ";
+//			sql += " where t2.courseuuid ='"+courseuuid+"'";
+//		}else if (StringUtils.isNotBlank(groupuuid)) {
+//			sql += " where  {t1}.groupuuid ='"+groupuuid+"'";
+//		}
+//		sql += "order by {t1}.create_time desc";
+//		
+//		SQLQuery q = s.createSQLQuery(sql).addEntity("t1", ClassNews.class);
+//
+//		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
+//		
+//		this.warpVoList(pageQueryResult.getData(), user.getUuid());
+//		
 		return pageQueryResult;
 
 	}

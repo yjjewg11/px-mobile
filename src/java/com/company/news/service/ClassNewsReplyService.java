@@ -50,7 +50,7 @@ public class ClassNewsReplyService extends AbstractService {
 		BeanUtils.copyProperties(cn, classNewsReplyJsonform);
 
 		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
-        cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
+//        cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
         cn.setStatus(SystemConstants.Check_status_fabu);
         
         PxStringUtil.addCreateUser(user, cn);
@@ -81,7 +81,7 @@ public class ClassNewsReplyService extends AbstractService {
 		
 		if(cn!=null){
 			cn.setContent(classNewsReplyJsonform.getContent());
-			cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
+//			cn.setUpdate_time(TimeUtils.getCurrentTimestamp());
 
 			this.nSimpleHibernateDao.getHibernateTemplate().update(cn);
 		}else{

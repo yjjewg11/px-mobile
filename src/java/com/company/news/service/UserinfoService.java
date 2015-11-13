@@ -22,10 +22,10 @@ import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
 import com.company.news.entity.Parent;
 import com.company.news.entity.ParentData;
+import com.company.news.entity.PxStudentContactRealation;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
 import com.company.news.entity.StudentOfSession;
-import com.company.news.entity.User;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -51,6 +51,8 @@ import com.company.web.session.UserOfSession;
 public class UserinfoService extends AbstractService {
 	@Autowired
 	private StudentService studentService;
+	@Autowired
+	private PxStudentService pxStudentService;
 
 	@Autowired
 	private GroupService groupService;
@@ -107,7 +109,33 @@ public class UserinfoService extends AbstractService {
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
 
+		
+		
+		
 		/**
+		 * 培训机构
+		 * 1.根据注册手机,绑定和学生的关联关心. 2.更新孩子数据时,也会自动绑定学生和家长的数据.
+		 */
+		List<PxStudentContactRealation> pxlist = pxStudentService
+				.getStudentByPhone(parent.getTel());
+
+		if (pxlist != null)
+			for (PxStudentContactRealation s : pxlist) {
+				// 更新家长姓名和头像.多个孩子已最后保存为准
+				parent.setName(PxStringUtil
+						.getParentNameByStudentContactRealation(s));
+				parent.setImg(s.getStudent_img());
+				this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
+
+				// 有事务管理，统一在Controller调用时处理异常
+				s.setIsreg(SystemConstants.USER_isreg_1);
+				s.setParent_uuid(parent.getUuid());
+				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
+			}
+
+		/**
+		 * 
+		 * 幼儿园
 		 * 1.根据注册手机,绑定和学生的关联关心. 2.更新孩子数据时,也会自动绑定学生和家长的数据.
 		 */
 		List<StudentContactRealation> list = studentService
@@ -127,6 +155,8 @@ public class UserinfoService extends AbstractService {
 				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
 			}
 
+		
+		
 		return true;
 	}
 

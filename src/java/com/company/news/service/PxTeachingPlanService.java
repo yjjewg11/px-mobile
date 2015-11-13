@@ -206,11 +206,14 @@ order by t1.plandate asc
 				.getSessionFactory().openSession();
 		String sql = " SELECT * from (";
 		sql+=" SELECT t1.classuuid,t1.uuid,t1.plandate,t1.name,t1.address,t1.readyfor,t4.headimg as student_headimg,t5.brand_name as group_name,t2.name as class_name";
+		
+		sql+=" ,t4.name as student_name,t6.title as course_title,t2.courseuuid,t2.groupuuid";
 		sql+=" FROM px_pxteachingplan t1 ";
 		sql+=" LEFT JOIN  px_pxclass t2 on t1.classuuid=t2.uuid ";
 		sql+=" LEFT JOIN  px_pxstudentpxclassrelation t3 on t3.class_uuid=t2.uuid";
 		sql+=" LEFT JOIN  px_pxstudent t4 on t3.student_uuid=t4.uuid";
 		sql+=" LEFT JOIN  px_group t5 on t2.groupuuid=t5.uuid ";
+		sql+= " left join px_pxcourse t6 on t2.courseuuid=t6.uuid  ";
 		sql+=" where  t1.plandate>=curdate() ";
 		sql+=" and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"+cur_user_uuid+"' )";
 		sql+=" order by t1.plandate asc";

@@ -34,6 +34,10 @@ import com.company.news.vo.ResponseMessage;
 public class StudentService extends AbstractService {
 	@Autowired
 	private UserinfoService userinfoService;
+	
+
+	@Autowired
+	private PxStudentService pxStudentService;
 	/**
 	 * 用户注册
 	 * 
@@ -75,7 +79,8 @@ public class StudentService extends AbstractService {
 		student.setGroupuuid(pClass.getGroupuuid());
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(student);
-
+		//幼儿园更新学生资料时,同步更新培训机构的学生资料
+		pxStudentService.updatePxStudentByKDstudent(student);
 		return true;
 	}
 
@@ -123,6 +128,9 @@ public class StudentService extends AbstractService {
 			String msg=student.getName()+"|家长修改孩子资料|"+"]|爸爸电话:"+student.getBa_tel()+"|妈妈电话:"+student.getMa_tel();
 			this.addStudentOperate(student.getGroupuuid(), student.getUuid(), msg, null, request);
 		
+			//幼儿园更新学生资料时,同步更新培训机构的学生资料
+			pxStudentService.updatePxStudentByKDstudent(student);
+			
 			return true;
 		} else {
 			responseMessage.setMessage("更新记录不存在");
