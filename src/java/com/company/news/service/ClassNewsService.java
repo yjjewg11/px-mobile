@@ -243,13 +243,12 @@ public class ClassNewsService extends AbstractService {
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name";
 		sql+=" FROM px_classnews t1 ";
-		sql+=" where t1.status=0  ";	
 		
 		if (StringUtils.isNotBlank(courseuuid)) {
 			sql += " LEFT JOIN  px_pxclass t2 on  t1.classuuid=t2.uuid ";
-			sql += " where t2.courseuuid ='"+courseuuid+"'";
+			sql += " where  t1.status=0 and t2.courseuuid ='"+courseuuid+"'";
 		}else if (StringUtils.isNotBlank(groupuuid)) {
-			sql += " where  t1.groupuuid ='"+groupuuid+"'";
+			sql += " where    t1.status=0 and t1.groupuuid ='"+groupuuid+"'";
 		}
 	    sql += " order by t1.create_time desc";
 	    
