@@ -63,6 +63,8 @@ public class PxCourseService extends AbstractService {
 
 	public PxCourse warpVo(PxCourse o){
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		//自适应
+		o.setContext(PxStringUtil.warpHtml5Responsive(o.getContext()));
 		o.setLogo(PxStringUtil.imgSmallUrlByUuid(o.getLogo()));
 		return o;
 	}

@@ -175,7 +175,10 @@ public class GroupService extends AbstractService {
 	 * @return
 	 */
 	public Group get(String uuid){
-		return (Group)this.nSimpleHibernateDao.getObjectById(Group.class, uuid);
+		Group group=(Group)this.nSimpleHibernateDao.getObjectById(Group.class, uuid);
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(group);
+		group.setDescription(PxStringUtil.warpHtml5Responsive(group.getDescription()));
+		 return group;
 	}
 
 	

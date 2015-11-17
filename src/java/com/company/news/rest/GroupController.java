@@ -1,4 +1,4 @@
-package com.company.news.rest;
+	package com.company.news.rest;
 
 import java.util.List;
 
