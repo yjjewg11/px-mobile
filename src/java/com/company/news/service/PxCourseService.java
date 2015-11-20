@@ -14,6 +14,7 @@ import com.company.news.SystemConstants;
 import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxCourse;
+import com.company.news.entity.PxCourse4Q;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
@@ -59,6 +60,27 @@ public class PxCourseService extends AbstractService {
 		
 		return t;
 
+	}
+
+	/**
+	 * 
+	 * @param uuid
+	 * @return
+	 */
+	public PxCourse4Q getPxCourse4Q(String uuid) {
+		PxCourse4Q t = (PxCourse4Q) this.nSimpleHibernateDao.getObjectById(
+				PxCourse4Q.class, uuid);
+		
+		return t;
+
+	}
+
+	public PxCourse4Q warpVo(PxCourse4Q o){
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+		//自适应
+//		o.setContext(PxStringUtil.warpHtml5Responsive(o.getContext()));
+		o.setLogo(PxStringUtil.imgSmallUrlByUuid(o.getLogo()));
+		return o;
 	}
 
 	public PxCourse warpVo(PxCourse o){

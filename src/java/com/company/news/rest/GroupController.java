@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -119,6 +120,52 @@ public class GroupController extends AbstractRESTController {
 		}
 		model.addAttribute(RestConstants.Return_G_entity,c);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+	
+
+	/**
+	 * 不返回内容,返回内容的url地址.
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/get2", method = RequestMethod.GET)
+	public String get2(ModelMap model,
+			HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			
+			
+			String uuid= request.getParameter("uuid");
+			if(StringUtils.isBlank(uuid)){
+				responseMessage.setMessage("uuid 必填");
+				return "";
+			}
+			Group4Q c = groupService.getGroup4Q(uuid);
+			if(c ==null){
+				responseMessage.setMessage("学校不存在！");
+				return "";
+			}
+			 countService.count(uuid, SystemConstants.common_type_pxgroup);
+			 SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			 model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getGroupShareURLByUuid(uuid));
+			 model.put(RestConstants.Return_ResponseMessage_obj_url,PxStringUtil.getGroupShareURLByUuid(uuid));
+			 model.put(RestConstants.Return_ResponseMessage_isFavorites,groupService.isFavorites( user.getUuid(),uuid));
+			 
+			 model.addAttribute(RestConstants.Return_G_entity,c);
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+				
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		
 		return "";
 	}
 }
