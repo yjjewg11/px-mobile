@@ -2,7 +2,7 @@
 window.onload = function() {
 	init();
 }
-
+  
 //如果之前已经记住密码，需要将账号密码填充到输入框中
 function init() {
 	var username = getCookie("bs_loginname");

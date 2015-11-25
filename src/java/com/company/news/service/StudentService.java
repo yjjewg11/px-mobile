@@ -105,6 +105,7 @@ public class StudentService extends AbstractService {
 		if (student != null) {
 			BeanUtils.copyProperties(student, studentJsonform);
 			//设置不能被修改的字段
+			student.setStatus(old_student.getStatus());
 			student.setUuid(old_student.getUuid());
 			//student.setName(old_student.getName());
 			student.setClassuuid(old_student.getClassuuid());
