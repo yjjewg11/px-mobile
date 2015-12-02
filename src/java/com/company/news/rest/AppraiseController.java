@@ -96,6 +96,12 @@ public class AppraiseController extends AbstractRESTController {
 		return "";
 	}
 	
+	/**
+	 * 根据培训班级uuid查询,我评价内容.
+	 * @param model
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value = "/queryMyByPage", method = RequestMethod.GET)
 	public String queryMyByPage(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
@@ -104,6 +110,36 @@ public class AppraiseController extends AbstractRESTController {
 			String class_uuid=request.getParameter("class_uuid");
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			PageQueryResult list = appraiseService.queryMyByPage(class_uuid,this.getUserInfoBySession(request).getUuid(), pData);
+
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage
+					.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+					.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:" + e.getMessage());
+		}
+		return "";
+	}
+	
+	
+
+	/**
+	 *查询我的幼儿园培训内容.
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryMyKDByPage", method = RequestMethod.GET)
+	public String queryMyKDByPage(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			String groupuuid=request.getParameter("groupuuid");
+			PaginationData pData = this.getPaginationDataByRequest(request);
+			PageQueryResult list = appraiseService.queryMyKDByPage(groupuuid,this.getUserInfoBySession(request).getUuid(), pData);
 
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
 import com.company.news.entity.Group4Q;
@@ -95,6 +96,40 @@ public class GroupController extends AbstractRESTController {
 		return "";
 	}
 
+	/**
+	 * 查询所有培训机构列表
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/kdlistByPage", method = RequestMethod.GET)
+	public String kdlistByPage(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			PaginationData pData = this.getPaginationDataByRequest(request);
+//			pData.setPageSize(50);
+		
+			//sort	 否	排序.取值: intelligent(智能排序). appraise(评价最高).distance(距离最近)
+			String sort = request.getParameter("sort");
+			String mappoint = request.getParameter("map_point");
+			PageQueryResult list = groupService.kdlistByPage(sort,pData,mappoint);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+					.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+
 
 	@RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
 	public String get(@PathVariable String uuid,ModelMap model, HttpServletRequest request) {
@@ -140,6 +175,61 @@ public class GroupController extends AbstractRESTController {
 			
 			
 			String uuid= request.getParameter("uuid");
+			
+			if(StringUtils.isBlank(uuid)){
+				responseMessage.setMessage("uuid 必填");
+				return "";
+			}
+			Group4Q c = groupService.getGroup4Q(uuid);
+			if(c ==null){
+				responseMessage.setMessage("学校不存在！");
+				return "";
+			}
+			
+			String mappoint = request.getParameter("map_point");
+			//当前坐标点参数不为空时，进行距离计算
+			if(StringUtils.isNotBlank(mappoint)){
+				 model.addAttribute("distance", DistanceUtil.getDistance(mappoint, c.getMap_point()));
+			}else{
+				 model.addAttribute("distance", "");
+			}
+			 countService.count(uuid, SystemConstants.common_type_pxgroup);
+			 SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			 model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getGroupShareURLByUuid(uuid));
+			 model.put(RestConstants.Return_ResponseMessage_obj_url,PxStringUtil.getGroupShareURLByUuid(uuid));
+			
+			 model.put(RestConstants.Return_ResponseMessage_isFavorites,groupService.isFavorites( user.getUuid(),uuid));
+			 
+			 
+			 model.addAttribute(RestConstants.Return_G_entity,c);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+				
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		
+		return "";
+	}
+	
+	/**
+	 * 获取幼儿园详细
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getKD", method = RequestMethod.GET)
+	public String getKD(ModelMap model,
+			HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			
+			
+			String uuid= request.getParameter("uuid");
 			if(StringUtils.isBlank(uuid)){
 				responseMessage.setMessage("uuid 必填");
 				return "";
@@ -153,10 +243,19 @@ public class GroupController extends AbstractRESTController {
 			 SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			 model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getGroupShareURLByUuid(uuid));
 			 model.put(RestConstants.Return_ResponseMessage_obj_url,PxStringUtil.getGroupShareURLByUuid(uuid));
-			 model.put(RestConstants.Return_ResponseMessage_isFavorites,groupService.isFavorites( user.getUuid(),uuid));
+			 model.put("recruit_url",PxStringUtil.getGroupRecruitURLByUuid(uuid));
 			 
+			 
+			 model.put(RestConstants.Return_ResponseMessage_isFavorites,groupService.isFavorites( user.getUuid(),uuid));
+				String mappoint = request.getParameter("map_point");
+				//当前坐标点参数不为空时，进行距离计算
+				if(StringUtils.isNotBlank(mappoint)){
+					 model.addAttribute("distance", DistanceUtil.getDistance(mappoint, c.getMap_point()));
+				}else{
+					 model.addAttribute("distance", "");
+				}
 			 model.addAttribute(RestConstants.Return_G_entity,c);
-				responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 				
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

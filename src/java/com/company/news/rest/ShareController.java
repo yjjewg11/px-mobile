@@ -1,6 +1,7 @@
 package com.company.news.rest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
@@ -33,9 +35,11 @@ import com.company.news.entity.Group4Q;
 import com.company.news.entity.PClass;
 import com.company.news.entity.User4Q;
 import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.json.JSONUtils;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
+import com.company.news.rest.util.MD5Until;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.service.AnnouncementsService;
@@ -763,6 +767,70 @@ String mappoint = request.getParameter("map_point");
 		}
 		model.addAttribute(RestConstants.Return_G_entity,vo);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+	String Md5_getConfig=null;
+	String Config_sns_url=null;
+	/**
+	 * 获取系统参数
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getConfig", method = RequestMethod.GET)
+	public String getConfig(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			
+			String md5=request.getParameter("md5");
+			if(StringUtils.isNotBlank(md5)){
+				if(md5.equals(Md5_getConfig)){
+					responseMessage.setStatus(RestConstants.Return_ResponseMessage_unchange);
+					return "";
+				}
+			}
+			
+			try {
+				if(Config_sns_url==null){
+						List list=this.nSimpleHibernateDao
+								.getHibernateTemplate().find(
+										"select description from BaseDataList where typeuuid='KDWebUrl' and datakey=2");
+							if(list!=null&&list.size()>0){
+								Config_sns_url=list.get(0)+"";
+							}else{
+								Config_sns_url="http://kd.wenjienet.com/px-rest/kd/index.html?v1";
+							}
+				}
+				
+				model.put("url",Config_sns_url);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("服务器异常:"+e.getMessage());
+				return "";
+			}
+			
+			Map map=new HashMap();
+			//空字符串表示不启用话题.否则未话题的地址.
+			map.put("sns_url",Config_sns_url);
+			JSONObject o =new JSONObject();
+			String dd=JSONUtils.getJsonString(map);
+			
+			Md5_getConfig=MD5Until.getMD5String(dd);
+			model.put(RestConstants.Return_ResponseMessage_md5, Md5_getConfig);
+			model.addAttribute(RestConstants.Return_G_entity, map);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
 		return "";
 	}
 }

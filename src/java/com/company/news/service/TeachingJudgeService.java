@@ -150,9 +150,17 @@ public class TeachingJudgeService extends AbstractService {
 
 
 	public void getTeachersAndJudges(String user_uuid,String class_uuids,ModelMap model) {
+		
+		
+		if(StringUtils.isBlank(class_uuids)){
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, new ArrayList());
+			model.addAttribute("list_judge", new ArrayList());
+			return;
+		}
+		
+		List list=new ArrayList();
 		String hql = "from User where uuid in (select useruuid from UserClassRelation where classuuid in("+DBUtil.stringsToWhereInValue(class_uuids)+"))";
 		List<User> userList=(List<User> )this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);
-		List list=new ArrayList();
 		String users="";
 		for (User user : userList) {
 			users+=user.getUuid()+",";

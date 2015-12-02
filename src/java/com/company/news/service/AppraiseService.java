@@ -173,6 +173,27 @@ public class AppraiseService extends AbstractService {
 		return pageQueryResult;
 	}
 
+	
+
+	/**
+	 * 
+	 * @param groupuuid
+	 * @param pData
+	 * @param point
+	 * @return
+	 */
+	public PageQueryResult queryMyKDByPage(String ext_uuid,String create_useruuid, PaginationData pData) {
+		if (StringUtils.isBlank(ext_uuid)) {
+			return null;
+		}
+		String hql = "from Appraise where  ext_uuid='" + ext_uuid+"' and create_useruuid='"+create_useruuid+"'";
+				hql+= " order by create_time desc";
+		pData.setPageSize(50);
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
+				.findByPaginationToHql(hql, pData);
+
+		return pageQueryResult;
+	}
 	@Override
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
