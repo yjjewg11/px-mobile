@@ -350,7 +350,7 @@ public class GroupService extends AbstractService {
 		
 		if("appraise".equals(sort)){//
 			sql+=" order by t1.ct_stars desc";
-		}else{
+		}else if(lngLatArr!=null){
 			//if("distance".equals(sort)&&lngLatArr!=null){
 			double lng1=lngLatArr[0];
 			double lat1=lngLatArr[1];
@@ -362,12 +362,9 @@ public class GroupService extends AbstractService {
 			
 //			sql+=" order by t1.updatetime asc";
 		}
-//		else if("appraise".equals(sort)){//
-//			sql+=" order by t1.ct_stars desc";
-//		}
-//		else{//自能排序
-//			sql+=" order by t1.ct_study_students desc";
-//		}
+		else{//自能排序
+			sql+=" order by t1.ct_stars desc";
+		}
 //		
 		Query q = s.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);

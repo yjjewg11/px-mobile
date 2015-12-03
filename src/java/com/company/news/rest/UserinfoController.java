@@ -1,7 +1,9 @@
 package com.company.news.rest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -20,9 +22,11 @@ import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.json.JSONUtils;
 import com.company.news.jsonform.ParentDataJsonform;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
+import com.company.news.rest.util.MD5Until;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.UserinfoService;
 import com.company.news.vo.ResponseMessage;
@@ -44,7 +48,10 @@ public class UserinfoController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		boolean flag;
+		String md5=request.getParameter(RestConstants.Return_ResponseMessage_md5);
 		try {
+			
+			
 			flag = userinfoService.login(userLoginForm, model, request,
 					responseMessage);
 			if (!flag)// 请求服务返回失败标示
@@ -70,9 +77,23 @@ public class UserinfoController extends AbstractRESTController {
 //		session.setAttribute(RestConstants.Session_MyStudentClassUuids, userinfoService.getPxClassuuidsByMyChild(parent.getUuid()));
 //		
 		flag = this.getUserAndStudent(model, request, responseMessage);
+
 		if (!flag)// 请求服务返回失败标示
 			return "";
+		
 
+		String md5_source=JSONUtils.getJsonString(model.get("group_list"));
+		md5_source+=JSONUtils.getJsonString(model.get("class_list"));
+		md5_source+=JSONUtils.getJsonString(model.get(RestConstants.Return_ResponseMessage_list));
+		String md5_key=MD5Until.getMD5String(md5_source);
+		if(md5_key.equals(md5)){
+			model.clear();
+			 responseMessage = RestUtil
+					.addResponseMessageForModelMap(model);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_unchange);
+			return "";
+		}
+		model.put(RestConstants.Return_ResponseMessage_md5, md5_key);
 		
 		
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -204,9 +225,28 @@ public class UserinfoController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
+			String md5=request.getParameter(RestConstants.Return_ResponseMessage_md5);
+			
 			boolean flag = this.getUserAndStudent(model, request, responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";
+			
+			
+			String md5_source=JSONUtils.getJsonString(model.get("group_list"));
+			md5_source+=JSONUtils.getJsonString(model.get("class_list"));
+			md5_source+=JSONUtils.getJsonString(model.get(RestConstants.Return_ResponseMessage_list));
+			
+			String md5_key=MD5Until.getMD5String(md5_source);
+			
+			
+			if(md5_key.equals(md5)){
+				model.clear();
+				 responseMessage = RestUtil
+						.addResponseMessageForModelMap(model);
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_unchange);
+				return "";
+			}
+			model.put(RestConstants.Return_ResponseMessage_md5, md5_key);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -551,5 +591,66 @@ public class UserinfoController extends AbstractRESTController {
 			responseMessage.setMessage("服务器错误:"+e.getMessage());
 			return "";
 		}
+	}
+	
+	
+	/**
+	 * 获取主要话题只有一条
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getMainTopic", method = RequestMethod.GET)
+	public String getMainTopic(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			Map map=new HashMap();
+			//空字符串表示不启用话题.否则未话题的地址.
+			map.put("img",null);
+			map.put("title","亲子英语对话课堂");
+			map.put("url","http://kd.wenjienet.com/px-rest/sns/index.html?topicid=abc");
+			model.addAttribute(RestConstants.Return_G_entity, map);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
+		
+	}
+	
+
+	/**
+	 * 获取主要话题只有一条.点击后的事件记录.
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getMainTopic_cb", method = RequestMethod.GET)
+	public String getMainTopic_callback(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			Map map=new HashMap();
+			//空字符串表示不启用话题.否则未话题的地址.
+//			map.put("title","亲子英语对话课堂");
+//			map.put("url","http://kd.wenjienet.com/px-rest/sns/index.html?topicid=abc");
+//			model.addAttribute(RestConstants.Return_G_entity, map);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
+		
 	}
 }

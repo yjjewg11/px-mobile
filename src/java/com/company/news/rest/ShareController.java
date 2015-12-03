@@ -785,9 +785,12 @@ String mappoint = request.getParameter("map_point");
 				.addResponseMessageForModelMap(model);
 		try {
 			
-			String md5=request.getParameter("md5");
+			String md5=request.getParameter(RestConstants.Return_ResponseMessage_md5);
 			if(StringUtils.isNotBlank(md5)){
 				if(md5.equals(Md5_getConfig)){
+					model.clear();
+					 responseMessage = RestUtil
+							.addResponseMessageForModelMap(model);
 					responseMessage.setStatus(RestConstants.Return_ResponseMessage_unchange);
 					return "";
 				}
@@ -801,11 +804,10 @@ String mappoint = request.getParameter("map_point");
 							if(list!=null&&list.size()>0){
 								Config_sns_url=list.get(0)+"";
 							}else{
-								Config_sns_url="http://kd.wenjienet.com/px-rest/kd/index.html?v1";
+								Config_sns_url="http://kd.wenjienet.com/px-rest/sns/index.html?v1";
 							}
 				}
 				
-				model.put("url",Config_sns_url);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
