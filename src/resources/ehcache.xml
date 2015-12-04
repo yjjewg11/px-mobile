@@ -57,12 +57,14 @@
     -->
 	<cache name="dbDataCache" maxElementsInMemory="1000"
 		eternal="false" overflowToDisk="false"
-		timeToIdleSeconds="3600" memoryStoreEvictionPolicy="FIFO" />
+		timeToIdleSeconds="3600" memoryStoreEvictionPolicy="LRU" />
 	<!-- acegi cache-->
 	<!--<cache name="userCache"
 		maxElementsInMemory="10000"
 		eternal="true"
 		overflowToDisk="true"/>-->
-
+	<cache name="sessionCache" maxElementsInMemory="100000"
+		eternal="false" overflowToDisk="false"
+		timeToIdleSeconds="3600" memoryStoreEvictionPolicy="LRU" />
 	<!-- See http://ehcache.sourceforge.net/documentation/#mozTocId258426 for how to configure caching for your objects -->
 </ehcache>

@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.springframework.ui.ModelMap;
 
 import com.company.common.SpringContextHolder;
+import com.company.news.commons.util.PxLogUtils;
 import com.company.news.rest.RestConstants;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.UserinfoService;
@@ -90,8 +91,8 @@ public class UserInfoFilter implements Filter {
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
         String servletPath = httpServletRequest.getPathInfo().trim();
-        String token = httpServletRequest
-                .getParameter(RestConstants.Return_access_token);
+//        String token = httpServletRequest
+//                .getParameter(RestConstants.Return_access_token);
         long startTime = 0;
         long endTime = 0;
         try {
@@ -104,8 +105,6 @@ public class UserInfoFilter implements Filter {
 						&& !(servletPath.contains("/download/") 
 								|| servletPath.contains("/share/")
 								|| servletPath.contains("/downloadTb/"))) {
-					
-					
 					
 					boolean isLogin=false;
 					//根据传入的参数,从数据库获取用户信息.有则合法.自动登录.实现sessionid共享
@@ -125,11 +124,8 @@ public class UserInfoFilter implements Filter {
 						ModelMap model = new ModelMap();
 	                    ResponseMessage responseMessage = RestUtil
 	                            .addResponseMessageForModelMap(model);
-	                    if (StringUtils.isNotBlank(token)) {
-	                        RestUtil.addNoTokenForResponseMessage(responseMessage);
-	                    } else {
+	                    
 	                        RestUtil.addNoSessionForResponseMessage(responseMessage);
-	                    }
 	                    this.logger.warn("sessionTimeout,PathInfo="+servletPath+",?JSESSIONID="+request.getParameter(RestConstants.Return_JSESSIONID));
 	                    responseMessage
 	                            .setStatus(RestConstants.Return_ResponseMessage_sessionTimeout);
@@ -152,13 +148,7 @@ public class UserInfoFilter implements Filter {
         	String msg="client IP:"+UserInfoFilter.getIpAddr((HttpServletRequest) request)+","+endTime + " count time(ms)="
                     + httpServletRequest.getMethod() +"|"+httpServletRequest.getRequestURL()+ "?"
                     + httpServletRequest.getQueryString();
-			if(endTime>10000){
-				logger.error(msg);
-			}else if(endTime>3000){
-				logger.warn(msg);
-			}else{
-				logger.info(msg);
-			}
+        	PxLogUtils.log(logger, endTime, msg);
 
         }
     }

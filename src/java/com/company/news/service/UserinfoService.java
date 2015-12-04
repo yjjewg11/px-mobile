@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
+import com.company.http.PxHttpSession;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
@@ -749,8 +750,10 @@ public class UserinfoService extends AbstractService {
 				user = getUserBySessionid(jessionid);
 				if (user == null)// 请求服务返回失败标示
 					return false;
-				session = request.getSession(true);
-				SessionListener.putSessionByToken(jessionid, session);
+				
+				
+				session = new PxHttpSession(jessionid);
+				SessionListener.putSessionByJSESSIONID(session);
 			}
 
 			UserOfSession userOfSession = new UserOfSession();
@@ -764,12 +767,12 @@ public class UserinfoService extends AbstractService {
 			this.putSession(session, userOfSession, request);
 
 			// 更新登陆日期,最近一次登陆日期
-			String sql = "update px_parent set sessionid='" + session.getId() + "' where uuid='"
-					+ user.getUuid() + "'";
-			Session session1=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
-			Transaction transaction=session1.beginTransaction();
-			session1.createSQLQuery(sql).executeUpdate();
-			transaction.commit();
+//			String sql = "update px_parent set sessionid='" + session.getId() + "' where uuid='"
+//					+ user.getUuid() + "'";
+//			Session session1=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+//			Transaction transaction=session1.beginTransaction();
+//			session1.createSQLQuery(sql).executeUpdate();
+//			transaction.commit();
 			return true;
 
 		} catch (Exception e) {

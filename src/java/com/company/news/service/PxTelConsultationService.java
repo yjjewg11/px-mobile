@@ -51,7 +51,7 @@ public class PxTelConsultationService extends AbstractService {
 		if(SystemConstants.common_type_pxgroup==jsonform.getType().intValue()){
 			List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select brand_name from Group where uuid='"+jsonform.getExt_uuid()+"'");
 			
-			if(list==null){
+			if(list==null||list.size()==0){
 				responseMessage.setMessage("学校没找到!Ext_uuid="+jsonform.getExt_uuid());
 				return false;
 			}
@@ -59,7 +59,7 @@ public class PxTelConsultationService extends AbstractService {
 			grouuuid=jsonform.getExt_uuid();
 		}else if(SystemConstants.common_type_pxcourse==jsonform.getType().intValue()){
 				List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select title,groupuuid from PxCourse where uuid='"+jsonform.getExt_uuid()+"'");
-			if(list==null){
+			if(list==null||list.size()==0){//修复空指针异常.
 				responseMessage.setMessage("课程没找到!Ext_uuid="+jsonform.getExt_uuid());
 				return false;
 			}
@@ -68,7 +68,7 @@ public class PxTelConsultationService extends AbstractService {
 			grouuuid=(String)tmp[1];
 		}else if(SystemConstants.common_type_pxbenefit==jsonform.getType().intValue()){
 			List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select title,groupuuid from Announcements where uuid='"+jsonform.getExt_uuid()+"'");
-			if(list==null){
+			if(list==null||list.size()==0){
 				responseMessage.setMessage("优惠活动没找到!Ext_uuid="+jsonform.getExt_uuid());
 				return false;
 			}
