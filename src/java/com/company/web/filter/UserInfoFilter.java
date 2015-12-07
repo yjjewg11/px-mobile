@@ -116,7 +116,11 @@ public class UserInfoFilter implements Filter {
 					//从cookie中获取sessionid
 					if(!isLogin){
 						 jessionid=getJSESSIONIDCookies((HttpServletRequest)request);
-						 isLogin=userinfoService.updateAndloginForJessionid(jessionid, (HttpServletRequest)request);
+						 
+						 if(StringUtils.isNotBlank(jessionid)){
+							 
+							 isLogin=userinfoService.updateAndloginForJessionid(jessionid, (HttpServletRequest)request);
+						 }
 					}
 //					
 					

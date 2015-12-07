@@ -2,6 +2,7 @@ package com.company.news.rest;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -52,11 +53,19 @@ public class AppraiseController extends AbstractRESTController {
 		try {
 			// 设置当前用户
 			SessionUserInfoInterface user = this.getUserInfoBySession(request);		
-			//保密用户信息.
-			appraiseJsonform.setCreate_user(PxStringUtil.getSecretCellphone(user.getLoginname()));
+			//保密用户信息.增加匿名提交评价.
+			if(Integer.valueOf(1).equals(appraiseJsonform.getAnonymous())){
+				appraiseJsonform.setCreate_user("匿名");
+			}else{
+				appraiseJsonform.setCreate_user(PxStringUtil.getSecretCellphone(user.getLoginname()));
+			}
+			
 			appraiseJsonform.setCreate_useruuid(user.getUuid());
-			boolean flag = appraiseService.add(appraiseJsonform,
-					responseMessage);
+			
+			boolean flag=false;
+			flag = appraiseService.add(appraiseJsonform, responseMessage,request);
+			
+			
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.Announcements;
 import com.company.news.entity.Appraise;
 import com.company.news.entity.Group;
 import com.company.news.entity.PxClass;
@@ -47,7 +50,7 @@ public class AppraiseService extends AbstractService {
 	 * @return
 	 */
 	public boolean add(AppraiseJsonform appraiseJsonform,
-			ResponseMessage responseMessage) throws Exception {
+			ResponseMessage responseMessage,HttpServletRequest request) throws Exception {
 		
 		if (this.validateRequireByRegJsonform(
 						appraiseJsonform.getType(), "type", responseMessage)) {
@@ -81,13 +84,31 @@ public class AppraiseService extends AbstractService {
 			responseMessage.setMessage("打分范围在0-50分之间.");
 			return false;
 		}
+		
+		if(StringUtils.isEmpty(appraiseJsonform.getUuid())){
+			Appraise appraise = new Appraise();
 
-		Appraise appraise = new Appraise();
+			BeanUtils.copyProperties(appraise, appraiseJsonform);
+			appraise.setCreate_time(TimeUtils.getCurrentTimestamp());
 
-		BeanUtils.copyProperties(appraise, appraiseJsonform);
-		appraise.setCreate_time(TimeUtils.getCurrentTimestamp());
+			this.nSimpleHibernateDao.getHibernateTemplate().save(appraise);
+		}else{//修改
+			Appraise appraise =(Appraise) this.nSimpleHibernateDao
+					.getObjectById(Appraise.class,
+							appraiseJsonform.getUuid());
+			
+			if(appraise==null){
+				responseMessage.setMessage("对象不存在,更新失败.uuid="+appraiseJsonform.getUuid());
+				return false;
+			}
+			BeanUtils.copyProperties(appraise, appraiseJsonform);
+			appraise.setCreate_time(TimeUtils.getCurrentTimestamp());
 
-		this.nSimpleHibernateDao.getHibernateTemplate().save(appraise);
+			this.nSimpleHibernateDao.getHibernateTemplate().save(appraise);
+			
+		}
+
+		
 
 		return true;
 	}

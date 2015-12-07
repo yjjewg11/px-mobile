@@ -48,7 +48,7 @@ public class UserinfoController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		boolean flag;
-		String md5=request.getParameter(RestConstants.Return_ResponseMessage_md5);
+		//String md5=request.getParameter(RestConstants.Return_ResponseMessage_md5);
 		try {
 			
 			
@@ -82,18 +82,18 @@ public class UserinfoController extends AbstractRESTController {
 			return "";
 		
 
-		String md5_source=JSONUtils.getJsonString(model.get("group_list"));
-		md5_source+=JSONUtils.getJsonString(model.get("class_list"));
-		md5_source+=JSONUtils.getJsonString(model.get(RestConstants.Return_ResponseMessage_list));
-		String md5_key=MD5Until.getMD5String(md5_source);
-		if(md5_key.equals(md5)){
-			model.clear();
-			 responseMessage = RestUtil
-					.addResponseMessageForModelMap(model);
-			responseMessage.setStatus(RestConstants.Return_ResponseMessage_unchange);
-			return "";
-		}
-		model.put(RestConstants.Return_ResponseMessage_md5, md5_key);
+//		String md5_source=JSONUtils.getJsonString(model.get("group_list"));
+//		md5_source+=JSONUtils.getJsonString(model.get("class_list"));
+//		md5_source+=JSONUtils.getJsonString(model.get(RestConstants.Return_ResponseMessage_list));
+//		String md5_key=MD5Until.getMD5String(md5_source);
+//		if(md5_key.equals(md5)){
+//			model.clear();
+//			 responseMessage = RestUtil
+//					.addResponseMessageForModelMap(model);
+//			responseMessage.setStatus(RestConstants.Return_ResponseMessage_unchange);
+//			return "";
+//		}
+//		model.put(RestConstants.Return_ResponseMessage_md5, md5_key);
 		
 		
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
