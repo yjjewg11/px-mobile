@@ -1,9 +1,14 @@
 package com.company.news.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +21,9 @@ import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsReplyJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.vo.DianzanListVO;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -176,7 +183,44 @@ public class ClassNewsReplyService extends AbstractService {
 
 		return true;
 	}
-
+	/**
+	 * 获取点赞列表信息
+	 * 
+	 * @param classNewsDianzanJsonform
+	 * @param responseMessage
+	 * @return
+	 * @throws Exception
+	 */
+	public Map<String,DianzanListVO> getDianzanDianzanMap(String reluuids, SessionUserInfoInterface user) throws Exception {
+		Map<String,DianzanListVO> returnmap =new HashMap();
+		if (StringUtils.isBlank(reluuids)) {
+			return returnmap;
+		}
+		String useruuid="";
+		
+		if(user!=null)useruuid=user.getUuid();
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql="select t1.newsuuid  ,group_concat( t1.create_user) as user_names,count(1) as allcount,sum(case t1.create_useruuid when '"+useruuid+"' then 1 else 0 end) as curuser_sum  from px_classnewsdianzan  t1 ";
+		sql+=" where t1.newsuuid in("+DBUtil.stringsToWhereInValue(reluuids)+")";
+		sql+=" GROUP BY t1.newsuuid  ";
+		Query q = s.createSQLQuery(sql);
+		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		List<Map> list=q.list();
+		
+		for(Map map:list){
+			DianzanListVO vo = new DianzanListVO();
+			
+			//统计当前用户点赞数量,0表示没点赞,可以点赞.
+			vo.setCanDianzan("0".equals(map.get("curuser_sum")+""));
+			vo.setCount(Integer.valueOf(map.get("allcount")+""));
+			vo.setNames(map.get("user_names")+"");
+			
+			returnmap.put(map.get("newsuuid")+"", vo);
+			
+		}
+		return returnmap;
+	}
 	
 	public ClassNewsReply get(String uuid) throws Exception {
 		return (ClassNewsReply) this.nSimpleHibernateDao.getObjectById(

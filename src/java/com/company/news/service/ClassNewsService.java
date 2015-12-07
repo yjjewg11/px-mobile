@@ -26,6 +26,7 @@ import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.vo.DianzanListVO;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -167,12 +168,7 @@ public class ClassNewsService extends AbstractService {
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
 		List<Map> list=pageQueryResult.getData();
-		String uuids="";
-		for(Map o:list){
-			warpMap(o,user.getUuid());
-			uuids+=o.get("uuid")+",";
-		}
-		countService.update_countBatch(uuids);
+		this.warpMapList(list, user);
 //		
 //		String hql = "from ClassNews where status=0 ";
 //		if (StringUtils.isNotEmpty(classuuid)){
@@ -191,21 +187,53 @@ public class ClassNewsService extends AbstractService {
 
 	}
 
-	private List warpMapList(List<Map> list, String cur_user_uuid) {
-		for(Map o:list){
-			warpMap(o,cur_user_uuid);
-		}
-		return list;
+//	private List warpMapList(List<Map> list, String cur_user_uuid) {
+//		for(Map o:list){
+//			warpMap(o,cur_user_uuid);
+//		}
+//		return list;
+//		
+//	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List warpMapList(List<Map> list,SessionUserInfoInterface user ) {
 		
+		String uuids="";
+		for(Map o:list){
+			warpMap(o,user);
+			uuids+=o.get("uuid")+",";
+		}
+		
+		try {
+			countService.getIncrCountByExt_uuids(uuids);
+			Map dianZanMap=classNewsReplyService.getDianzanDianzanMap(uuids, user);
+			for(Map o:list){
+//				o.put("count", countMap.get(o.get("uuid")));
+				Object vo= (Object)dianZanMap.get(o.get("uuid"));
+				if(vo==null)vo= new DianzanListVO();
+				o.put("dianzan",vo);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return list;
 	}
 
-	private void warpMap(Map o, String cur_user_uuid) {
+	@Autowired
+	private ClassNewsReplyService classNewsReplyService;
+	
+	private void warpMap(Map o, SessionUserInfoInterface user) {
 		try {
 			//网页版本需要转为html显示.
 			//o.put("content", MyUbbUtils.myUbbTohtml((String)o.get("content")));
 			o.put("imgsList", PxStringUtil.uuids_to_imgMiddleurlList((String)o.get("imgs")));
 			o.put("share_url", PxStringUtil.getClassNewsByUuid((String)o.get("uuid")));
-			o.put("dianzan", this.getDianzanDianzanListVO((String)o.get("uuid"),cur_user_uuid));
+			//o.put("dianzan", this.getDianzanDianzanListVO((String)o.get("uuid"),cur_user_uuid));
 			o.put("replyPage", this.getReplyPageList((String)o.get("uuid")));
 			o.put("create_img", PxStringUtil.imgSmallUrlByUuid((String)o.get("create_img")));
 			//显示姓名和学校
@@ -257,12 +285,7 @@ public class ClassNewsService extends AbstractService {
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
 		List<Map> list=pageQueryResult.getData();
-		String uuids="";
-		for(Map o:list){
-			warpMap(o,user.getUuid());
-			uuids+=o.get("uuid")+",";
-		}
-		countService.update_countBatch(uuids);
+		this.warpMapList(list, user);
 //		
 //		
 //		Session s = this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
