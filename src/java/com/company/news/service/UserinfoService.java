@@ -1,7 +1,9 @@
 package com.company.news.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -10,7 +12,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
@@ -20,6 +21,7 @@ import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.core.iservice.NewMsgNumberIservice;
 import com.company.news.entity.Group;
 import com.company.news.entity.Parent;
 import com.company.news.entity.ParentData;
@@ -60,6 +62,9 @@ public class UserinfoService extends AbstractService {
 
 	@Autowired
 	private SmsService smsService;
+	
+	@Autowired
+	private NewMsgNumberIservice newMsgNumberIservice;
 
 	/**
 	 * 用户注册
@@ -799,6 +804,20 @@ public class UserinfoService extends AbstractService {
 		//我的孩子参加的培训班
 		session.setAttribute(RestConstants.Session_MyStudentClassUuids, getPxClassuuidsByMyChild(parent.getUuid()));
 		
+	}
+
+	public Map getNewMsgNumber(HttpServletRequest request,
+			ResponseMessage responseMessage) {
+		
+		Map map=new HashMap();
+		//空字符串表示不启用话题.否则未话题的地址.
+		//map.put("today_hudong",0);
+		map.put("today_snsTopic",newMsgNumberIservice.today_snsTopic());
+		map.put("today_goodArticle",newMsgNumberIservice.today_goodArticle());
+		map.put("today_pxbenefit",newMsgNumberIservice.today_pxbenefit());
+		map.put("today_unreadPushMsg",newMsgNumberIservice.today_unreadPushMessage(SessionListener.getUserInfoBySession(request)));
+		
+		return map;
 	}
 
 

@@ -653,4 +653,32 @@ public class UserinfoController extends AbstractRESTController {
 		}
 		
 	}
+	
+	
+	/**
+	 * 获取最新消息总数
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getNewMsgNumber", method = RequestMethod.GET)
+	public String getNewMsgNumber(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		
+		try {
+			 Map map=userinfoService.getNewMsgNumber( request,responseMessage);
+		
+			model.addAttribute(RestConstants.Return_G_entity, map);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
+		
+	}
 }

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.cache.PxConfigCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.Announcements;
@@ -771,7 +772,6 @@ String mappoint = request.getParameter("map_point");
 	}
 	
 	String Md5_getConfig=null;
-	String Config_sns_url=null;
 	/**
 	 * 获取系统参数
 	 * 
@@ -795,30 +795,10 @@ String mappoint = request.getParameter("map_point");
 					return "";
 				}
 			}
-			
-			try {
-				if(Config_sns_url==null){
-						List list=this.nSimpleHibernateDao
-								.getHibernateTemplate().find(
-										"select description from BaseDataList where typeuuid='KDWebUrl' and datakey=2");
-							if(list!=null&&list.size()>0){
-								Config_sns_url=list.get(0)+"";
-							}else{
-								Config_sns_url="http://kd.wenjienet.com/px-rest/sns/index.html?v1";
-							}
-				}
-				
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("服务器异常:"+e.getMessage());
-				return "";
-			}
-			
+		
 			Map map=new HashMap();
 			//空字符串表示不启用话题.否则未话题的地址.
-			map.put("sns_url",Config_sns_url);
+			map.put("sns_url",PxConfigCache.getConfig_sns_url());
 			JSONObject o =new JSONObject();
 			String dd=JSONUtils.getJsonString(map);
 			
