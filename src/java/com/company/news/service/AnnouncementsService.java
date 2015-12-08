@@ -440,12 +440,21 @@ public class AnnouncementsService extends AbstractService {
 		
 		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
 		List<Map> list=pageQueryResult.getData();
+		
+		
+		String uuids="";
+		for(Map o:list){
+			uuids+=o.get("uuid")+",";
+		}
+		
+		Map countMap=countService.getCountByExt_uuids(uuids);
 		for(Map pxCourse4Q:list)
 		{
 			
 			pxCourse4Q.put("group_img", PxStringUtil.imgSmallUrlByUuid((String)pxCourse4Q.get("group_img")));
 			
-			pxCourse4Q.put("count", countService.get((String)pxCourse4Q.get("uuid"), SystemConstants.common_type_pxbenefit));
+//			pxCourse4Q.put("count", countService.get((String)pxCourse4Q.get("uuid"), SystemConstants.common_type_pxbenefit));
+			pxCourse4Q.put("count", countMap.get(pxCourse4Q.get("uuid")));
 			//当前坐标点参数不为空时，进行距离计算
 			if(StringUtils.isNotBlank(mappoint)){
 				pxCourse4Q.put("distance", DistanceUtil.getDistance(mappoint, (String)pxCourse4Q.get("map_point")));

@@ -134,6 +134,35 @@ public class CountService extends AbstractService {
 		if (StringUtils.isBlank(ext_uuid)) {
 			return 0l;
 		}
+		//缓存命中,直接返回.
+		Long cacheCount=PxRedisCache.getIncrCountByExt_uuid(ext_uuid);
+		if(cacheCount!=null&&cacheCount>1)return cacheCount;
+		
+		if(cacheCount!=null){//缓存正常工作.
+			//数据库获取数据.
+			Object dbCount =nSimpleHibernateDao.getSession().createSQLQuery("select sum(count) from Count where ext_uuid='"+ext_uuid+"'").uniqueResult();
+			Long count = 0l;
+			if (dbCount != null){//已有数据.
+				count=Long.valueOf(dbCount.toString());
+				count++;
+				PxRedisCache.setCountByExt_uuid(ext_uuid, count);
+				return count;
+			}else{//新添加数据
+				Count c = new Count();
+				c.setType(type);
+				c.setUpdate_time(TimeUtils.getCurrentTimestamp());
+				c.setExt_uuid(ext_uuid);
+				if (c.getCount() != null)
+					count = c.getCount();
+
+				c.setCount(++count);
+				// 有事务管理，统一在Controller调用时处理异常
+				this.nSimpleHibernateDao.getHibernateTemplate().save(c);
+			}
+			return count;
+		}
+		
+		//缓存失效情况.
 
 		Count c = (Count) this.nSimpleHibernateDao.getObjectByAttribute(
 				Count.class, "ext_uuid", ext_uuid);
@@ -168,15 +197,19 @@ public class CountService extends AbstractService {
 		if (StringUtils.isBlank(ext_uuid)) {
 			return 0l;
 		}
-
-		Count c = (Count) this.nSimpleHibernateDao.getObjectByAttribute(
-				Count.class, "ext_uuid", ext_uuid);
+		//缓存命中,直接返回.
+		Long cacheCount=PxRedisCache.getCountByExt_uuid(ext_uuid);
+		if(cacheCount!=null)return cacheCount;
+		
+		Object dbCount =nSimpleHibernateDao.getSession().createSQLQuery("select sum(count) from Count where ext_uuid='"+ext_uuid+"'").uniqueResult();
 		Long count = 0l;
-		if (c != null)
-			count = c.getCount();
+		if (dbCount != null){//已有数据.
+			count=Long.valueOf(dbCount.toString());
+			PxRedisCache.setCountByExt_uuid(ext_uuid, count);
+			return count;
+		}
 
 		return count;
-
 	}
 
 	/**
@@ -193,6 +226,59 @@ public class CountService extends AbstractService {
 	public Class getEntityClass() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	/**
+	 * 查询计数(并加1)并且缓存.
+	 * 
+	 * @param entityStr
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	public Map getCountByExt_uuids(String ext_uuids) throws Exception {
+		Map map=new HashMap();
+		if (StringUtils.isBlank(ext_uuids)) {
+			return map;
+		}
+		ext_uuids=PxStringUtil.StringDecComma(ext_uuids);
+		String[] ext_uuidsArr=ext_uuids.split(",");
+		//1.优先在缓存中取数据
+		 List<String> list=PxRedisCache.getCountByExt_uuids(ext_uuidsArr);
+		 //noCacheext_uuids 如果为"".表示缓存全部命中直接返回.否则取数据库.
+		 String noCacheext_uuids="";
+		 if(list!=null){
+			//2.构造数据.
+			 for(int i=0;i<ext_uuidsArr.length;i++){
+				 Object value= list.get(i);
+				 if(value!=null){
+					 map.put(ext_uuidsArr[i], value);
+				 }else{
+					 noCacheext_uuids+=ext_uuidsArr[i]+",";
+				 }
+			 }
+		 }else{
+			 noCacheext_uuids=ext_uuids;
+		 }
+		 
+		 //缓存全部命中直接返回
+		 if(StringUtils.isBlank(noCacheext_uuids)){
+			 return map;
+		 }
+		 //3.数据库中取数据
+		String sql = "select ext_uuid, sum(count) from px_count where ext_uuid in("+DBUtil.stringsToWhereInValue(noCacheext_uuids)+") group by ext_uuid";
+		List<Object[]> listNoCahe=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory()
+				.getCurrentSession().createSQLQuery(sql).list();
+		Map<String,String> mapToCache=new HashMap();
+		for(Object[] ObjArr:listNoCahe){
+			map.put(ObjArr[0], ObjArr[1]);
+			mapToCache.put(ObjArr[0]+"", ObjArr[1]+"");
+		}
+		//4.有数据则,缓存起来.
+		if(!mapToCache.isEmpty()){
+			PxRedisCache.setCountByExt_uuids(mapToCache);
+		}
+		return map;
+		
 	}
 
 }
