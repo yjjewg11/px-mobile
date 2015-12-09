@@ -100,7 +100,6 @@ public class StudentController extends AbstractRESTController {
 		return "";
 	}
 
-	
 	/**
 	 * 添加用户
 	 * 
@@ -124,6 +123,11 @@ public class StudentController extends AbstractRESTController {
 				responseMessage.setMessage("地址不能超过300个字.");
 				return "";
 			}
+			
+			if(StringUtils.isBlank(studentJsonform.getUuid())){
+				responseMessage.setMessage("学生uuid不能为空");
+				return "";
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -133,10 +137,56 @@ public class StudentController extends AbstractRESTController {
 
 		try {
 			boolean flag;
-			if (StringUtils.isBlank(studentJsonform.getUuid()))
-				flag = studentService.add(studentJsonform, responseMessage);
-			else
 				flag = studentService.update(studentJsonform, responseMessage,request);
+			if (!flag)// 请求服务返回失败标示
+				return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+					.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("增加成功");
+		return "";
+	}
+	/**
+	 * 添加用户
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/add", method = RequestMethod.POST)
+	public String add(ModelMap model, HttpServletRequest request) {
+		// 返回消息体
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		// 请求消息体
+		String bodyJson = RestUtil.getJsonStringByRequest(request);
+		StudentJsonform studentJsonform;
+		try {
+			studentJsonform = (StudentJsonform) this.bodyJsonToFormObject(
+					bodyJson, StudentJsonform.class);
+			
+			if(studentJsonform.getAddress()!=null&&studentJsonform.getAddress().length()>300){
+				responseMessage.setMessage("地址不能超过300个字.");
+				return "";
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器异常:"+error_bodyJsonToFormObject);
+			return "";
+		}
+
+		try {
+			boolean flag;
+			studentJsonform.setUuid(null);
+			flag = studentService.add(studentJsonform, responseMessage,request);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {

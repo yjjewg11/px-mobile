@@ -19,11 +19,13 @@ import com.company.news.entity.Parent;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
 import com.company.news.entity.User;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.StudentJsonform;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
+import com.company.web.listener.SessionListener;
 
 /**
  * 
@@ -47,7 +49,7 @@ public class StudentService extends AbstractService {
 	 * @return
 	 */
 	public boolean add(StudentJsonform studentJsonform,
-			ResponseMessage responseMessage) throws Exception {
+			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
 
 		// TEL格式验证
 		if (StringUtils.isBlank(studentJsonform.getName())) {
@@ -57,16 +59,16 @@ public class StudentService extends AbstractService {
 
 		// name昵称验证
 		if (StringUtils.isBlank(studentJsonform.getClassuuid())) {
-			responseMessage.setMessage("Classuuid不能为空");
+			studentJsonform.setClassuuid("0");
 			return false;
 		}
-		
-		PClass pClass=(PClass) this.nSimpleHibernateDao.getObjectById(PClass.class, studentJsonform.getClassuuid());
-		//班级不存在
-		if(pClass==null){
-			responseMessage.setMessage("班级不存在");
-			return false;
-		}
+//		
+//		PClass pClass=(PClass) this.nSimpleHibernateDao.getObjectById(PClass.class, studentJsonform.getClassuuid());
+//		//班级不存在
+//		if(pClass==null){
+//			responseMessage.setMessage("班级不存在");
+//			return false;
+//		}
 
 		studentJsonform.setHeadimg(PxStringUtil.imgUrlToUuid(studentJsonform.getHeadimg()));
 		Student student = new Student();
@@ -76,11 +78,69 @@ public class StudentService extends AbstractService {
 		student.setBirthday(TimeUtils.getDateFormatString(student.getBirthday()));
 
 		student.setCreate_time(TimeUtils.getCurrentTimestamp());
-		student.setGroupuuid(pClass.getGroupuuid());
-		// 有事务管理，统一在Controller调用时处理异常
+		//student.setGroupuuid(pClass.getGroupuuid());
+		student.setGroupuuid("0");
+		
+		
+		//格式纠正
+		student.setBirthday(TimeUtils.getDateFormatString(student.getBirthday()));
+
+		if(StringUtils.isBlank(student.getBa_tel())
+				||StringUtils.isBlank(student.getMa_tel())
+				||StringUtils.isBlank(student.getYe_tel())
+				||StringUtils.isBlank(student.getNai_tel())
+				||StringUtils.isBlank(student.getWaigong_tel())
+				||StringUtils.isBlank(student.getWaipo_tel())
+				||StringUtils.isBlank(student.getOther_tel())){
+			responseMessage.setMessage("家长手机号码必须填写一个");
+				return false;
+		}
+		boolean isFlag=false;//必须填写当前用户的电话号码.
+		
+		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		if(user.getLoginname().equals(student.getBa_tel())){
+			isFlag=true;
+		}
+		if(user.getLoginname().equals(student.getMa_tel())){
+			isFlag=true;
+		}
+		if(user.getLoginname().equals(student.getYe_tel())){
+			isFlag=true;
+		}
+		if(user.getLoginname().equals(student.getNai_tel())){
+			isFlag=true;
+		}
+		if(user.getLoginname().equals(student.getWaigong_tel())){
+			isFlag=true;
+		}
+		if(user.getLoginname().equals(student.getWaipo_tel())){
+			isFlag=true;
+		}
+		if(user.getLoginname().equals(student.getOther_tel())){
+			isFlag=true;
+		}
+		
+		if(isFlag==false){
+			responseMessage.setMessage("当前用户的的电话孩子联系电话");
+			return false;
+		}
+		
 		this.nSimpleHibernateDao.getHibernateTemplate().save(student);
+		
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_ba, student.getBa_tel());
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_ma, student.getMa_tel());
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_ye, student.getYe_tel());
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_nai, student.getNai_tel());
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_waigong, student.getWaigong_tel());
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_waipo, student.getWaipo_tel());
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_other, student.getOther_tel());
+		
+		
 		//幼儿园更新学生资料时,同步更新培训机构的学生资料
-		pxStudentService.updatePxStudentByKDstudent(student);
+//		pxStudentService.updatePxStudentByKDstudent(student);
+		String msg=student.getName()+"|家长修改孩子资料|"+"]|爸爸电话:"+student.getBa_tel()+"|妈妈电话:"+student.getMa_tel();
+		this.addStudentOperate(student.getGroupuuid(), student.getUuid(), msg, null, request);
+	
 		return true;
 	}
 
