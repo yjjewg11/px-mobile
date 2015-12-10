@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 
+import com.company.news.commons.util.DbUtils;
 import com.company.news.entity.StudentBind;
 import com.company.news.entity.User;
 import com.company.news.jsonform.StudentBindJsonform;
@@ -118,7 +119,7 @@ public class StudentBindService extends AbstractService {
 		
 		// Group_uuid昵称验证
 		if (StringUtils.isNotBlank(studentuuid)) {
-			hql+=" and studentuuid='"+studentuuid+"'";
+			hql+=" and studentuuid='"+DbUtils.safeToWhereString(studentuuid)+"'";
 		}
 		
 		hql+=" order by createtime";

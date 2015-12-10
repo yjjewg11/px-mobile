@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
 import com.company.news.entity.ClassNews;
@@ -122,7 +123,7 @@ public class ClassNewsReplyService extends AbstractService {
 	public PageQueryResult query(String newsuuid, PaginationData pData) {
 		String hql="from ClassNewsReply where status ="+SystemConstants.Check_status_fabu;	
 		if (StringUtils.isNotBlank(newsuuid))
-			hql+=" and  newsuuid='"+newsuuid+"'";
+			hql+=" and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
 		
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
@@ -201,7 +202,7 @@ public class ClassNewsReplyService extends AbstractService {
 		if(user!=null)useruuid=user.getUuid();
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql="select t1.newsuuid  ,group_concat( t1.create_user) as user_names,count(1) as allcount,sum(case t1.create_useruuid when '"+useruuid+"' then 1 else 0 end) as curuser_sum  from px_classnewsdianzan  t1 ";
+		String sql="select t1.newsuuid  ,group_concat( t1.create_user) as user_names,count(1) as allcount,sum(case t1.create_useruuid when '"+DbUtils.safeToWhereString(useruuid)+"' then 1 else 0 end) as curuser_sum  from px_classnewsdianzan  t1 ";
 		sql+=" where t1.newsuuid in("+DBUtil.stringsToWhereInValue(reluuids)+")";
 		sql+=" GROUP BY t1.newsuuid  ";
 		Query q = s.createSQLQuery(sql);

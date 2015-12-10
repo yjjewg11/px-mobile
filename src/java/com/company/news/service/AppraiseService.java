@@ -14,6 +14,7 @@ import org.springframework.ui.ModelMap;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Announcements;
@@ -163,7 +164,7 @@ public class AppraiseService extends AbstractService {
 		if (StringUtils.isBlank(ext_uuid)) {
 			return null;
 		}
-		String hql = "from Appraise where ext_uuid='" + ext_uuid
+		String hql = "from Appraise where ext_uuid='" + DbUtils.safeToWhereString(ext_uuid)
 				+ "' order by create_time desc";
 
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
@@ -185,7 +186,7 @@ public class AppraiseService extends AbstractService {
 		if (StringUtils.isBlank(class_uuid)) {
 			return null;
 		}
-		String hql = "from Appraise where  class_uuid='" + class_uuid+"' and create_useruuid='"+create_useruuid+"'";
+		String hql = "from Appraise where  class_uuid='" + DbUtils.safeToWhereString(class_uuid)+"' and create_useruuid='"+DbUtils.safeToWhereString(create_useruuid)+"'";
 				hql+= " order by create_time desc";
 		pData.setPageSize(50);
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
@@ -207,7 +208,7 @@ public class AppraiseService extends AbstractService {
 		if (StringUtils.isBlank(ext_uuid)) {
 			return null;
 		}
-		String hql = "from Appraise where  ext_uuid='" + ext_uuid+"' and create_useruuid='"+create_useruuid+"'";
+		String hql = "from Appraise where  ext_uuid='" + DbUtils.safeToWhereString(ext_uuid)+"' and create_useruuid='"+DbUtils.safeToWhereString(create_useruuid)+"'";
 				hql+= " order by create_time desc";
 		pData.setPageSize(50);
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao

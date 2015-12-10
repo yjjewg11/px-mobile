@@ -13,6 +13,7 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxStudent;
 import com.company.news.entity.PxStudentContactRealation;
@@ -168,7 +169,7 @@ public class PxStudentService extends AbstractStudentService {
 		// in("+StringOperationUtil.dateStr)+"))
 		String where_student_name = "";
 		if (StringUtils.isNotBlank(student_name)) {
-			where_student_name = " and student_name like '%" + student_name + "%'";
+			where_student_name = " and student_name like '%" + DbUtils.safeToWhereString(student_name) + "%'";
 		}
 		String hql = "from StudentContactRealation  where student_uuid in"
 				+ "(select student_uuid from PxStudentPXClassRelation where class_uuid in("

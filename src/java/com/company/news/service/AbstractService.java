@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
@@ -69,7 +70,7 @@ public abstract class AbstractService {
 	}
 	
 	public String getGroupLink_tel(String groupuuid){
-		String hql="select link_tel from Group4Q where  uuid ='"+groupuuid+"'";
+		String hql="select link_tel from Group4Q where  uuid ='"+DbUtils.safeToWhereString(groupuuid)+"'";
 		List list=this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
 		if(list.size()>0){
 			return (String)list.get(0);
@@ -89,7 +90,7 @@ public abstract class AbstractService {
 		
 		PaginationData pData=new PaginationData();
 		pData.setPageSize(5);
-		String hql="from ClassNewsReply where  status ="+SystemConstants.Check_status_fabu +" and  newsuuid='"+newsuuid+"'";
+		String hql="from ClassNewsReply where  status ="+SystemConstants.Check_status_fabu +" and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		
@@ -118,7 +119,7 @@ public abstract class AbstractService {
 			}
 			
 			PaginationData pData=new PaginationData();
-			String hql="from ClassNewsReply where   status ="+SystemConstants.Check_status_fabu +" and  newsuuid='"+newsuuid+"'";
+			String hql="from ClassNewsReply where   status ="+SystemConstants.Check_status_fabu +" and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
 			pData.setOrderFiled("create_time");
 			pData.setOrderType("desc");
 			

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Group;
@@ -200,7 +201,7 @@ public class GroupService extends AbstractService {
 	public List getGroupByUseruuid(String uuid){
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String sql="";
-		Query q = s.createSQLQuery("select {t1.*} from px_usergrouprelation t0,px_group {t1} where t0.groupuuid={t1}.uuid and t0.useruuid='"+uuid+"'")
+		Query q = s.createSQLQuery("select {t1.*} from px_usergrouprelation t0,px_group {t1} where t0.groupuuid={t1}.uuid and t0.useruuid='"+DbUtils.safeToWhereString(uuid)+"'")
 				.addEntity("t1",Group.class);
 		
 		return q.list();

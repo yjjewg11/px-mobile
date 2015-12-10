@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxTeachingplan;
 import com.company.news.entity.User;
@@ -40,7 +41,7 @@ public class PxTeachingPlanService extends AbstractService {
 		if (StringUtils.isBlank(classuuid)) {
 			return null;
 		}
-		String hql = "from PxTeachingplan where classuuid='" + classuuid + "' ";
+		String hql = "from PxTeachingplan where classuuid='" + DbUtils.safeToWhereString(classuuid) + "' ";
 		if (StringUtils.isNotBlank(begDateStr)) {
 			hql += " and  plandate>=" + DBUtil.stringToDateByDBType(begDateStr);
 		}
@@ -67,7 +68,7 @@ public class PxTeachingPlanService extends AbstractService {
 		if (StringUtils.isBlank(classuuid)) {
 			return null;
 		}
-		String hql = "from PxTeachingplan where classuuid='" + classuuid + "' order by  plandate  asc";
+		String hql = "from PxTeachingplan where classuuid='" + DbUtils.safeToWhereString(classuuid) + "' order by  plandate  asc";
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
 

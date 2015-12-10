@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.company.news.cache.PxRedisCache;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Count;
 import com.company.news.rest.util.DBUtil;
@@ -140,7 +141,7 @@ public class CountService extends AbstractService {
 		
 		if(cacheCount!=null){//缓存正常工作.
 			//数据库获取数据.
-			Object dbCount =nSimpleHibernateDao.getSession().createSQLQuery("select sum(count) from px_count where ext_uuid='"+ext_uuid+"'").uniqueResult();
+			Object dbCount =nSimpleHibernateDao.getSession().createSQLQuery("select sum(count) from px_count where ext_uuid='"+DbUtils.safeToWhereString(ext_uuid)+"'").uniqueResult();
 			Long count = 0l;
 			if (dbCount != null){//已有数据.
 				count=Long.valueOf(dbCount.toString());
@@ -201,7 +202,7 @@ public class CountService extends AbstractService {
 		Long cacheCount=PxRedisCache.getCountByExt_uuid(ext_uuid);
 		if(cacheCount!=null)return cacheCount;
 		
-		Object dbCount =nSimpleHibernateDao.getSession().createSQLQuery("select sum(count) from px_count where ext_uuid='"+ext_uuid+"'").uniqueResult();
+		Object dbCount =nSimpleHibernateDao.getSession().createSQLQuery("select sum(count) from px_count where ext_uuid='"+DbUtils.safeToWhereString(ext_uuid)+"'").uniqueResult();
 		Long count = 0l;
 		if (dbCount != null){//已有数据.
 			count=Long.valueOf(dbCount.toString());

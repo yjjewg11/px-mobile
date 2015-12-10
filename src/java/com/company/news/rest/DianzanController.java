@@ -15,6 +15,7 @@ import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsDianzanJsonform;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.ClassNewsDianzanService;
+import com.company.news.vo.DianzanListVO;
 import com.company.news.vo.ResponseMessage;
 
 @Controller
@@ -68,7 +69,6 @@ public class DianzanController extends AbstractRESTController {
 		responseMessage.setMessage("操作成功");
 		return "";
 	}
-
 	@RequestMapping(value = "/getByNewsuuid", method = RequestMethod.GET)
 	public String getByNewsuuid(ModelMap model,
 			HttpServletRequest request) {
@@ -76,24 +76,18 @@ public class DianzanController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		String newsuuid = request.getParameter("newsuuid");
 
-		List list;
 		try {
-			list = classNewsDianzanService.getDianzanByNewsuuid(newsuuid);
 			
-			Boolean canDianzan=true;
-			if(list.size()>0){
-				SessionUserInfoInterface user = this.getUserInfoBySession(request);
-				canDianzan=classNewsDianzanService.canDianzan(newsuuid,user.getUuid());
-			}
-			model.addAttribute("names", StringUtils.join(list,","));
-			model.addAttribute("canDianzan", canDianzan);
-			model.addAttribute(RestConstants.Return_ResponseMessage_count, list.size());
+			DianzanListVO vo=this.classNewsDianzanService.getDianzanListVO(newsuuid, request);
+			
+			model.addAttribute("names",vo.getNames());
+			model.addAttribute("canDianzan", vo.getCanDianzan());
+			model.addAttribute(RestConstants.Return_ResponseMessage_count,vo.getCount());
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}

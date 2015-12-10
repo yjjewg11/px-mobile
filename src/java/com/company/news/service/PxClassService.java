@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.company.common.PxStringUtils;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PClass;
 import com.company.news.entity.PxClass;
@@ -181,7 +182,7 @@ String sql = "select t1.uuid,t1.courseuuid,t1.groupuuid,t1.disable_time,t2.logo,
 		+ " inner join px_pxstudent t4 on t0.student_uuid=t4.uuid  "
 		+ " where t0.student_uuid  in( "
 		+ " select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
-		+ cur_user_uuid + "' ) ";
+		+ DbUtils.safeToWhereString(cur_user_uuid) + "' ) ";
 	if(StringUtils.isNotBlank(isdisable)){
 		sql+=" and t1.isdisable ="+isdisable;
 	}
@@ -233,7 +234,7 @@ q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 String sql = "select t0.uuid,t0.name"
 		+ " from px_user t0 "
 		+ " inner join px_userclassrelation t1 on t1.useruuid=t0.uuid and t1.type="+SystemConstants.class_usertype_teacher
-		+ " where t1.classuuid ='"+classuuid + "'  ";
+		+ " where t1.classuuid ='"+DbUtils.safeToWhereString(classuuid) + "'  ";
 		
 	Query q = s.createSQLQuery(sql);
 	q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);

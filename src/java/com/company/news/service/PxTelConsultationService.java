@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Appraise;
 import com.company.news.entity.PxTelConsultation;
@@ -46,10 +47,11 @@ public class PxTelConsultationService extends AbstractService {
 			return false;
 		}
 		
+		jsonform.setExt_uuid(DbUtils.safeToWhereString(jsonform.getExt_uuid()));
 		String ext_context=null;
 		String grouuuid=null;
 		if(SystemConstants.common_type_pxgroup==jsonform.getType().intValue()){
-			List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select brand_name from Group where uuid='"+jsonform.getExt_uuid()+"'");
+			List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select brand_name from Group where uuid='"+DbUtils.safeToWhereString(jsonform.getExt_uuid())+"'");
 			
 			if(list==null||list.size()==0){
 				responseMessage.setMessage("学校没找到!Ext_uuid="+jsonform.getExt_uuid());
@@ -58,7 +60,7 @@ public class PxTelConsultationService extends AbstractService {
 			ext_context=(String)list.get(0);
 			grouuuid=jsonform.getExt_uuid();
 		}else if(SystemConstants.common_type_pxcourse==jsonform.getType().intValue()){
-				List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select title,groupuuid from PxCourse where uuid='"+jsonform.getExt_uuid()+"'");
+				List list=this.nSimpleHibernateDao.getHibernateTemplate().find("select title,groupuuid from PxCourse where uuid='"+DbUtils.safeToWhereString(jsonform.getExt_uuid())+"'");
 			if(list==null||list.size()==0){//修复空指针异常.
 				responseMessage.setMessage("课程没找到!Ext_uuid="+jsonform.getExt_uuid());
 				return false;

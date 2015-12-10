@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.AbstractClass;
@@ -274,9 +275,9 @@ public class ClassNewsService extends AbstractService {
 		
 		if (StringUtils.isNotBlank(courseuuid)) {
 			sql += " LEFT JOIN  px_pxclass t2 on  t1.classuuid=t2.uuid ";
-			sql += " where  t1.status=0 and t2.courseuuid ='"+courseuuid+"'";
+			sql += " where  t1.status=0 and t2.courseuuid ='"+DbUtils.safeToWhereString(courseuuid)+"'";
 		}else if (StringUtils.isNotBlank(groupuuid)) {
-			sql += " where    t1.status=0 and t1.groupuuid ='"+groupuuid+"'";
+			sql += " where    t1.status=0 and t1.groupuuid ='"+DbUtils.safeToWhereString(groupuuid)+"'";
 		}
 	    sql += " order by t1.create_time desc";
 	    

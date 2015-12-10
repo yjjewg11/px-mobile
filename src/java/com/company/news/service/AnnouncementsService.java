@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Announcements;
@@ -175,9 +176,9 @@ public class AnnouncementsService extends AbstractService {
 		if (StringUtils.isBlank(groupuuid))
 			return null;
 
-		String hql = "from Announcements4Q where status="+SystemConstants.Check_status_fabu+" and groupuuid='" + groupuuid + "'";
+		String hql = "from Announcements4Q where status="+SystemConstants.Check_status_fabu+" and groupuuid='" + DbUtils.safeToWhereString(groupuuid) + "'";
 		if (StringUtils.isNotBlank(type))
-			hql += " and type=" + type;
+			hql += " and type=" + DbUtils.safeToWhereString(type);
 
 		hql += " order by create_time";
 		return (List) this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
@@ -195,7 +196,7 @@ public class AnnouncementsService extends AbstractService {
 		Query q = s
 				.createSQLQuery(
 						"select {t1.*} from px_announcementsto t0,px_announcements {t1} where t0.announcementsuuid={t1}.uuid and t0.classuuid='"
-								+ classuuid + "' order by {t1}.create_time")
+								+ DbUtils.safeToWhereString(classuuid) + "' order by {t1}.create_time")
 				.addEntity("t1", Announcements4Q.class);
 
 		return q.list();
@@ -231,7 +232,7 @@ public class AnnouncementsService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult queryMyChildGroup(String useruuid, PaginationData pData) {
-		
+		useruuid=DbUtils.safeToWhereString(useruuid);
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
 		String sql=" SELECT t1.uuid,t1.create_time,t1.create_user,t1.create_useruuid,t1.groupuuid,t1.title from px_announcements t1 where t1.type=0 and  t1.status="+SystemConstants.Check_status_fabu;

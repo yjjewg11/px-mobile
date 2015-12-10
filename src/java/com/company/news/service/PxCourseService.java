@@ -11,6 +11,7 @@ import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.DistanceUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxCourse;
@@ -157,7 +158,7 @@ public class PxCourseService extends AbstractService {
 			sql+=" and t1.type="+type;
 		}
 		if(StringUtils.isNotBlank(teacheruuid)){
-			sql+=" and t1.uuid in ( select courseuuid  from px_userpxcourserelation where useruuid ='" + teacheruuid + "')";
+			sql+=" and t1.uuid in ( select courseuuid  from px_userpxcourserelation where useruuid ='" + DbUtils.safeToWhereString(teacheruuid) + "')";
 		}
 		
 		

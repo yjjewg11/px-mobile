@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
@@ -326,11 +327,11 @@ public class StudentService extends AbstractService {
 		
 		// Group_uuid昵称验证
 		if (StringUtils.isNotBlank(classuuid)) {
-			hql+=" and classuuid='"+classuuid+"'";
+			hql+=" and classuuid='"+DbUtils.safeToWhereString(classuuid)+"'";
 		}
 		
 		if (StringUtils.isNotBlank(groupuuid)) {
-			hql+=" and groupuuid='"+groupuuid+"'";
+			hql+=" and groupuuid='"+DbUtils.safeToWhereString(groupuuid)+"'";
 		}		
 		
 		List<Student> list=(List<Student>) this.nSimpleHibernateDao.getHibernateTemplate().find(hql, null);

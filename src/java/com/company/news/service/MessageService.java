@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
 import com.company.news.entity.ClassNews;
@@ -94,7 +95,7 @@ public class MessageService extends AbstractService {
 		if (StringUtils.isNotBlank(type))
 			hql += " and type=" + type;
 		if (StringUtils.isNotBlank(useruuid))
-			hql += " and revice_useruuid='" + useruuid + "'";
+			hql += " and revice_useruuid='" + DbUtils.safeToWhereString(useruuid) + "'";
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
@@ -174,6 +175,10 @@ public class MessageService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult queryMessageByTeacher(String useruuid,String parentuuid,PaginationData pData) {
+		
+		
+		useruuid=DbUtils.safeToWhereString(useruuid);
+		parentuuid=DbUtils.safeToWhereString(parentuuid);
 		String hql = "from Message where isdelete=" + announcements_isdelete_no;
 		hql += " and type=1 " ;
 		hql += " and (" ;
@@ -193,6 +198,9 @@ public class MessageService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult queryByLeader(String useruuid,String parentuuid,PaginationData pData) {
+		useruuid=DbUtils.safeToWhereString(useruuid);
+		parentuuid=DbUtils.safeToWhereString(parentuuid);
+		
 		String hql = "from Message where isdelete=" + announcements_isdelete_no;
 		hql += " and type=2 " ;
 		hql += " and (" ;

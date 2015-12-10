@@ -6,6 +6,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.company.news.commons.util.DbUtils;
 import com.company.news.entity.PushMsgDevice;
 import com.company.news.jsonform.PushMsgDeviceJsonform;
 import com.company.news.rest.util.TimeUtils;
@@ -37,10 +38,10 @@ public class PushMsgDeviceService extends AbstractService {
 		if(group_uuids==null)group_uuids="";
 		String[] group_uuidsArr= group_uuids.split(",");
 		for(String o :group_uuidsArr){
-			String hql = "from PushMsgDevice where device_type='" + jsonform.getDevice_type()+"'";
+			String hql = "from PushMsgDevice where device_type='" + DbUtils.safeToWhereString(jsonform.getDevice_type())+"'";
 			hql += " and type="+jsonform.getType() ;
-			hql += " and device_id='"+jsonform.getDevice_id()+"'";
-			hql += " and group_uuid='"+o+"'";
+			hql += " and device_id='"+DbUtils.safeToWhereString(jsonform.getDevice_id())+"'";
+			hql += " and group_uuid='"+DbUtils.safeToWhereString(o)+"'";
 			
 			List  list= this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
 			PushMsgDevice message=null;

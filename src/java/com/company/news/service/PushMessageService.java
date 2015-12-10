@@ -3,6 +3,7 @@ package com.company.news.service;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.company.news.commons.util.DbUtils;
 import com.company.news.entity.PushMessage;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -26,7 +27,7 @@ public class PushMessageService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult query(String type, String useruuid,PaginationData pData) {
-
+		useruuid=DbUtils.safeToWhereString(useruuid);
 		String hql = "from PushMessage where revice_useruuid='" + useruuid + "'";
 		if (StringUtils.isNotBlank(type))
 			hql += " and type=" + type;

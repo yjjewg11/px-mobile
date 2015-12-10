@@ -1,16 +1,27 @@
 package com.company.news.service;
 
 import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.news.commons.util.DbUtils;
 import com.company.news.entity.ClassNewsDianzan;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsDianzanJsonform;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.vo.DianzanListVO;
 import com.company.news.vo.ResponseMessage;
+import com.company.web.listener.SessionListener;
 
 /**
  * 
@@ -115,4 +126,34 @@ public class ClassNewsDianzanService extends AbstractService {
 		return ClassNewsDianzanService.class;
 	}
 
+
+	public DianzanListVO getDianzanListVO(String newsuuid,HttpServletRequest request) throws Exception {
+		DianzanListVO vo = new DianzanListVO();
+		if (StringUtils.isBlank(newsuuid)) {
+			return null;
+		}
+		
+		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		String useruuid="";
+		
+		if(user!=null)useruuid=user.getUuid();
+		Session s = nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql="select group_concat( t1.create_user) as user_names,count(1) as allcount,sum(case t1.create_useruuid when '"+DbUtils.safeToWhereString(useruuid)+"' then 1 else 0 end) as curuser_sum  from px_classnewsdianzan  t1 ";
+		sql+=" where t1.newsuuid in("+DBUtil.stringsToWhereInValue(newsuuid)+")";
+		sql+=" GROUP BY t1.newsuuid  ";
+		Query q = s.createSQLQuery(sql);
+		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		List<Map> list=q.list();
+	
+		for(Map map:list){
+			
+			//统计当前用户点赞数量,0表示没点赞,可以点赞.
+			vo.setCanDianzan("0".equals(map.get("curuser_sum")+""));
+			vo.setCount(Integer.valueOf(map.get("allcount")+""));
+			vo.setNames(map.get("user_names")+"");
+		}
+
+		return vo;
+	}
 }
