@@ -61,7 +61,7 @@ public class StudentService extends AbstractService {
 		// name昵称验证
 		if (StringUtils.isBlank(studentJsonform.getClassuuid())) {
 			studentJsonform.setClassuuid("0");
-			return false;
+		//	return false;
 		}
 //		
 //		PClass pClass=(PClass) this.nSimpleHibernateDao.getObjectById(PClass.class, studentJsonform.getClassuuid());
@@ -87,12 +87,12 @@ public class StudentService extends AbstractService {
 		student.setBirthday(TimeUtils.getDateFormatString(student.getBirthday()));
 
 		if(StringUtils.isBlank(student.getBa_tel())
-				||StringUtils.isBlank(student.getMa_tel())
-				||StringUtils.isBlank(student.getYe_tel())
-				||StringUtils.isBlank(student.getNai_tel())
-				||StringUtils.isBlank(student.getWaigong_tel())
-				||StringUtils.isBlank(student.getWaipo_tel())
-				||StringUtils.isBlank(student.getOther_tel())){
+				&&StringUtils.isBlank(student.getMa_tel())
+				&&StringUtils.isBlank(student.getYe_tel())
+				&&StringUtils.isBlank(student.getNai_tel())
+				&&StringUtils.isBlank(student.getWaigong_tel())
+				&&StringUtils.isBlank(student.getWaipo_tel())
+				&&StringUtils.isBlank(student.getOther_tel())){
 			responseMessage.setMessage("家长手机号码必须填写一个");
 				return false;
 		}
