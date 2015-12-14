@@ -18,6 +18,7 @@ import org.apache.commons.beanutils.converters.SqlTimestampConverter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.ui.ModelMap;
 
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
 import com.company.news.entity.StudentOfSession;
@@ -111,6 +112,9 @@ public class AbstractRESTController   {
 		  String uuids="";
 		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
 		  for (StudentOfSession stu:list){
+			  if(SystemConstants.DB_String_unrelated_Value.equals(stu.getClassuuid())){
+				  continue;
+			  }
 			  uuids+=stu.getClassuuid()+",";
 		  }
 		  return StringOperationUtil.trimSeparatorChars(uuids);
@@ -127,6 +131,9 @@ public class AbstractRESTController   {
 		  String uuids="";
 		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
 		  for (StudentOfSession stu:list){
+			  if(SystemConstants.DB_String_unrelated_Value.equals(stu.getGroupuuid())){
+				  continue;
+			  }
 			  if(uuids.indexOf(stu.getGroupuuid())==-1)
 				  uuids+=stu.getGroupuuid()+",";
 		  }

@@ -177,6 +177,7 @@ public class GroupService extends AbstractService {
 	 */
 	public Group get(String uuid){
 		Group group=(Group)this.nSimpleHibernateDao.getObjectById(Group.class, uuid);
+		if(group==null)return group;
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(group);
 		group.setDescription(PxStringUtil.warpHtml5Responsive(group.getDescription()));
 		group.setImg(PxStringUtil.imgUrlByUuid(group.getImg()));
@@ -188,6 +189,7 @@ public class GroupService extends AbstractService {
 	 */
 	public Group4Q getGroup4Q(String uuid){
 		Group4Q group=(Group4Q)this.nSimpleHibernateDao.getObjectById(Group4Q.class, uuid);
+		if(group==null)return group;
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(group);
 		group.setImg(PxStringUtil.imgUrlByUuid(group.getImg()));
 		 return group;
@@ -401,6 +403,7 @@ public class GroupService extends AbstractService {
 	 * @return
 	 */
 	public Group4Q warpVo(Group4Q o){
+		if( o==null)return  o;
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		o.setImg(PxStringUtil.imgSmallUrlByUuid(o.getImg()));
 		return o;
@@ -412,6 +415,7 @@ public class GroupService extends AbstractService {
 	 * @return
 	 */
 	public Group warpVo(Group o){
+		if( o==null)return  o;
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		o.setImg(PxStringUtil.imgSmallUrlByUuid(o.getImg()));
 		return o;
