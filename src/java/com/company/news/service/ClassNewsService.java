@@ -88,6 +88,7 @@ public class ClassNewsService extends AbstractService {
 		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
 		cn.setUsertype(USER_type_default);
 		cn.setStatus(SystemConstants.Check_status_fabu);
+		cn.setUrl(StringUtils.trim(cn.getUrl()));
 		cn.setIllegal(0l);
 		PxStringUtil.addCreateUser(user, cn);
 		
@@ -156,7 +157,7 @@ public class ClassNewsService extends AbstractService {
 		
 		//修复班级互动,头像没显示bug.
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
-		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name";
+		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name,t1.url";
 		sql+=" FROM px_classnews t1 ";
 		sql+=" where t1.status=0  ";	
 		if (StringUtils.isNotBlank(classuuid))
@@ -261,6 +262,39 @@ public class ClassNewsService extends AbstractService {
 //		return o;
 		
 	}
+	
+	
+	/**
+	 * 查询所有班级
+	 * 
+	 * @return
+	 * @throws Exception 
+	 */
+	@Deprecated
+	public List<Map> queryMyClassForAdd(SessionUserInfoInterface user ,String courseuuid,String groupuuid, PaginationData pData) throws Exception {
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		String sql="SELECT t1.uuid,t1.name from px_class t1"
+				+" inner join px_student t2 on t2.class_uuid=t1.uuid  " 
+				+" inner join px_studentcontactrealation t3 on t3.student_uuid=t2.uuid  " 
+				+"   where parent_uuid='"
+				+ DbUtils.safeToWhereString(user.getUuid()) + "' ";
+		String sqlpxclass = "select t1.uuid,t1.name"
+				+ " from px_pxstudentpxclassrelation t0 "
+				+ " inner join px_pxclass t1 on t0.class_uuid=t1.uuid "
+				+ " inner join px_pxstudent t4 on t0.student_uuid=t4.uuid  "
+				+ " where t0.student_uuid  in( "
+				+ " select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+				+ DbUtils.safeToWhereString(user.getUuid()) + "' )"
+				+" and t1.isdisable ="+SystemConstants.Class_isdisable_0;
+	    
+		Query  query =session.createSQLQuery(sql+" UNION "+sqlpxclass);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		
+
+		return query.list();
+
+	}
+	
 	/**
 	 * 查询所有班级
 	 * 
@@ -271,7 +305,7 @@ public class ClassNewsService extends AbstractService {
 		
 		
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
-		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name";
+		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name,t1.url";
 		sql+=" FROM px_classnews t1 ";
 		
 		if (StringUtils.isNotBlank(courseuuid)) {

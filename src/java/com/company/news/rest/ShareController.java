@@ -20,6 +20,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.common.HttpRequestUtils;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
@@ -814,5 +815,32 @@ String mappoint = request.getParameter("map_point");
 			return "";
 		}
 		return "";
+	}
+	
+	
+	/**
+	 * 获取表情列表(url)
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getHtmlTitle", method = RequestMethod.GET)
+	public String getHtmlTitle(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String url=request.getParameter("url");
+		try {
+
+			String title="[链接]"+HttpRequestUtils.httpGetHtmlTitle(url);
+			model.addAttribute(RestConstants.Return_G_entity,title);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
 	}
 }

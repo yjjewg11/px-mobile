@@ -53,8 +53,8 @@ public class AnnouncementsService extends AbstractService {
 	public boolean add(AnnouncementsJsonform announcementsJsonform,
 			ResponseMessage responseMessage) throws Exception {
 		if (StringUtils.isBlank(announcementsJsonform.getTitle())
-				|| announcementsJsonform.getTitle().length() > 45) {
-			responseMessage.setMessage("Title不能为空！，且长度不能超过45位！");
+				|| announcementsJsonform.getTitle().length() > 128) {
+			responseMessage.setMessage("Title不能为空！，且长度不能超过128位！");
 			return false;
 		}
 

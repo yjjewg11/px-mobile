@@ -347,7 +347,8 @@ public class UserinfoController extends AbstractRESTController {
 			String group_uuids=this.getMyChildrenGroupUuidsBySession(request);
 			String class_uuids=this.getMyChildrenClassuuidsBySession(request);
 			model.addAttribute("group_list", userinfoService.getGroupVObyUuids(group_uuids));
-			model.addAttribute("class_list", userinfoService.getPClassbyUuids(class_uuids));
+			//model.addAttribute("class_list", userinfoService.getPClassbyUuids(class_uuids));
+			model.addAttribute("class_list", userinfoService.getAllClassAndPxClass(this.getUserInfoBySession(request)));
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

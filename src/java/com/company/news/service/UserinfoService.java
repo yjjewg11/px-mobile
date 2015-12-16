@@ -12,6 +12,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
@@ -694,6 +695,45 @@ public class UserinfoService extends AbstractService {
 						+ DBUtil.stringsToWhereInValue(uuids) + ")");
 		groupService.warpVoList(list);
 		return list;
+	}
+	
+	public List getAllClassby(String uuids) {
+		if (StringUtils.isBlank(uuids))
+			return new ArrayList();
+		return this.nSimpleHibernateDao.getHibernateTemplate().find(
+				"from PClass where  uuid in("
+						+ DBUtil.stringsToWhereInValue(uuids) + ")");
+	}
+
+	
+	/**
+	 * 查询所有班级,包括:幼儿园班级和培训机构
+	 * @param user
+	 * @return
+	 */
+	public List getAllClassAndPxClass(SessionUserInfoInterface user) {
+		
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		//查询幼儿园班级
+		String sql="SELECT t1.uuid,t1.name,t1.groupuuid from px_class t1"
+				+" inner join px_student t2 on t2.classuuid=t1.uuid  " 
+				+" inner join px_studentcontactrealation t3 on t3.student_uuid=t2.uuid  " 
+				+"   where parent_uuid='"
+				+ DbUtils.safeToWhereString(user.getUuid()) + "'  ";
+		//查询培训机构班级
+		String sqlpxclass = "select t1.uuid,t1.name,t1.groupuuid"
+				+ " from px_pxstudentpxclassrelation t0 "
+				+ " inner join px_pxclass t1 on t0.class_uuid=t1.uuid "
+				+ " inner join px_pxstudent t4 on t0.student_uuid=t4.uuid  "
+				+ " where t0.student_uuid  in( "
+				+ " select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+				+ DbUtils.safeToWhereString(user.getUuid()) + "' ) "
+				+" and t1.isdisable ="+SystemConstants.Class_isdisable_0;
+	    
+		Query  query =session.createSQLQuery(sql+" UNION "+sqlpxclass);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		return query.list();
+		
 	}
 
 	public List getPClassbyUuids(String uuids) {
