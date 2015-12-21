@@ -184,11 +184,12 @@ public class StudentController extends AbstractRESTController {
 		}
 
 		try {
-			boolean flag;
+			Student flag;
 			studentJsonform.setUuid(null);
 			flag = studentService.add(studentJsonform, responseMessage,request);
-			if (!flag)// 请求服务返回失败标示
+			if (flag==null)// 请求服务返回失败标示
 				return "";
+			model.addAttribute(RestConstants.Return_G_entity, studentService.get(flag.getUuid()));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

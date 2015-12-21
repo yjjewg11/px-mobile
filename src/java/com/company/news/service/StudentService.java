@@ -49,13 +49,13 @@ public class StudentService extends AbstractService {
 	 * @param request
 	 * @return
 	 */
-	public boolean add(StudentJsonform studentJsonform,
+	public Student add(StudentJsonform studentJsonform,
 			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
 
 		// TEL格式验证
 		if (StringUtils.isBlank(studentJsonform.getName())) {
 			responseMessage.setMessage("name不能为空！");
-			return false;
+			return null;
 		}
 
 		// name昵称验证
@@ -94,7 +94,7 @@ public class StudentService extends AbstractService {
 				&&StringUtils.isBlank(student.getWaipo_tel())
 				&&StringUtils.isBlank(student.getOther_tel())){
 			responseMessage.setMessage("家长手机号码必须填写一个");
-				return false;
+				return null;
 		}
 		boolean isFlag=false;//必须填写当前用户的电话号码.
 		
@@ -123,7 +123,7 @@ public class StudentService extends AbstractService {
 		
 		if(isFlag==false){
 			responseMessage.setMessage("当前用户的的电话孩子联系电话");
-			return false;
+			return null;
 		}
 		
 		this.nSimpleHibernateDao.getHibernateTemplate().save(student);
@@ -141,8 +141,9 @@ public class StudentService extends AbstractService {
 //		pxStudentService.updatePxStudentByKDstudent(student);
 		String msg=student.getName()+"|家长修改孩子资料|"+"]|爸爸电话:"+student.getBa_tel()+"|妈妈电话:"+student.getMa_tel();
 		this.addStudentOperate(student.getGroupuuid(), student.getUuid(), msg, null, request);
-	
-		return true;
+
+		this.nSimpleHibernateDao.getHibernateTemplate().flush();
+		return student;
 	}
 
 	/**

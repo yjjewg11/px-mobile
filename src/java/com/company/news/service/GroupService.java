@@ -343,7 +343,7 @@ public class GroupService extends AbstractService {
 		
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
-		String sql=" SELECT DISTINCT t1.uuid,t1.brand_name,t1.img,t1.ct_stars,t1.link_tel,t1.map_point,t1.address,t1.summary";
+		String sql=" SELECT DISTINCT t1.uuid,t1.brand_name,t1.img,t1.ct_stars,t1.link_tel,t1.map_point,t1.address,t1.summary,t1.ct_study_students";
 		sql+=" FROM px_group t1 where   t1.type=1 and t1.status=9 ";
 		
 		double[] lngLatArr=null;

@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -18,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
-import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -28,6 +30,7 @@ import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
 import com.company.news.rest.util.MD5Until;
 import com.company.news.rest.util.RestUtil;
+import com.company.news.service.SnsTopicService;
 import com.company.news.service.UserinfoService;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
@@ -38,7 +41,8 @@ public class UserinfoController extends AbstractRESTController {
 
 	@Autowired
 	private UserinfoService userinfoService;
-
+	@Autowired
+	private SnsTopicService snsTopicService;
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public String login(UserLoginForm userLoginForm, ModelMap model,
@@ -610,9 +614,13 @@ public class UserinfoController extends AbstractRESTController {
 		try {
 			Map map=new HashMap();
 			//空字符串表示不启用话题.否则未话题的地址.
-			map.put("img",null);
-			map.put("title","亲子英语对话课堂");
-			map.put("url","http://kd.wenjienet.com/px-rest/sns/index.html?topicid=abc");
+//			map.put("img",null);
+//			map.put("title","亲子英语对话课堂");
+//			map.put("url","http://kd.wenjienet.com/px-rest/sns/index.html?topicid=abc");
+//			
+		
+			map.putAll(snsTopicService.getMainTopic());
+			
 			model.addAttribute(RestConstants.Return_G_entity, map);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 			return "";

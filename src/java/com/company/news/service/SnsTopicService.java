@@ -11,6 +11,7 @@ import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
@@ -44,6 +45,34 @@ public class SnsTopicService extends AbstractService {
 		return pageQueryResult;
 	}
 
+	/**
+	 * 获取发现,每日话题推荐1条.
+	 * @return
+	 */
+	public Map getMainTopic() {
+		
+		
+		String selectSql=" SELECT t1.uuid,t1.title ";
+		selectSql+=" FROM sns_topic t1 ";
+		
+		String sqlwhere=" where t1.status= "+SystemConstants.Check_status_fabu ;
+		sqlwhere += " order by t1.reply_count desc";
+		
+		
+		String sql=selectSql+sqlwhere;
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+
+		Query  query =session.createSQLQuery(sql).setMaxResults(1);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		List<Map> list=query.list();
+		if(list!=null&&list.size()>0){
+			Map topicMap=list.get(0);
+			topicMap.put("url",  PxStringUtil.getSnsTopicWebViewURL((String)topicMap.get("uuid")));
+			
+			return topicMap;
+		}
+		return null;
+	}
 	/**
 	 * vo输出转换
 	 * @param list
