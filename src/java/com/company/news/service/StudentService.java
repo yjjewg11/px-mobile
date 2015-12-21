@@ -211,9 +211,7 @@ public class StudentService extends AbstractService {
 	 * @return
 	 */
 	private StudentContactRealation updateStudentContactRealation(Student student,Integer type,String tel)  throws Exception {
-		if(!CommonsValidate.checkCellphone(tel)){
-			return null;
-		}
+		//修复清空电话时,删除掉孩子关联关系.
 		String student_uuid=student.getUuid();
 		StudentContactRealation studentContactRealation= this.getStudentContactRealationBy(student_uuid, type);
 		if(studentContactRealation==null){//不存在,则新建.
@@ -284,16 +282,31 @@ public class StudentService extends AbstractService {
 		//更新家长姓名和头像.多个孩子已最后保存为准
 		if(parent!=null){
 			String newParentName=PxStringUtil.getParentNameByStudentContactRealation(studentContactRealation);
-			if(parent.getImg()==null||parent.getImg().equals(student.getHeadimg())){
+			
+			
+			boolean needUpdateParent=false;
+			if (parent.getImg() == null
+					|| !parent.getImg().equals(student.getHeadimg())) {
+				needUpdateParent=true;
 				parent.setImg(student.getHeadimg());
 			}
-			if(newParentName!=null&&!newParentName.equals(parent.getName())){
+			if (newParentName != null
+					&& !newParentName.equals(parent.getName())) {
 				parent.setName(newParentName);
-				userinfoService.relUpdate_updateSessionUserInfoInterface(parent);
+				needUpdateParent=true;
+				
 			}
-			nSimpleHibernateDao.save(parent);
+			//是否更新
+			if(needUpdateParent){
+				nSimpleHibernateDao.save(parent);
+				userinfoService
+				.relUpdate_updateSessionUserInfoInterface(parent);
+			}
+			
 		}
 		nSimpleHibernateDao.save(studentContactRealation);
+		
+		
 		return studentContactRealation;
 	}
 	
