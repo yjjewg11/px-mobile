@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.common.HttpRequestUtils;
 import com.company.news.ProjectProperties;
+import com.company.news.ResponseMessageConstants;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.cache.PxConfigCache;
@@ -133,7 +134,7 @@ public class ShareController extends AbstractRESTController {
 			a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "/404";
 			}
 			if(SystemConstants.Check_status_disable.equals(a.getStatus())){
@@ -215,7 +216,7 @@ public class ShareController extends AbstractRESTController {
 			Announcements a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "";
 			}
 			
@@ -263,7 +264,7 @@ public class ShareController extends AbstractRESTController {
 			Announcements4Q a = (Announcements4Q)nSimpleHibernateDao.getObject(Announcements4Q.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "";
 			}
 			
@@ -317,7 +318,7 @@ public class ShareController extends AbstractRESTController {
 			Announcements a = (Announcements)nSimpleHibernateDao.getObject(Announcements.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "/404";
 			}
 			SessionUserInfoInterface user = this.getUserInfoBySession(request);
@@ -367,7 +368,7 @@ public class ShareController extends AbstractRESTController {
 			a = (ClassNews)nSimpleHibernateDao.getObject(ClassNews.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "/404";
 			}
 			PClass pClass=(PClass)CommonsCache.get(a.getClassuuid(), PClass.class);
@@ -403,7 +404,7 @@ public class ShareController extends AbstractRESTController {
 			a = (CookbookPlan)nSimpleHibernateDao.getObject(CookbookPlan.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "/404";
 			}
 			
@@ -448,7 +449,7 @@ public class ShareController extends AbstractRESTController {
 			a = (Group)nSimpleHibernateDao.getObject(Group.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "/404";
 			}
 
@@ -486,7 +487,7 @@ public class ShareController extends AbstractRESTController {
 			List list= nSimpleHibernateDao.getHibernateTemplate().find(hql);
 			if(list==null||list.size()==0){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "/404";
 			}
 			Announcements a=(Announcements)list.get(0);
@@ -555,7 +556,7 @@ public class ShareController extends AbstractRESTController {
 			a=(User4Q)CommonsCache.get(uuid, User4Q.class);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "";
 			}
 		} catch (Exception e) {
@@ -738,7 +739,7 @@ String mappoint = request.getParameter("map_point");
 			Announcements4Q a = (Announcements4Q)nSimpleHibernateDao.getObject(Announcements4Q.class,uuid);
 			if(a==null){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-				responseMessage.setMessage("数据不存在.");
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
 				return "";
 			}
 			
@@ -831,7 +832,10 @@ String mappoint = request.getParameter("map_point");
 		String url=request.getParameter("url");
 		try {
 
-			String title="[链接]"+HttpRequestUtils.httpGetHtmlTitle(url);
+			String title=HttpRequestUtils.httpGetHtmlTitle(url);
+			if(title==null)title="";
+			title="[链接]"+title;
+			
 			model.addAttribute(RestConstants.Return_G_entity,title);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 			return "";

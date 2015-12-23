@@ -50,7 +50,7 @@ public class ClassNewsReplyService extends AbstractService {
 	public boolean add(SessionUserInfoInterface user,ClassNewsReplyJsonform classNewsReplyJsonform,
 			ResponseMessage responseMessage) throws Exception {
 		if (StringUtils.isBlank(classNewsReplyJsonform.getContent())) {
-			responseMessage.setMessage("content不能为空！");
+			responseMessage.setMessage("内容不能为空！");
 			return false;
 		}
 
