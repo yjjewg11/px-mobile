@@ -52,7 +52,7 @@ public class AbstractRESTController   {
 	    } catch (Exception e) {
 	      e.printStackTrace();
 	    }
-	    userInfoReturn.setPassword(null);
+//	    userInfoReturn.setPassword(null);
 	    model.addAttribute(RestConstants.Return_UserInfo,userInfoReturn);
 	  }
 	  

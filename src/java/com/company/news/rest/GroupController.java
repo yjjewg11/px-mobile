@@ -142,8 +142,20 @@ public class GroupController extends AbstractRESTController {
 				responseMessage.setMessage("学校不存在！");
 				return "";
 			}
+			
+			
 			 countService.count(uuid, SystemConstants.common_type_pxgroup);
 			 SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			 
+			 String mappoint = request.getParameter("map_point");
+				//当前坐标点参数不为空时，进行距离计算
+				if(StringUtils.isNotBlank(mappoint)){
+					 model.addAttribute("distance", DistanceUtil.getDistance(mappoint, c.getMap_point()));
+				}else{
+					 model.addAttribute("distance", "");
+				}
+				
+				
 			 model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getGroupShareURLByUuid(uuid));
 			 model.put(RestConstants.Return_ResponseMessage_isFavorites,groupService.isFavorites( user.getUuid(),uuid));
 		} catch (Exception e) {

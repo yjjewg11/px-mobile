@@ -15,7 +15,7 @@
 	</appender>
 
 	<appender name="myFile" class="org.apache.log4j.RollingFileAppender">
-		<param name="File" value="c:/px-log/px_mobile.log" /><!-- 设置日志输出文件名 -->
+		<param name="File" value="${catalina.home}/logs/px_mobile.log" /><!-- 设置日志输出文件名 -->
 		<!-- 设置是否在重新启动服务时，在原有日志的基础添加新日志 -->
 		<param name="Append" value="true" />
 		<param name="MaxBackupIndex" value="10" />
@@ -31,7 +31,7 @@
 	</appender>
 
 	<appender name="myFile_WARN" class="org.apache.log4j.RollingFileAppender">
-		<param name="File" value="c:/px-log/px_mobile_WARN.log" /><!-- 设置日志输出文件名 -->
+		<param name="File" value="${catalina.home}/logs/px_mobile_WARN.log" /><!-- 设置日志输出文件名 -->
 		<!-- 设置是否在重新启动服务时，在原有日志的基础添加新日志 -->
 		<param name="Append" value="true" />
 		<param name="MaxBackupIndex" value="10" />
@@ -47,7 +47,7 @@
 	</appender>
 
 	<appender name="myFile_ERROR" class="org.apache.log4j.RollingFileAppender">
-		<param name="File" value="c:/px-log/px_mobile_ERROR.log" /><!-- 设置日志输出文件名 -->
+		<param name="File" value="${catalina.home}/logs/px_mobile_ERROR.log" /><!-- 设置日志输出文件名 -->
 		<!-- 设置是否在重新启动服务时，在原有日志的基础添加新日志 -->
 		<param name="Append" value="true" />
 		<param name="MaxBackupIndex" value="10" />
@@ -63,7 +63,7 @@
 	</appender>
 
 	<appender name="operate" class="org.apache.log4j.DailyRollingFileAppender">
-		<param name="File" value="c:/px-log/px_mobile_operate.log" />
+		<param name="File" value="${catalina.home}/logs/px_mobile_operate.log" />
 		<param name="Append" value="true" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="操作时间：%d%n%m%n%n" />
