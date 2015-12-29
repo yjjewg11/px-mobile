@@ -2,6 +2,8 @@ package com.company.news.service;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import com.company.news.entity.PushMsgDevice;
 import com.company.news.jsonform.PushMsgDeviceJsonform;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
+import com.company.web.listener.SessionListener;
 
 /**
  * 
@@ -29,7 +32,7 @@ public class PushMsgDeviceService extends AbstractService {
 	 * @return
 	 */
 	public boolean save(PushMsgDeviceJsonform jsonform,
-			ResponseMessage responseMessage) throws Exception {
+			ResponseMessage responseMessage,HttpServletRequest request) throws Exception {
 		if (StringUtils.isBlank(jsonform.getUser_uuid())) {
 			responseMessage.setMessage("User_uuid");
 			return false;
@@ -54,6 +57,7 @@ public class PushMsgDeviceService extends AbstractService {
 			BeanUtils.copyProperties(message, jsonform);
 			message.setGroup_uuid(o);
 			message.setUpdate_time(TimeUtils.getCurrentTimestamp());
+			message.setSessionid(SessionListener.getSession(request).getId());
 			// 有事务管理，统一在Controller调用时处理异常
 			this.nSimpleHibernateDao.getHibernateTemplate().save(message);
 		}

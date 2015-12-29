@@ -795,9 +795,22 @@ public class UserinfoService extends AbstractService {
 	 * @return
 	 */
 	public Parent getUserBySessionid(String sessionid) {
-		String attribute = "sessionid";
-		return (Parent) nSimpleHibernateDao.getObjectByAttribute(Parent.class,
-				attribute, sessionid);
+		
+		String hql="from Parent where sessionid=:sessionid or uuid in (select DISTINCT user_uuid from PushMsgDevice where sessionid=:sessionid2)";
+		
+		Query q= nSimpleHibernateDao.getSession().createQuery(hql);  
+		q.setString("sessionid", sessionid);//名称  
+		q.setString("sessionid2", sessionid);//密码  
+		List list=q.list();
+		if(list!=null&&list.size()>0){
+			return (Parent)list.get(0);
+		}
+		return null;
+		
+//		
+//		String attribute = "sessionid";
+//		return (Parent) nSimpleHibernateDao.getObjectByAttribute(Parent.class,
+//				attribute, sessionid);
 
 	}
 	public boolean updateAndloginForJessionid(String jessionid,
