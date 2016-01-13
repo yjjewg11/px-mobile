@@ -835,17 +835,19 @@ public class UserinfoService extends AbstractService {
 				
 				session = new PxHttpSession(jessionid);
 				SessionListener.putSessionByJSESSIONID(session);
+				//修复多并发取不到.Session_UserInfo bug.
+				UserOfSession userOfSession = new UserOfSession();
+				try {
+					BeanUtils.copyProperties(userOfSession, user);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
+				// 设置session数据
+				this.putSession(session, userOfSession, request);
 			}
 
-			UserOfSession userOfSession = new UserOfSession();
-			try {
-				BeanUtils.copyProperties(userOfSession, user);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
-			// 设置session数据
-			this.putSession(session, userOfSession, request);
+			
 
 			// 更新登陆日期,最近一次登陆日期
 //			String sql = "update px_parent set sessionid='" + session.getId() + "' where uuid='"

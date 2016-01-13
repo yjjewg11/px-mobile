@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.PClass;
 import com.company.news.entity.Parent;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
@@ -27,6 +26,7 @@ import com.company.news.rest.util.TimeUtils;
 import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
+import com.company.web.session.UserOfSession;
 
 /**
  * 
@@ -122,19 +122,19 @@ public class StudentService extends AbstractService {
 		}
 		
 		if(isFlag==false){
-			responseMessage.setMessage("当前用户的的电话孩子联系电话");
+			responseMessage.setMessage("当前用户的的电话必须填写");
 			return null;
 		}
 		
 		this.nSimpleHibernateDao.getHibernateTemplate().save(student);
 		
-		this.updateStudentContactRealation(student, SystemConstants.USER_type_ba, student.getBa_tel());
-		this.updateStudentContactRealation(student, SystemConstants.USER_type_ma, student.getMa_tel());
-		this.updateStudentContactRealation(student, SystemConstants.USER_type_ye, student.getYe_tel());
-		this.updateStudentContactRealation(student, SystemConstants.USER_type_nai, student.getNai_tel());
-		this.updateStudentContactRealation(student, SystemConstants.USER_type_waigong, student.getWaigong_tel());
-		this.updateStudentContactRealation(student, SystemConstants.USER_type_waipo, student.getWaipo_tel());
-		this.updateStudentContactRealation(student, SystemConstants.USER_type_other, student.getOther_tel());
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_ba, student.getBa_tel(),user);
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_ma, student.getMa_tel(),user);
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_ye, student.getYe_tel(),user);
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_nai, student.getNai_tel(),user);
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_waigong, student.getWaigong_tel(),user);
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_waipo, student.getWaipo_tel(),user);
+		this.updateStudentContactRealation(student, SystemConstants.USER_type_other, student.getOther_tel(),user);
 		
 		
 		//幼儿园更新学生资料时,同步更新培训机构的学生资料
@@ -165,6 +165,37 @@ public class StudentService extends AbstractService {
 		BeanUtils.copyProperties(old_student, student);
 		
 		if (student != null) {
+			boolean isFlag=false;//必须填写当前用户的电话号码.
+			
+			SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+			
+			if(user.getLoginname().equals(student.getBa_tel())){
+				isFlag=true;
+			}
+			if(user.getLoginname().equals(student.getMa_tel())){
+				isFlag=true;
+			}
+			if(user.getLoginname().equals(student.getYe_tel())){
+				isFlag=true;
+			}
+			if(user.getLoginname().equals(student.getNai_tel())){
+				isFlag=true;
+			}
+			if(user.getLoginname().equals(student.getWaigong_tel())){
+				isFlag=true;
+			}
+			if(user.getLoginname().equals(student.getWaipo_tel())){
+				isFlag=true;
+			}
+			if(user.getLoginname().equals(student.getOther_tel())){
+				isFlag=true;
+			}
+			
+			if(isFlag==false){
+				responseMessage.setMessage("不是孩子家长不能修改.");
+				return false;
+			}
+			
 			BeanUtils.copyProperties(student, studentJsonform);
 			//设置不能被修改的字段
 			student.setStatus(old_student.getStatus());
@@ -180,15 +211,15 @@ public class StudentService extends AbstractService {
 			// 有事务管理，统一在Controller调用时处理异常
 			this.nSimpleHibernateDao.getHibernateTemplate().update(student);
 
-			this.updateStudentContactRealation(student, SystemConstants.USER_type_ba, student.getBa_tel());
-			this.updateStudentContactRealation(student, SystemConstants.USER_type_ma, student.getMa_tel());
-			this.updateStudentContactRealation(student, SystemConstants.USER_type_ye, student.getYe_tel());
-			this.updateStudentContactRealation(student, SystemConstants.USER_type_nai, student.getNai_tel());
-			this.updateStudentContactRealation(student, SystemConstants.USER_type_waigong, student.getWaigong_tel());
-			this.updateStudentContactRealation(student, SystemConstants.USER_type_waipo, student.getWaipo_tel());
-			this.updateStudentContactRealation(student, SystemConstants.USER_type_other, student.getOther_tel());
+			this.updateStudentContactRealation(student, SystemConstants.USER_type_ba, student.getBa_tel(),user);
+			this.updateStudentContactRealation(student, SystemConstants.USER_type_ma, student.getMa_tel(),user);
+			this.updateStudentContactRealation(student, SystemConstants.USER_type_ye, student.getYe_tel(),user);
+			this.updateStudentContactRealation(student, SystemConstants.USER_type_nai, student.getNai_tel(),user);
+			this.updateStudentContactRealation(student, SystemConstants.USER_type_waigong, student.getWaigong_tel(),user);
+			this.updateStudentContactRealation(student, SystemConstants.USER_type_waipo, student.getWaipo_tel(),user);
+			this.updateStudentContactRealation(student, SystemConstants.USER_type_other, student.getOther_tel(),user);
 			
-			String msg=student.getName()+"|家长修改孩子资料|"+"]|爸爸电话:"+student.getBa_tel()+"|妈妈电话:"+student.getMa_tel();
+			String msg=student.getName()+"|家长修改孩子资料|"+"|爸爸电话:"+student.getBa_tel()+"|妈妈电话:"+student.getMa_tel();
 			this.addStudentOperate(student.getGroupuuid(), student.getUuid(), msg, null, request);
 		
 			//幼儿园更新学生资料时,同步更新培训机构的学生资料
@@ -210,7 +241,7 @@ public class StudentService extends AbstractService {
 	 * @param type
 	 * @return
 	 */
-	private StudentContactRealation updateStudentContactRealation(Student student,Integer type,String tel)  throws Exception {
+	private StudentContactRealation updateStudentContactRealation(Student student,Integer type,String tel,SessionUserInfoInterface user)  throws Exception {
 		//修复清空电话时,删除掉孩子关联关系.
 		String student_uuid=student.getUuid();
 		StudentContactRealation studentContactRealation= this.getStudentContactRealationBy(student_uuid, type);
@@ -298,6 +329,11 @@ public class StudentService extends AbstractService {
 			}
 			//是否更新
 			if(needUpdateParent){
+				//更新家长名称后,刷新当前session的用户属性.
+				if(user.getUuid().equals(parent.getUuid())){
+					((UserOfSession)user).setName(parent.getName());
+					((UserOfSession)user).setImg(parent.getImg());
+				}
 				nSimpleHibernateDao.save(parent);
 				userinfoService
 				.relUpdate_updateSessionUserInfoInterface(parent);

@@ -23,6 +23,7 @@ import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.UUIDGenerator;
+import com.company.news.commons.util.UploadFileUtils;
 import com.company.news.commons.util.upload.DiskIUploadFile;
 import com.company.news.commons.util.upload.IUploadFile;
 import com.company.news.commons.util.upload.OssIUploadFile;
@@ -387,16 +388,10 @@ public class UploadFileService extends AbstractService {
 	 * @param fileExt
 	 * @return
 	 */
+	@Deprecated
 	private static boolean fileFilter(ResponseMessage responseMessage,
 			long fileSize) {
-		Long maxfileSize = Long.valueOf(ProjectProperties.getProperty(
-				"UploadFilePath_maxSize_M", "2"));
-		if (fileSize > maxfileSize * 1024 * 1024) {
-			responseMessage.setMessage("上载文件太大，不能超过" + maxfileSize + "M");
-			return false;
-		}
-
-		return true;
+		return UploadFileUtils.fileFilter(responseMessage, fileSize);
 	}
 
 	@Override

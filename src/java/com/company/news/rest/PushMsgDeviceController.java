@@ -53,27 +53,27 @@ public class PushMsgDeviceController extends AbstractRESTController {
 			return "";
 		}
 
-		if(StringUtils.isBlank(jsonform.getDevice_id())){
-			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage("参数必填:device_id");
-			return "";
-		}
-		//设置当前用户
-		SessionUserInfoInterface user=this.getUserInfoBySession(request);
-		jsonform.setUser_uuid(user.getUuid());
-		if(jsonform.getStatus()==null){
-			jsonform.setStatus(0);
-		}
-		jsonform.setType(SystemConstants.PushMsgDevice_type_0);
-		if(!SystemConstants.PushMsgDevice_device_type_android.equals(jsonform.getDevice_type())
-				&&!SystemConstants.PushMsgDevice_device_type_ios.equals(jsonform.getDevice_type())){
-			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage("参数无效:device_type="+jsonform.getDevice_type());
-			return "";
-		}
-		
-		jsonform.setGroup_uuid(this.getMyChildrenGroupUuidsBySession(request));
 		try {
+			if(StringUtils.isBlank(jsonform.getDevice_id())){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("参数必填:device_id");
+				return "";
+			}
+			//设置当前用户
+			SessionUserInfoInterface user=this.getUserInfoBySession(request);
+			jsonform.setUser_uuid(user.getUuid());
+			if(jsonform.getStatus()==null){
+				jsonform.setStatus(0);
+			}
+			jsonform.setType(SystemConstants.PushMsgDevice_type_0);
+			if(!SystemConstants.PushMsgDevice_device_type_android.equals(jsonform.getDevice_type())
+					&&!SystemConstants.PushMsgDevice_device_type_ios.equals(jsonform.getDevice_type())){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("参数无效:device_type="+jsonform.getDevice_type());
+				return "";
+			}
+			
+			jsonform.setGroup_uuid(this.getMyChildrenGroupUuidsBySession(request));
 			boolean flag;
 			    flag = pushMsgDeviceService.save(jsonform, responseMessage,request);
 
