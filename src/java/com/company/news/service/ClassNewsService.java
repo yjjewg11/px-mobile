@@ -237,7 +237,7 @@ public class ClassNewsService extends AbstractService {
 			o.put("imgsList", PxStringUtil.uuids_to_imgMiddleurlList((String)o.get("imgs")));
 			o.put("share_url", PxStringUtil.getClassNewsByUuid((String)o.get("uuid")));
 			//o.put("dianzan", this.getDianzanDianzanListVO((String)o.get("uuid"),cur_user_uuid));
-			o.put("replyPage", this.getReplyPageList((String)o.get("uuid")));
+			o.put("replyPage", this.getReplyPageList((String)o.get("uuid"),user));
 			o.put("create_img", PxStringUtil.imgSmallUrlByUuid((String)o.get("create_img")));
 			//显示姓名和学校
 			if(o.get("group_name")!=null)

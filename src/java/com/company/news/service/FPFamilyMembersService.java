@@ -1,7 +1,6 @@
 package com.company.news.service;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,59 +24,8 @@ import com.company.web.listener.SessionListener;
  * 
  */
 @Service
-public class FPFamilyPhotoCollectionService extends AbstractService {
+public class FPFamilyMembersService extends AbstractService {
 
-	/**
-	 * 增加第一个家庭相册,自动根据宝贝关联关系创建.
-	 * 
-	 * @param entityStr
-	 * @param model
-	 * @param request
-	 * @return
-	 */
-	public Object addFirst(
-			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
-		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
-	
-			FPFamilyPhotoCollection dbobj = new FPFamilyPhotoCollection();
-			dbobj.setTitle("我家相册");
-			dbobj.setCreate_useruuid(user.getUuid());
-			dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
-			// 有事务管理，统一在Controller调用时处理异常
-			this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
-			
-			//parent_uuid,student_name,typename,tel 
-			//211ee9bf-1645-4797-a122-60e75462dfdc	周星星1	妈妈	13628037996
-			//
-			String sql="select DISTINCT parent_uuid,typename,tel from px_studentcontactrealation where student_uuid in ";
-			sql+=" (select student_uuid from px_studentcontactrealation where parent_uuid='"+user.getUuid()+"')";
-			List<Map> list=this.nSimpleHibernateDao.queryMapBySql(sql);
-			//有宝贝的,添加关联家庭成员
-			if(list.size()>0){
-				for(Map o:list){
-					FPFamilyMembers  fPFamilyMembers=new FPFamilyMembers();
-					fPFamilyMembers.setCreate_time(TimeUtils.getCurrentTimestamp());
-					fPFamilyMembers.setFamily_name((String)o.get("typename"));
-					fPFamilyMembers.setUser_uuid((String)o.get("parent_uuid"));
-					fPFamilyMembers.setTel((String)o.get("tel"));
-					fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
-					this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
-				}
-				
-			}else{
-				//否则,只添加自己家庭成员表.
-				FPFamilyMembers  fPFamilyMembers=new FPFamilyMembers();
-				fPFamilyMembers.setCreate_time(TimeUtils.getCurrentTimestamp());
-				fPFamilyMembers.setFamily_name(user.getName());
-				fPFamilyMembers.setUser_uuid(user.getUuid());
-				fPFamilyMembers.setTel(user.getLoginname());
-				fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
-				this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
-			}
-			
-			return dbobj;
-		
-	}
 
 	/**
 	 * 增加
@@ -112,9 +60,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 			fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
 			this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 			return dbobj;
-		}//end 新建
-		
-		//修改
+		}
 		
 		FPFamilyPhotoCollectionOfUpdate dbobj = (FPFamilyPhotoCollectionOfUpdate) this.nSimpleHibernateDao.getObjectById(
 				FPFamilyPhotoCollectionOfUpdate.class, jsonform.getUuid());

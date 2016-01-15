@@ -83,6 +83,7 @@ public abstract class AbstractService {
 	 * 
 	 * @return
 	 */
+	@Deprecated
 	public PageQueryResult getReplyPageList(String newsuuid) {
 		if (StringUtils.isBlank(newsuuid)) {
 			return new PageQueryResult();
@@ -105,6 +106,37 @@ public abstract class AbstractService {
 		return pageQueryResult;
 				
 	}
+	
+	 
+	  /**
+		 * 查询回复列表分页
+		 * 
+		 * @return
+		 */
+		public PageQueryResult getReplyPageList(String newsuuid,SessionUserInfoInterface parent) {
+			if (StringUtils.isBlank(newsuuid)) {
+				return new PageQueryResult();
+			}
+			String cur_user_uuid="";
+			if(parent!=null)cur_user_uuid=parent.getUuid();
+			
+			PaginationData pData=new PaginationData();
+			pData.setPageSize(5);
+			String hql="from ClassNewsReply where  ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+") and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
+			pData.setOrderFiled("create_time");
+			pData.setOrderType("desc");
+			
+			PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHqlNoTotal(hql, pData);
+			List<ClassNewsReply> list=pageQueryResult.getData();
+			
+			for(ClassNewsReply o:list){
+				this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+				o.setContent(o.getContent());
+				o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
+			}
+			return pageQueryResult;
+					
+		}
 	
 
 	  /**

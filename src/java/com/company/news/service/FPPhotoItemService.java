@@ -51,6 +51,7 @@ public class FPPhotoItemService extends AbstractService {
 	}
 
 
+	
 
 	/**
 	 * 查询所有通知
@@ -59,8 +60,8 @@ public class FPPhotoItemService extends AbstractService {
 	 */
 	public PageQueryResult query(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData) {
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
-		String sql=" SELECT t1.uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.type";
-		sql+=" FROM fp_photo_item t1 ";
+		String selectsql=" SELECT t1.uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.type ";
+		String sql=" FROM fp_photo_item t1 ";
 		
 		 if (StringUtils.isNotBlank(family_uuid)) {//根据家庭uuid查询
 			sql += " where   t1.family_uuid ='"+DbUtils.safeToWhereString(family_uuid)+"'";
@@ -68,17 +69,26 @@ public class FPPhotoItemService extends AbstractService {
 			sql += " LEFT JOIN  fp_family_members t2 on  t2.family_uuid=t1.family_uuid ";
 			sql += " where t1.create_useruuid='"+DbUtils.safeToWhereString(user_uuid)+"' or  t2.user_uuid ='"+DbUtils.safeToWhereString(user_uuid)+"'";
 		}
-		
-		if(StringUtils.isNotBlank(pData.getPageTime())){
-			pData.setPageNo(1);
-			sql += " and   t1.photo_time <="+DbUtils.stringToDateByDBType(pData.getPageTime());
+		////使用创建时间做分页显示,beforeTime 取 2016-01-15 13:13 之前的数据.按照创建时间排倒序
+		 if(StringUtils.isNotBlank(pData.getAfterTime())){
+				pData.setPageNo(1);
+				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getAfterTime());
+				
+				  sql += " order by t1.create_time asc";
+		}else if(StringUtils.isNotBlank(pData.getBeforeTime())){
+				pData.setPageNo(1);
+				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getBeforeTime());
+				
+				  sql += " order by t1.create_time desc";
+		}else{//默认查询,当前时间倒叙
+			  sql += " order by t1.create_time desc";
 		}
 		
-	    sql += " order by t1.photo_time desc";
+	  
 	    
 		Query  query =session.createSQLQuery(sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
 		List<Map> list=pageQueryResult.getData();
 		this.warpMapList(list, user);
 		return pageQueryResult;

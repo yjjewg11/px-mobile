@@ -120,8 +120,8 @@ public class ClassNewsReplyService extends AbstractService {
 	 * 
 	 * @return
 	 */
-	public PageQueryResult query(String newsuuid, PaginationData pData) {
-		String hql="from ClassNewsReply where status ="+SystemConstants.Check_status_fabu;	
+	public PageQueryResult query(String newsuuid, PaginationData pData,String cur_user_uuid) {
+		String hql="from ClassNewsReply where ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")" ;	
 		if (StringUtils.isNotBlank(newsuuid))
 			hql+=" and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
 		

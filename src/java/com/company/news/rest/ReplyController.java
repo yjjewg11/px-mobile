@@ -93,11 +93,15 @@ public class ReplyController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
-			PaginationData pData=this.getPaginationDataByRequest(request);
-			PageQueryResult pageQueryResult = classNewsReplyService.query(request.getParameter("newsuuid"), pData);
+			
+			
 			SessionUserInfoInterface parent=this.getUserInfoBySession(request);
 			String cur_user_uuid="";
 			if(parent!=null)cur_user_uuid=parent.getUuid();
+			
+			PaginationData pData=this.getPaginationDataByRequest(request);
+			PageQueryResult pageQueryResult = classNewsReplyService.query(request.getParameter("newsuuid"), pData,cur_user_uuid);
+		
 			classNewsReplyService.warpVoList(pageQueryResult.getData(), cur_user_uuid);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
