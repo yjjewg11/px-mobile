@@ -51,6 +51,42 @@ public class FPPhotoItemService extends AbstractService {
 	}
 
 
+	/**
+	 * 查询所有通知
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryOfIncrement(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData) {
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		String selectsql=" SELECT t1.uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.type ";
+		String sql=" FROM fp_photo_item t1 ";
+		sql += " where   t1.family_uuid ='"+DbUtils.safeToWhereString(family_uuid)+"'";
+		pData.setPageSize(50);
+		////使用创建时间做分页显示,beforeTime 取 2016-01-15 13:13 之前的数据.按照创建时间排倒序
+		 if(StringUtils.isNotBlank(pData.getMaxTime())){
+				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getMaxTime());
+				sql += " order by t1.create_time desc";
+				
+		}else if(StringUtils.isNotBlank(pData.getMinTime())){
+				sql += " and   t1.create_time >="+DbUtils.stringToDateByDBType(pData.getMinTime());
+				sql += " order by t1.create_time asc";
+		}else{//默认查询,当前时间倒叙
+			  sql += " order by t1.create_time desc";
+		}
+		 
+		Query  query =session.createSQLQuery(selectsql+sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
+		List<Map> list=pageQueryResult.getData();
+		if(list.size()>0){
+			Object min=list.get(0);
+			Object max=list.get(list.size()-1);
+		}
+		this.warpMapList(list, user);
+		
+		return pageQueryResult;
+	}
+	
 	
 
 	/**
@@ -70,23 +106,20 @@ public class FPPhotoItemService extends AbstractService {
 			sql += " where t1.create_useruuid='"+DbUtils.safeToWhereString(user_uuid)+"' or  t2.user_uuid ='"+DbUtils.safeToWhereString(user_uuid)+"'";
 		}
 		////使用创建时间做分页显示,beforeTime 取 2016-01-15 13:13 之前的数据.按照创建时间排倒序
-		 if(StringUtils.isNotBlank(pData.getAfterTime())){
+		 if(StringUtils.isNotBlank(pData.getMaxTime())){
 				pData.setPageNo(1);
-				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getAfterTime());
+				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getMaxTime());
 				
 				  sql += " order by t1.create_time asc";
-		}else if(StringUtils.isNotBlank(pData.getBeforeTime())){
+		}else if(StringUtils.isNotBlank(pData.getMinTime())){
 				pData.setPageNo(1);
-				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getBeforeTime());
+				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getMinTime());
 				
 				  sql += " order by t1.create_time desc";
 		}else{//默认查询,当前时间倒叙
 			  sql += " order by t1.create_time desc";
 		}
-		
-	  
-	    
-		Query  query =session.createSQLQuery(sql);
+		Query  query =session.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
 		List<Map> list=pageQueryResult.getData();
@@ -198,10 +231,12 @@ public class FPPhotoItemService extends AbstractService {
 		uploadFile.setFile_size(Long.valueOf(file.getSize()));
 		uploadFile.setCreate_useruuid(user.getUuid());
 		uploadFile.setCreate_time(TimeUtils.getCurrentTimestamp());
+		uploadFile.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		uploadFile.setPhoto_time(TimeUtils.string2Timestamp(TimeUtils.DEFAULTFORMAT, form.getPhoto_time()));
 		uploadFile.setAddress(form.getAddress());
 		uploadFile.setNote(form.getNote());
 		uploadFile.setFamily_uuid(form.getFamily_uuid());
+		
 		
 		if(uploadFile.getPhoto_time()==null){//如果上传拍照时间,不正确或为null,则设置为拍照时间.
 			uploadFile.setPhoto_time(uploadFile.getCreate_time());
@@ -238,6 +273,7 @@ public class FPPhotoItemService extends AbstractService {
 			responseMessage.setMessage("数据不存在.uuid ="+jsonform.getUuid());
 			return false;
 		}
+		obj.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		obj.setNote(jsonform.getNote());
 		obj.setAddress(jsonform.getAddress());
 		

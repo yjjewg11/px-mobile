@@ -151,7 +151,7 @@ public abstract class AbstractService {
 			}
 			
 			PaginationData pData=new PaginationData();
-			String hql="from ClassNewsReply where   status ="+SystemConstants.Check_status_fabu +" and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
+			String hql="from ClassNewsReply where    ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")  and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
 			pData.setOrderFiled("create_time");
 			pData.setOrderType("desc");
 			
