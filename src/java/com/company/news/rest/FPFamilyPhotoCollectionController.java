@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPFamilyPhotoCollectionJsonform;
-import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
+import com.company.news.service.FPFamilyMembersService;
 import com.company.news.service.FPFamilyPhotoCollectionService;
 import com.company.news.vo.ResponseMessage;
 /**
@@ -28,6 +29,8 @@ public class FPFamilyPhotoCollectionController extends AbstractRESTController {
 
 	@Autowired
 	private FPFamilyPhotoCollectionService fPFamilyPhotoCollectionService;
+	@Autowired
+	private FPFamilyMembersService fPFamilyMembersService;
 
 	/**
 	 * 
@@ -192,7 +195,17 @@ public class FPFamilyPhotoCollectionController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		Object m;
 		try {
+			//防止sql注入.
+			if(DBUtil.isSqlInjection(uuid,responseMessage))return "";
+			
 			m = fPFamilyPhotoCollectionService.get(uuid);
+			if(m==null){
+				responseMessage.setMessage("查询对象不存在!");
+				return "";
+			}
+			List list=fPFamilyMembersService.listByFamily_uuid(uuid);
+			//家庭成员
+			model.addAttribute("members_list",list);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -75,7 +75,7 @@ public class SessionListener implements HttpSessionListener {
    }
     //从cookie中取sessionid
     JSESSIONID=UserInfoFilter.getJSESSIONIDCookies(request);
-    session=(HttpSession)SessionCache.getPxHttpSession(JSESSIONID);
+    session=(HttpSession)getSessionFromCache(JSESSIONID);
     
     return session;
   }

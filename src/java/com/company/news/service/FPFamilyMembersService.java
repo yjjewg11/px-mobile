@@ -97,6 +97,20 @@ public class FPFamilyMembersService extends AbstractService {
 		
 		return list;
 	}
+	
+	/**
+	 * 查询我相关的(可以修改)
+	 * 
+	 * @return
+	 */
+	public List listByFamily_uuid(String family_uuid) {
+
+		String sql = "select * from fp_family_members where family_uuid='"+DbUtils.safeToWhereString(family_uuid)+"' order by create_time";
+		
+		List list = this.nSimpleHibernateDao.queryMapBySql(sql);
+		
+		return list;
+	}
 //	/**
 //	 * 查询所有通知
 //	 * 

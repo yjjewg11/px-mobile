@@ -15,6 +15,7 @@ import com.company.news.entity.FPFamilyPhotoCollection;
 import com.company.news.entity.FPFamilyPhotoCollectionOfUpdate;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPFamilyPhotoCollectionJsonform;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
@@ -181,7 +182,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 		
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 		//防止sql注入.
-		if(DbUtils.isSqlInjection(uuid,responseMessage))return false;
+		if(DBUtil.isSqlInjection(uuid,responseMessage))return false;
 		
 		FPFamilyPhotoCollection dbobj = (FPFamilyPhotoCollection) this.nSimpleHibernateDao.getObjectById(
 				FPFamilyPhotoCollection.class, uuid);
@@ -208,9 +209,11 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 	public FPFamilyPhotoCollection get(String uuid) throws Exception {
 		FPFamilyPhotoCollection favorites = (FPFamilyPhotoCollection) this.nSimpleHibernateDao.getObjectById(
 				FPFamilyPhotoCollection.class, uuid);
-
+		
 		return favorites;
 	}
+	
+	
 
 	@Override
 	public Class getEntityClass() {

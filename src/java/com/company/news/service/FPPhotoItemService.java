@@ -128,7 +128,6 @@ public class FPPhotoItemService extends AbstractService {
 	}
 	
 	
-	private ClassNewsReplyService classNewsReplyService;
 	
 	private void warpMap(Map o, SessionUserInfoInterface user) {
 		try {

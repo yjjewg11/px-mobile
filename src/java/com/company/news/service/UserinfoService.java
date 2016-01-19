@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -22,6 +23,7 @@ import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.DbUtils;
+import com.company.news.commons.util.JavaLockUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.NewMsgNumberIservice;
 import com.company.news.entity.Group;
@@ -67,6 +69,8 @@ public class UserinfoService extends AbstractService {
 	
 	@Autowired
 	private NewMsgNumberIservice newMsgNumberIservice;
+	
+	
 
 	/**
 	 * 用户注册
@@ -819,34 +823,43 @@ public class UserinfoService extends AbstractService {
 			return false;
 		}
 		// 登录验证.验证失败则返回.
+		
+		//根据参数相同视为同一把锁.
+	
 		try {
+			Object lockObject=JavaLockUtils.getLockObj(jessionid);
 			Parent user = null;
 			HttpSession session = null;
-			synchronized (this) {
-				session=SessionListener.getSession(request);
-				// 同步加锁情况下,再次判断,防止多次创建session
-				if (session != null&&session.getAttribute(RestConstants.Session_UserInfo)!=null) {
-					return true;
-				}
-				user = getUserBySessionid(jessionid);
-				if (user == null)// 请求服务返回失败标示
-					return false;
-				
-				
-				session = new PxHttpSession(jessionid);
-				SessionListener.putSessionByJSESSIONID(session);
-				//修复多并发取不到.Session_UserInfo bug.
-				UserOfSession userOfSession = new UserOfSession();
-				try {
-					BeanUtils.copyProperties(userOfSession, user);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
-				// 设置session数据
-				this.putSession(session, userOfSession, request);
-			}
+			
 
+				synchronized (lockObject) {
+					session=SessionListener.getSession(request);
+					// 同步加锁情况下,再次判断,防止多次创建session
+					if (session != null&&session.getAttribute(RestConstants.Session_UserInfo)!=null) {
+						return true;
+					}
+					user = getUserBySessionid(jessionid);
+					if (user == null){// 请求服务返回失败标示
+						return false;
+					
+					}
+					
+					
+					session = new PxHttpSession(jessionid);
+					SessionListener.putSessionByJSESSIONID(session);
+					//修复多并发取不到.Session_UserInfo bug.
+					UserOfSession userOfSession = new UserOfSession();
+					try {
+						BeanUtils.copyProperties(userOfSession, user);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
+					// 设置session数据
+					this.putSession(session, userOfSession, request);
+				}
+			
+			JavaLockUtils.removeLockObj(jessionid);
 			
 
 			// 更新登陆日期,最近一次登陆日期
@@ -862,6 +875,9 @@ public class UserinfoService extends AbstractService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
+			
+		}finally{
+        	JavaLockUtils.removeLockObj(jessionid);
 		}
 
 	}
