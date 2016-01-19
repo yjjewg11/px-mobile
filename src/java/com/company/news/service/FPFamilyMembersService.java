@@ -13,7 +13,7 @@ import com.company.news.entity.FPFamilyMembers;
 import com.company.news.entity.FPFamilyPhotoCollection;
 import com.company.news.entity.FPFamilyPhotoCollectionOfUpdate;
 import com.company.news.interfaces.SessionUserInfoInterface;
-import com.company.news.jsonform.FPFamilyPhotoCollectionJsonform;
+import com.company.news.jsonform.FPFamilyMembersJsonform;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
@@ -35,35 +35,39 @@ public class FPFamilyMembersService extends AbstractService {
 	 * @param request
 	 * @return
 	 */
-	public Object add(FPFamilyPhotoCollectionJsonform jsonform,
+	public Object add(FPFamilyMembersJsonform jsonform,
 			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
-		if (StringUtils.isBlank(jsonform.getTitle())) {
-			responseMessage.setMessage("Title不能为空!");
+		if (validateRequireAndLengthByRegJsonform(jsonform.getFamily_name(), 20, "家庭称呼", responseMessage)) {
+			return false;
+		}
+		if (validateRequireByRegJsonform(jsonform.getFamily_uuid(), "关联家庭相册号", responseMessage)) {
+			return false;
+		}
+		
+		FPFamilyPhotoCollectionOfUpdate fPFamilyPhoto = (FPFamilyPhotoCollectionOfUpdate) this.nSimpleHibernateDao.getObjectById(
+				FPFamilyPhotoCollectionOfUpdate.class, jsonform.getFamily_uuid());
+			
+		if(fPFamilyPhoto==null){
+			responseMessage.setMessage("关联家庭相册不存在!");
 			return false;
 		}
 		
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 		if(StringUtils.isBlank(jsonform.getUuid())){
-			FPFamilyPhotoCollection dbobj = new FPFamilyPhotoCollection();
+			FPFamilyMembers dbobj = new FPFamilyMembers();
 			BeanUtils.copyProperties(dbobj, jsonform);
-			dbobj.setCreate_useruuid(user.getUuid());
 			dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
+			dbobj.setFamily_name(user.getName());
+			dbobj.setUser_uuid(user.getUuid());
+			dbobj.setTel(user.getLoginname());
+			dbobj.setFamily_uuid(dbobj.getUuid());
 			// 有事务管理，统一在Controller调用时处理异常
 			this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
-			
-			//添加家庭成员表.
-			FPFamilyMembers  fPFamilyMembers=new FPFamilyMembers();
-			fPFamilyMembers.setCreate_time(TimeUtils.getCurrentTimestamp());
-			fPFamilyMembers.setFamily_name(user.getName());
-			fPFamilyMembers.setUser_uuid(user.getUuid());
-			fPFamilyMembers.setTel(user.getLoginname());
-			fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
-			this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 			return dbobj;
 		}
 		
-		FPFamilyPhotoCollectionOfUpdate dbobj = (FPFamilyPhotoCollectionOfUpdate) this.nSimpleHibernateDao.getObjectById(
-				FPFamilyPhotoCollectionOfUpdate.class, jsonform.getUuid());
+		FPFamilyMembers dbobj = (FPFamilyMembers) this.nSimpleHibernateDao.getObjectById(
+				FPFamilyMembers.class, jsonform.getUuid());
 		
 		if(dbobj==null){
 			responseMessage.setMessage("更新记录不存在");
@@ -140,16 +144,9 @@ public class FPFamilyMembersService extends AbstractService {
 		
 		
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
-		//防止sql注入.
-		if(DbUtils.isSqlInjection(uuid,responseMessage))return false;
 		
-		FPFamilyPhotoCollection dbobj = (FPFamilyPhotoCollection) this.nSimpleHibernateDao.getObjectById(
-				FPFamilyPhotoCollection.class, uuid);
-		
-		if(!user.getUuid().equals(dbobj.getCreate_useruuid())){
-			responseMessage.setMessage("只有创建人,才能删除");
-			return false;
-		}
+		FPFamilyMembers dbobj = (FPFamilyMembers) this.nSimpleHibernateDao.getObjectById(
+				FPFamilyMembers.class, uuid);
 		
 		//需要删除相关表. 
 		//need_code

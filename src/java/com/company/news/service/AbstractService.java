@@ -240,7 +240,7 @@ public abstract class AbstractService {
 			return true;
 		
 		if (StringUtils.isBlank(s.toString()) || s.toString().length() > length) {
-			responseMessage.setMessage(columnname+"不能为空！，且长度不能超过"+length+"位！");
+			responseMessage.setMessage(columnname+"不能为空！且长度不能超过"+length+"位！");
 			return true;
 		}
 		return false;
