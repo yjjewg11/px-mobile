@@ -12,10 +12,12 @@ import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.cache.PxRedisCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.vo.ResponseMessage;
 
 /**
  * 
@@ -45,6 +47,7 @@ public class SnsTopicService extends AbstractService {
 		return pageQueryResult;
 	}
 
+
 	/**
 	 * 获取发现,每日话题推荐1条.
 	 * @return
@@ -52,6 +55,13 @@ public class SnsTopicService extends AbstractService {
 	public Map getMainTopic() {
 		
 		
+		//缓存有值优先处理
+		Map  obj=PxRedisCache.getObject(PxRedisCache.Key_Name_MainTopic,Map.class);
+		if(obj!=null){
+			obj.put("url",  PxStringUtil.getSnsTopicWebViewURL((String)obj.get("uuid")));
+			
+			return obj;
+		}
 		String selectSql=" SELECT t1.uuid,t1.title ";
 		selectSql+=" FROM sns_topic t1 ";
 		

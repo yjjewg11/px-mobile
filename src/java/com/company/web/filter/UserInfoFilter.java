@@ -115,10 +115,9 @@ public class UserInfoFilter implements Filter {
 					}
 					//从cookie中获取sessionid
 					if(!isLogin){
-						 jessionid=getJSESSIONIDCookies((HttpServletRequest)request);
-						 
-						 if(StringUtils.isNotBlank(jessionid)){
-							 
+						 String tmp=getJSESSIONIDCookies((HttpServletRequest)request);
+						 if(StringUtils.isNotBlank(tmp)){
+							 jessionid=tmp;
 							 isLogin=userinfoService.updateAndloginForJessionid(jessionid, (HttpServletRequest)request);
 						 }
 					}
@@ -130,7 +129,7 @@ public class UserInfoFilter implements Filter {
 	                            .addResponseMessageForModelMap(model);
 	                    
 	                        RestUtil.addNoSessionForResponseMessage(responseMessage);
-	                    this.logger.warn("sessionTimeout,PathInfo="+servletPath+",?JSESSIONID="+request.getParameter(RestConstants.Return_JSESSIONID));
+	                    this.logger.warn("sessionTimeout,PathInfo="+servletPath+",?JSESSIONID="+jessionid);
 	                    responseMessage
 	                            .setStatus(RestConstants.Return_ResponseMessage_sessionTimeout);
 	                    httpServletResponse.setContentType("application/json;charset=UTF-8");

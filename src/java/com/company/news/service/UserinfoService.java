@@ -838,6 +838,8 @@ public class UserinfoService extends AbstractService {
 					if (session != null&&session.getAttribute(RestConstants.Session_UserInfo)!=null) {
 						return true;
 					}
+					
+					this.logger.info("jessionid="+jessionid);
 					user = getUserBySessionid(jessionid);
 					if (user == null){// 请求服务返回失败标示
 						return false;

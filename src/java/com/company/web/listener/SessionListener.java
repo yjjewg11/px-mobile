@@ -41,6 +41,7 @@ public class SessionListener implements HttpSessionListener {
 	}
   
   private static HttpSession   getSessionFromCache(String jessionid){
+	  if(StringUtils.isBlank(jessionid))return null;
 	  //1优先取sessionMapBySessionid
 	  HttpSession	session=(HttpSession)sessionMapBySessionid.get(jessionid);
       if(session!=null)return session;
