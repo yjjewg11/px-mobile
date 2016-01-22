@@ -1,5 +1,7 @@
 package com.company.news.service;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -11,10 +13,11 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import com.company.news.ProjectProperties;
-import com.company.news.commons.util.DbUtils;
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.commons.util.UploadFileUtils;
 import com.company.news.commons.util.upload.DiskIUploadFile;
@@ -27,6 +30,8 @@ import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPPhotoItemJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.RestConstants;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
@@ -50,25 +55,98 @@ public class FPPhotoItemService extends AbstractService {
 			iUploadFile = new DiskIUploadFile();
 	}
 
+	
+	String Selectsql=" SELECT t1.uuid,t1.family_uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.md5,t1.create_time";
+	String SqlFrom=" FROM fp_photo_item t1 ";
+
 
 	/**
-	 * 查询所有通知
+	 * 查询根据时间范围查询，新数据总数和变化数据总数。
 	 * 
 	 * @return
 	 */
-	public PageQueryResult queryOfIncrement(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData) {
+	public boolean  queryOfNewDataOrUpdate(String family_uuid,PaginationData pData,ModelMap model) {
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
-		String selectsql=" SELECT t1.uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.type ";
-		String sql=" FROM fp_photo_item t1 ";
-		sql += " where   t1.family_uuid ='"+DbUtils.safeToWhereString(family_uuid)+"'";
+		
+		//获取MaxTime 时间后的新数据总数量
+		String countNewDataSql="select count(*) from FROM fp_photo_item t1 ";
+		countNewDataSql += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
+			 countNewDataSql += " and   t1.create_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
+		Object  countNewData=session.createSQLQuery(countNewDataSql).uniqueResult();
+		
+		//获取MinTime 和MaxTime 时间直接变化的数据
+		String countUpdateDataSql="select count(*) from FROM fp_photo_item t1 ";
+		countUpdateDataSql += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
+		countUpdateDataSql += " and   t1.update_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());//在最大时间后更新的数据.
+		
+		countUpdateDataSql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
+		if(StringUtils.isNotBlank(pData.getMinTime())){
+			countUpdateDataSql += " and   t1.create_time >="+DBUtil.queryDateStringToDateByDBType(pData.getMinTime());
+		}
+		Object  countUpdateData=session.createSQLQuery(countUpdateDataSql).uniqueResult();
+		
+		model.put(RestConstants.Return_newDataCount, countNewData);
+		model.put(RestConstants.Return_updateDataCount, countUpdateData);
+		//返回最后一条的数据。
+		return true;
+	}
+	
+	
+
+	/**
+	 * 查询增量更新数据，的uuid
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryOfUpdate(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData,ModelMap model) {
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		String selectsql=" SELECT t1.uuid as u,t1.status as s ";
+		String sqlFrom=" FROM fp_photo_item t1 ";
+		sqlFrom += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
+		
+		String sql=selectsql+sqlFrom;
+		pData.setPageSize(10000);
+		
+		sql += " and   t1.update_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());//在最大时间后更新的数据.
+		
+		sql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
+		if(StringUtils.isNotBlank(pData.getMinTime())){
+			sql += " and   t1.create_time >="+DBUtil.queryDateStringToDateByDBType(pData.getMinTime());
+		}
+		sql += " order by t1.create_time desc";
+		 
+		Query  query =session.createSQLQuery(sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		
+		String countsql="select count(*) "+sql;
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
+		List<Map> list=pageQueryResult.getData();
+		this.warpMapList(list, user);
+		//返回最后一条的数据。
+		return pageQueryResult;
+	}
+
+	/**
+	 * 查询增量更新
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryOfIncrement(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData,ModelMap model) {
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		String selectsql=Selectsql;
+		String sqlFrom=SqlFrom;
+		sqlFrom += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
+		
+		
+		String sql=sqlFrom;
 		pData.setPageSize(50);
 		////使用创建时间做分页显示,beforeTime 取 2016-01-15 13:13 之前的数据.按照创建时间排倒序
 		 if(StringUtils.isNotBlank(pData.getMaxTime())){
-				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getMaxTime());
+				sql += " and   t1.create_time <"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
 				sql += " order by t1.create_time desc";
 				
 		}else if(StringUtils.isNotBlank(pData.getMinTime())){
-				sql += " and   t1.create_time >="+DbUtils.stringToDateByDBType(pData.getMinTime());
+				sql += " and   t1.create_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMinTime());
 				sql += " order by t1.create_time asc";
 		}else{//默认查询,当前时间倒叙
 			  sql += " order by t1.create_time desc";
@@ -76,14 +154,41 @@ public class FPPhotoItemService extends AbstractService {
 		 
 		Query  query =session.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
+		String countsql="select count(*) "+sql;
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
 		List<Map> list=pageQueryResult.getData();
-		if(list.size()>0){
-			Object min=list.get(0);
-			Object max=list.get(list.size()-1);
+		
+		//
+		Date lastTime=null;
+		try {
+			if(list.size()>0){
+				 Map lastObj=list.get(list.size()-1);
+				 lastTime=(Date)lastObj.get("create_time");
+				 String lastuuid=(String)lastObj.get("uuid");
+				 Calendar nextSecond=TimeUtils.date2Calendar(lastTime);
+				 nextSecond.add(Calendar.SECOND, 1);
+				 
+					//时间戳精确到秒，数据没取完整情况下，需要在根据最后一条数据的时间取数据，如果有则加入list。list的size有可能大于PageSize。防止少去数据bug。
+					if(list.size()==pData.getPageSize()){
+						String tmpSql=selectsql+sqlFrom+"";
+						tmpSql += " and   t1.uuid !='"+lastuuid+"'";
+						tmpSql += " and   t1.create_time >="+DBUtil.stringToDateByDBType(TimeUtils.getDateTimeString(lastTime));
+						tmpSql += " and   t1.create_time <"+DBUtil.stringToDateByDBType(TimeUtils.getDateTimeString(nextSecond.getTime()));
+						  query =session.createSQLQuery(tmpSql);
+						  query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+						  List tmpList=query.list();
+						  list.addAll(tmpList);
+					}
+					
+					
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
 		}
 		this.warpMapList(list, user);
-		
+		//返回最后一条的数据。
+		model.put(RestConstants.Return_LastTime, lastTime);
 		return pageQueryResult;
 	}
 	
@@ -96,24 +201,24 @@ public class FPPhotoItemService extends AbstractService {
 	 */
 	public PageQueryResult query(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData) {
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
-		String selectsql=" SELECT t1.uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.type ";
-		String sql=" FROM fp_photo_item t1 ";
+		String selectsql=Selectsql;
+		String sql=SqlFrom;
 		
 		 if (StringUtils.isNotBlank(family_uuid)) {//根据家庭uuid查询
-			sql += " where   t1.family_uuid ='"+DbUtils.safeToWhereString(family_uuid)+"'";
+			sql += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
 		}else if (StringUtils.isNotBlank(user_uuid)) {//查询用户关联家庭照片.或者自己上传的
 			sql += " LEFT JOIN  fp_family_members t2 on  t2.family_uuid=t1.family_uuid ";
-			sql += " where t1.create_useruuid='"+DbUtils.safeToWhereString(user_uuid)+"' or  t2.user_uuid ='"+DbUtils.safeToWhereString(user_uuid)+"'";
+			sql += " where t1.create_useruuid='"+DBUtil.safeToWhereString(user_uuid)+"' or  t2.user_uuid ='"+DBUtil.safeToWhereString(user_uuid)+"'";
 		}
 		////使用创建时间做分页显示,beforeTime 取 2016-01-15 13:13 之前的数据.按照创建时间排倒序
 		 if(StringUtils.isNotBlank(pData.getMaxTime())){
 				pData.setPageNo(1);
-				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getMaxTime());
+				sql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
 				
 				  sql += " order by t1.create_time asc";
 		}else if(StringUtils.isNotBlank(pData.getMinTime())){
 				pData.setPageNo(1);
-				sql += " and   t1.create_time <="+DbUtils.stringToDateByDBType(pData.getMinTime());
+				sql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMinTime());
 				
 				  sql += " order by t1.create_time desc";
 		}else{//默认查询,当前时间倒叙
@@ -169,13 +274,14 @@ public class FPPhotoItemService extends AbstractService {
 	 * 删除 支持多个，用逗号分隔
 	 * 
 	 * @param uuid
+	 * @throws Exception 
 	 */
-	public boolean delete(HttpServletRequest request,String uuid, ResponseMessage responseMessage) {
+	public boolean delete(HttpServletRequest request,String uuid, ResponseMessage responseMessage) throws Exception {
 		
 		
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 		//防止sql注入.
-		if(DbUtils.isSqlInjection(uuid,responseMessage))return false;
+		if(DBUtil.isSqlInjection(uuid,responseMessage))return false;
 		
 		FPPhotoItem dbobj = (FPPhotoItem) this.nSimpleHibernateDao.getObjectById(
 				FPPhotoItem.class, uuid);
@@ -189,7 +295,10 @@ public class FPPhotoItemService extends AbstractService {
 		//need_code
 		iUploadFile.deleteFile(dbobj.getPath());
 		
-		this.nSimpleHibernateDao.delete(dbobj);
+		
+		dbobj.setStatus(SystemConstants.FPPhotoItem_Status_2);
+		dbobj.setUpdate_time(TimeUtils.getCurrentTimestamp());
+		this.nSimpleHibernateDao.save(dbobj);
 		return true;
 	}
 
@@ -200,10 +309,19 @@ public class FPPhotoItemService extends AbstractService {
 	 * @throws Exception
 	 */
 	public FPPhotoItem get(String uuid) throws Exception {
-		FPPhotoItem favorites = (FPPhotoItem) this.nSimpleHibernateDao.getObjectById(
-				FPPhotoItem.class, uuid);
+		
+		String selectsql=Selectsql;
+		String sqlFrom=Selectsql+SqlFrom;
+		sqlFrom += " where   t1.uuid ='"+uuid+"'";
+		
+		List<Map>  list =nSimpleHibernateDao.queryMapBySql(sqlFrom);
+		 Map  map=null;
+		if(list.size()>0){
+			   map=list.get(0);
+			 warpMap(map, null);
+		}
 
-		return favorites;
+		return null;
 	}
 
 	@Override
@@ -235,12 +353,12 @@ public class FPPhotoItemService extends AbstractService {
 		uploadFile.setAddress(form.getAddress());
 		uploadFile.setNote(form.getNote());
 		uploadFile.setFamily_uuid(form.getFamily_uuid());
+		uploadFile.setMd5(form.getMd5());
 		
 		
 		if(uploadFile.getPhoto_time()==null){//如果上传拍照时间,不正确或为null,则设置为拍照时间.
 			uploadFile.setPhoto_time(uploadFile.getCreate_time());
 		}
-		uploadFile.setContent_type(file.getContentType());
 		this.nSimpleHibernateDao.getHibernateTemplate().save(uploadFile);
 		
 		//2016/uuid.png
@@ -275,6 +393,7 @@ public class FPPhotoItemService extends AbstractService {
 		obj.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		obj.setNote(jsonform.getNote());
 		obj.setAddress(jsonform.getAddress());
+		obj.setStatus(SystemConstants.FPPhotoItem_Status_1);
 		
 		this.nSimpleHibernateDao.save(obj);
 		return true;

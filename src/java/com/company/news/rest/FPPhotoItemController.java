@@ -2,6 +2,7 @@ package com.company.news.rest;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -19,6 +20,7 @@ import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPPhotoItemJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.FPPhotoItemService;
 import com.company.news.vo.ResponseMessage;
@@ -87,7 +89,155 @@ public class FPPhotoItemController extends AbstractRESTController {
 	 * @return
 	 */
 	@RequestMapping(value = "/queryMy", method = RequestMethod.GET)
-	public String queryMy(ModelMap model, HttpServletRequest request) {
+	public String queryMy(ModelMap model, HttpServletRequest request,PaginationData pData) {
+		model.clear();
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		//设置当前用户
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
+		
+		try {
+			
+			String family_uuid=request.getParameter("family_uuid");
+		//	String photo_time=request.getParameter("photo_time");
+			if(DBUtil.isSqlInjection(family_uuid, responseMessage))return "";
+			PageQueryResult pageQueryResult= fPPhotoItemService.query(user,family_uuid,user.getUuid(),pData);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+
+
+
+	/**
+	 * 
+	 * 查询根据时间范围查询，新数据总数和变化数据总数。
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryOfNewDataOrUpdate", method = RequestMethod.GET)
+	public String queryOfNewDataOrUpdate(ModelMap model, HttpServletRequest request,PaginationData pData) {
+		model.clear();
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		//设置当前用户
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
+		
+		try {
+			
+			String family_uuid=request.getParameter("family_uuid");
+		//	String photo_time=request.getParameter("photo_time");
+			if(StringUtils.isBlank(family_uuid)){
+				responseMessage.setMessage("family_uuid 不能为空");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(family_uuid, responseMessage))return "";
+			
+			if(StringUtils.isBlank(pData.getMaxTime())){
+				responseMessage.setMessage("maxTime 必填");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(pData.getMaxTime(), responseMessage))return "";
+			if(StringUtils.isBlank(family_uuid)){
+				responseMessage.setMessage("maxTime 不能为空");
+				return "";
+			}
+
+//			if(StringUtils.isBlank(pData.getMinTime())){
+//				responseMessage.setMessage("minTime 必填");
+//				return "";
+//			}
+			if(DBUtil.isSqlInjection(pData.getMinTime(), responseMessage))return "";
+			
+			
+			 boolean flag=fPPhotoItemService.queryOfNewDataOrUpdate(family_uuid,pData,model);
+			 if(!flag)return "";
+//			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+
+
+
+	/**
+	 * 
+	 * 查询增量更新数据，的uuid
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryOfUpdate", method = RequestMethod.GET)
+	public String queryOfUpdate(ModelMap model, HttpServletRequest request,PaginationData pData) {
+		model.clear();
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		//设置当前用户
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
+		
+		try {
+			
+			String family_uuid=request.getParameter("family_uuid");
+		//	String photo_time=request.getParameter("photo_time");
+//			PaginationData pData = this.getPaginationDataByRequest(request);
+		//	String photo_time=request.getParameter("photo_time");
+			if(StringUtils.isBlank(family_uuid)){
+				responseMessage.setMessage("family_uuid 不能为空");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(family_uuid, responseMessage))return "";
+			
+			if(StringUtils.isBlank(pData.getMaxTime())){
+				responseMessage.setMessage("maxTime 必填");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(pData.getMaxTime(), responseMessage))return "";
+			
+			
+			if(StringUtils.isBlank(pData.getMinTime())){
+				responseMessage.setMessage("minTime 不能为空");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(pData.getMinTime(), responseMessage))return "";
+			PageQueryResult pageQueryResult= fPPhotoItemService.queryOfUpdate(user,family_uuid,user.getUuid(),pData,model);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+
+
+
+	/**
+	 * 
+	 * 查询我关联的所有家庭的相片.
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryOfIncrement", method = RequestMethod.GET)
+	public String queryOfIncrement(ModelMap model, HttpServletRequest request,PaginationData pData) {
+		model.clear();
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		//设置当前用户
@@ -98,8 +248,7 @@ public class FPPhotoItemController extends AbstractRESTController {
 			String family_uuid=request.getParameter("family_uuid");
 		//	String photo_time=request.getParameter("photo_time");
 			
-			PaginationData pData = this.getPaginationDataByRequest(request);
-			PageQueryResult pageQueryResult= fPPhotoItemService.query(user,family_uuid,user.getUuid(),pData);
+			PageQueryResult pageQueryResult= fPPhotoItemService.queryOfIncrement(user,family_uuid,user.getUuid(),pData,model);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		} catch (Exception e) {
@@ -121,7 +270,8 @@ public class FPPhotoItemController extends AbstractRESTController {
 	 */
 	@Deprecated
 	@RequestMapping(value = "/queryByFamily_uuid", method = RequestMethod.GET)
-	public String queryByFamily_uuid(ModelMap model, HttpServletRequest request) {
+	public String queryByFamily_uuid(ModelMap model, HttpServletRequest request,PaginationData pData) {
+		model.clear();
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		//设置当前用户
@@ -132,7 +282,6 @@ public class FPPhotoItemController extends AbstractRESTController {
 			String family_uuid=request.getParameter("family_uuid");
 		//	String photo_time=request.getParameter("photo_time");
 			
-			PaginationData pData = this.getPaginationDataByRequest(request);
 			PageQueryResult pageQueryResult= fPPhotoItemService.query(user,family_uuid,null,pData);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

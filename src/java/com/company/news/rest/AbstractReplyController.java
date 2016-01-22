@@ -11,20 +11,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.interfaces.SessionUserInfoInterface;
-import com.company.news.jsonform.ClassNewsReplyJsonform;
+import com.company.news.jsonform.BaseReplyJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
-import com.company.news.service.ClassNewsReplyService;
+import com.company.news.service.AbstractReplyService;
 import com.company.news.vo.ResponseMessage;
 
-@Controller
-@RequestMapping(value = "/reply")
-public class ReplyController extends AbstractRESTController {
+public class AbstractReplyController extends AbstractRESTController {
 
-	@Autowired
-	private ClassNewsReplyService classNewsReplyService;
+	private AbstractReplyService abstractReplyService;
 
 	/**
 	 * 组织注册
@@ -40,32 +37,23 @@ public class ReplyController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		// 请求消息体
 		String bodyJson = RestUtil.getJsonStringByRequest(request);
-		ClassNewsReplyJsonform classNewsReplyJsonform;
+		BaseReplyJsonform baseReplyJsonform;
 		try {
 			
 			
-			classNewsReplyJsonform = (ClassNewsReplyJsonform) this.bodyJsonToFormObject(
-					bodyJson, ClassNewsReplyJsonform.class);
+			baseReplyJsonform = (BaseReplyJsonform) this.bodyJsonToFormObject(
+					bodyJson, BaseReplyJsonform.class);
 			
-			String classuuids=this.getMyChildrenClassuuidsBySession(request);
-			if(StringUtils.isBlank(classuuids)){
-				responseMessage.setMessage("没有你的孩子信息,不能发布评论!");
-				return "";
-			}
-		if(classNewsReplyJsonform.getType()==null||classNewsReplyJsonform.getType()>1000){
-			responseMessage.setMessage("type取值超出范围:type="+classNewsReplyJsonform.getType());
-			return "";
-		}
+			
 		//设置当前用户
 		SessionUserInfoInterface user=this.getUserInfoBySession(request);
 		//转换特定格式.
-		classNewsReplyJsonform.setContent(MyUbbUtils.htmlToMyUbb(classNewsReplyJsonform.getContent()));
+		baseReplyJsonform.setContent(MyUbbUtils.htmlToMyUbb(baseReplyJsonform.getContent()));
 
-			boolean flag;
-			if(StringUtils.isEmpty(classNewsReplyJsonform.getUuid()))
-			    flag = classNewsReplyService.add(user,classNewsReplyJsonform, responseMessage);
-			else
-				flag = classNewsReplyService.update(user,classNewsReplyJsonform, responseMessage);
+			boolean flag=false;
+			if(StringUtils.isEmpty(baseReplyJsonform.getUuid()))
+			    flag = abstractReplyService.add(user,baseReplyJsonform, responseMessage);
+			
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {
@@ -89,7 +77,7 @@ public class ReplyController extends AbstractRESTController {
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/getReplyByNewsuuid", method = RequestMethod.GET)
+	@RequestMapping(value = "/getReplyByreluuid", method = RequestMethod.GET)
 	public String getReplyByNewsuuid(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
@@ -101,9 +89,9 @@ public class ReplyController extends AbstractRESTController {
 			if(parent!=null)cur_user_uuid=parent.getUuid();
 			
 			PaginationData pData=this.getPaginationDataByRequest(request);
-			PageQueryResult pageQueryResult = classNewsReplyService.query(request.getParameter("newsuuid"), pData,cur_user_uuid);
+			PageQueryResult pageQueryResult = abstractReplyService.query(request.getParameter("newsuuid"), pData,cur_user_uuid);
 		
-			classNewsReplyService.warpVoList(pageQueryResult.getData(), cur_user_uuid);
+			abstractReplyService.warpVoList(pageQueryResult.getData(), cur_user_uuid);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 			return "";
@@ -131,13 +119,11 @@ public class ReplyController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 
 		try {
-			
-			
 			String uuid=request.getParameter("uuid");
 			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
 			SessionUserInfoInterface parent=this.getUserInfoBySession(request);
 			
-			boolean flag = classNewsReplyService.delete(parent,request.getParameter("uuid"),
+			boolean flag = abstractReplyService.delete(parent,request.getParameter("uuid"),
 					responseMessage);
 			if (!flag)
 				return "";
@@ -152,6 +138,16 @@ public class ReplyController extends AbstractRESTController {
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		responseMessage.setMessage("删除成功");
 		return "";
+	}
+
+
+	public AbstractReplyService getAbstractReplyService() {
+		return abstractReplyService;
+	}
+
+
+	public void setAbstractReplyService(AbstractReplyService abstractReplyService) {
+		this.abstractReplyService = abstractReplyService;
 	}
 	
 

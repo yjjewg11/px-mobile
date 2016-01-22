@@ -52,7 +52,7 @@ public class FPFamilyPhotoCollectionController extends AbstractRESTController {
 //			PaginationData pData = this.getPaginationDataByRequest(request);
 			List list= fPFamilyPhotoCollectionService.queryMy(user.getUuid());
 			if(list.size()==0){//自动创建
-				fPFamilyPhotoCollectionService.addFirst(responseMessage, request);
+				fPFamilyPhotoCollectionService.updateFirst(responseMessage, request);
 				list= fPFamilyPhotoCollectionService.queryMy(user.getUuid());
 			}
 			

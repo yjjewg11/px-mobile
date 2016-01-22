@@ -36,7 +36,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 	 * @param request
 	 * @return
 	 */
-	public Object addFirst(
+	public Object updateFirst(
 			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 	

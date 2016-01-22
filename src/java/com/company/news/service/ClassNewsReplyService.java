@@ -16,6 +16,7 @@ import com.company.news.SystemConstants;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
+import com.company.news.entity.AbstractReply;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.ClassNewsReply;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -167,23 +168,26 @@ public class ClassNewsReplyService extends AbstractService {
 	 * 
 	 * @param uuid
 	 */
-	public boolean delete(String uuid, ResponseMessage responseMessage) {
+	public boolean delete(SessionUserInfoInterface parent,String uuid, ResponseMessage responseMessage) {
 		if (StringUtils.isBlank(uuid)) {
 
 			responseMessage.setMessage("ID不能为空！");
 			return false;
 		}
-
-		if (uuid.indexOf(",") != -1)// 多ID
-		{
-			this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
-					"delete from ClassNewsReply where uuid in(?)", uuid);
-		} else {
-			this.nSimpleHibernateDao.deleteObjectById(ClassNewsReply.class, uuid);
+		ClassNewsReply obj=(ClassNewsReply)this.nSimpleHibernateDao.getObject(ClassNewsReply.class, uuid);
+		if(obj==null){
+			responseMessage.setMessage("对象不存在！");
+			return false;
 		}
+		if(!parent.getUuid().equals(obj.getCreate_useruuid())){
+			responseMessage.setMessage("无权删除!");
+			return false;
+		}
+		this.nSimpleHibernateDao.delete(obj);
 
 		return true;
 	}
+	
 	/**
 	 * 获取点赞列表信息
 	 * 
