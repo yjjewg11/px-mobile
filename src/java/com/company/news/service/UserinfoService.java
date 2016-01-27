@@ -861,9 +861,6 @@ public class UserinfoService extends AbstractService {
 					this.putSession(session, userOfSession, request);
 				}
 			
-			JavaLockUtils.removeLockObj(jessionid);
-			
-
 			// 更新登陆日期,最近一次登陆日期
 //			String sql = "update px_parent set sessionid='" + session.getId() + "' where uuid='"
 //					+ user.getUuid() + "'";

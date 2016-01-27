@@ -62,31 +62,31 @@ public class FPPhotoItemService extends AbstractService {
 
 	/**
 	 * 查询根据时间范围查询，新数据总数和变化数据总数。
-	 * 
+	 * 修复为只查询新数据范围
 	 * @return
 	 */
-	public boolean  queryOfNewDataOrUpdate(String family_uuid,PaginationData pData,ModelMap model) {
+	public boolean  queryOfNewDataCount(String family_uuid,PaginationData pData,ModelMap model) {
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		
 		//获取MaxTime 时间后的新数据总数量
-		String countNewDataSql="select count(*) from FROM fp_photo_item t1 ";
+		String countNewDataSql="select count(*)  FROM fp_photo_item t1 ";
 		countNewDataSql += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
 			 countNewDataSql += " and   t1.create_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
 		Object  countNewData=session.createSQLQuery(countNewDataSql).uniqueResult();
 		
-		//获取MinTime 和MaxTime 时间直接变化的数据
-		String countUpdateDataSql="select count(*) from FROM fp_photo_item t1 ";
-		countUpdateDataSql += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
-		countUpdateDataSql += " and   t1.update_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());//在最大时间后更新的数据.
-		
-		countUpdateDataSql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
-		if(StringUtils.isNotBlank(pData.getMinTime())){
-			countUpdateDataSql += " and   t1.create_time >="+DBUtil.queryDateStringToDateByDBType(pData.getMinTime());
-		}
-		Object  countUpdateData=session.createSQLQuery(countUpdateDataSql).uniqueResult();
-		
+//		//获取MinTime 和MaxTime 时间直接变化的数据
+//		String countUpdateDataSql="select count(*)  FROM fp_photo_item t1 ";
+//		countUpdateDataSql += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
+//		countUpdateDataSql += " and   t1.update_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());//在最大时间后更新的数据.
+//		
+//		countUpdateDataSql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
+//		if(StringUtils.isNotBlank(pData.getMinTime())){
+//			countUpdateDataSql += " and   t1.create_time >="+DBUtil.queryDateStringToDateByDBType(pData.getMinTime());
+//		}
+//		Object  countUpdateData=session.createSQLQuery(countUpdateDataSql).uniqueResult();
+//		
 		model.put(RestConstants.Return_newDataCount, countNewData);
-		model.put(RestConstants.Return_updateDataCount, countUpdateData);
+//		model.put(RestConstants.Return_updateDataCount, countUpdateData);
 		//返回最后一条的数据。
 		return true;
 	}
@@ -98,7 +98,7 @@ public class FPPhotoItemService extends AbstractService {
 	 * 
 	 * @return
 	 */
-	public PageQueryResult queryOfUpdate(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData,ModelMap model) {
+	public PageQueryResult queryOfUpdate(SessionUserInfoInterface user ,String family_uuid, String updateTime,PaginationData pData,ModelMap model) {
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String selectsql=" SELECT t1.uuid as u,t1.status as s ";
 		String sqlFrom=" FROM fp_photo_item t1 ";
@@ -107,7 +107,7 @@ public class FPPhotoItemService extends AbstractService {
 		String sql=selectsql+sqlFrom;
 		pData.setPageSize(10000);
 		
-		sql += " and   t1.update_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());//在最大时间后更新的数据.
+		sql += " and   t1.update_time >"+DBUtil.queryDateStringToDateByDBType(updateTime);//在最大时间后更新的数据.
 		
 		sql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
 		if(StringUtils.isNotBlank(pData.getMinTime())){
@@ -308,7 +308,7 @@ public class FPPhotoItemService extends AbstractService {
 	 * @return
 	 * @throws Exception
 	 */
-	public FPPhotoItem get(String uuid) throws Exception {
+	public Map get(String uuid) throws Exception {
 		
 		String selectsql=Selectsql;
 		String sqlFrom=Selectsql+SqlFrom;
@@ -321,7 +321,7 @@ public class FPPhotoItemService extends AbstractService {
 			 warpMap(map, null);
 		}
 
-		return null;
+		return map;
 	}
 
 	@Override
@@ -398,4 +398,45 @@ public class FPPhotoItemService extends AbstractService {
 		this.nSimpleHibernateDao.save(obj);
 		return true;
 	}
+	
+	
+	/**
+	 * 查询增量更新
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryForMovie(String family_uuid,PaginationData pData,ModelMap model) {
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		
+		String selectsql=" SELECT t1.path,t1.address,t1.note ";
+		
+		String sqlFrom=SqlFrom;
+		sqlFrom += " where  1=1";
+		
+		
+		String sql=sqlFrom;
+		pData.setPageSize(10);
+		////使用创建时间做分页显示,beforeTime 取 2016-01-15 13:13 之前的数据.按照创建时间排倒序
+		 if(StringUtils.isNotBlank(pData.getMaxTime())){
+				sql += " and   t1.create_time <"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
+		}
+		 sql += " order by t1.create_time asc";
+		 
+		Query  query =session.createSQLQuery(selectsql+sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		String countsql="select count(*) "+sql;
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
+		List<Map> list=pageQueryResult.getData();
+		
+		for(Map o:list){
+			try {
+				o.put("path", PxStringUtil.imgUrlByRelativePath_sub((String)o.get("path"),"320w"));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		//返回最后一条的数据。
+		return pageQueryResult;
+	}
+	
 }

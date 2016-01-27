@@ -118,13 +118,13 @@ public class FPPhotoItemController extends AbstractRESTController {
 
 	/**
 	 * 
-	 * 查询根据时间范围查询，新数据总数和变化数据总数。
+	 * 查询根据时间范围查询，新数据总数
 	 * @param model
 	 * @param request
 	 * @return
 	 */
-	@RequestMapping(value = "/queryOfNewDataOrUpdate", method = RequestMethod.GET)
-	public String queryOfNewDataOrUpdate(ModelMap model, HttpServletRequest request,PaginationData pData) {
+	@RequestMapping(value = "/queryOfNewDataCount", method = RequestMethod.GET)
+	public String queryOfNewDataCount(ModelMap model, HttpServletRequest request,PaginationData pData) {
 		model.clear();
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
@@ -134,7 +134,6 @@ public class FPPhotoItemController extends AbstractRESTController {
 		try {
 			
 			String family_uuid=request.getParameter("family_uuid");
-		//	String photo_time=request.getParameter("photo_time");
 			if(StringUtils.isBlank(family_uuid)){
 				responseMessage.setMessage("family_uuid 不能为空");
 				return "";
@@ -146,19 +145,14 @@ public class FPPhotoItemController extends AbstractRESTController {
 				return "";
 			}
 			if(DBUtil.isSqlInjection(pData.getMaxTime(), responseMessage))return "";
-			if(StringUtils.isBlank(family_uuid)){
-				responseMessage.setMessage("maxTime 不能为空");
-				return "";
-			}
+			
 
 //			if(StringUtils.isBlank(pData.getMinTime())){
 //				responseMessage.setMessage("minTime 必填");
 //				return "";
 //			}
-			if(DBUtil.isSqlInjection(pData.getMinTime(), responseMessage))return "";
 			
-			
-			 boolean flag=fPPhotoItemService.queryOfNewDataOrUpdate(family_uuid,pData,model);
+			 boolean flag=fPPhotoItemService.queryOfNewDataCount(family_uuid,pData,model);
 			 if(!flag)return "";
 //			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -190,11 +184,8 @@ public class FPPhotoItemController extends AbstractRESTController {
 		SessionUserInfoInterface user=this.getUserInfoBySession(request);
 		
 		try {
-			
 			String family_uuid=request.getParameter("family_uuid");
-		//	String photo_time=request.getParameter("photo_time");
-//			PaginationData pData = this.getPaginationDataByRequest(request);
-		//	String photo_time=request.getParameter("photo_time");
+			String updateTime=request.getParameter("updateTime");
 			if(StringUtils.isBlank(family_uuid)){
 				responseMessage.setMessage("family_uuid 不能为空");
 				return "";
@@ -206,14 +197,25 @@ public class FPPhotoItemController extends AbstractRESTController {
 				return "";
 			}
 			if(DBUtil.isSqlInjection(pData.getMaxTime(), responseMessage))return "";
-			
-			
-			if(StringUtils.isBlank(pData.getMinTime())){
-				responseMessage.setMessage("minTime 不能为空");
+			if(StringUtils.isBlank(pData.getMaxTime())){
+				responseMessage.setMessage("maxTime 不能为空");
 				return "";
 			}
+			
+			if(DBUtil.isSqlInjection(updateTime, responseMessage))return "";
+			if(StringUtils.isBlank(updateTime)){
+				responseMessage.setMessage("updateTime 不能为空");
+				return "";
+			}
+
+//			if(StringUtils.isBlank(pData.getMinTime())){
+//				responseMessage.setMessage("minTime 必填");
+//				return "";
+//			}
 			if(DBUtil.isSqlInjection(pData.getMinTime(), responseMessage))return "";
-			PageQueryResult pageQueryResult= fPPhotoItemService.queryOfUpdate(user,family_uuid,user.getUuid(),pData,model);
+			
+			
+			PageQueryResult pageQueryResult= fPPhotoItemService.queryOfUpdate(user,family_uuid,updateTime,pData,model);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		} catch (Exception e) {
@@ -246,7 +248,11 @@ public class FPPhotoItemController extends AbstractRESTController {
 		try {
 			
 			String family_uuid=request.getParameter("family_uuid");
-		//	String photo_time=request.getParameter("photo_time");
+			if(StringUtils.isBlank(family_uuid)){
+				responseMessage.setMessage("family_uuid 不能为空");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(family_uuid, responseMessage))return "";
 			
 			PageQueryResult pageQueryResult= fPPhotoItemService.queryOfIncrement(user,family_uuid,user.getUuid(),pData,model);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
@@ -391,13 +397,17 @@ public class FPPhotoItemController extends AbstractRESTController {
 	public String get(@PathVariable String uuid,ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		Object m;
+		Object m=null;
 		try {
 			
 			if(DbUtils.isSqlInjection(uuid, responseMessage)){
 				return "";
 			}
 			m = fPPhotoItemService.get(uuid);
+			if(m==null){
+				responseMessage.setMessage("数据不存在！");
+				return "";
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
