@@ -430,7 +430,7 @@ public class FPPhotoItemService extends AbstractService {
 		
 		for(Map o:list){
 			try {
-				o.put("path", PxStringUtil.imgUrlByRelativePath_sub((String)o.get("path"),"320w"));
+				o.put("path", PxStringUtil.imgUrlByRelativePath_sub((String)o.get("path"),"@320w"));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

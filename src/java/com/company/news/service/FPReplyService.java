@@ -10,7 +10,7 @@ import com.company.news.entity.FPReply;
  * 
  */
 @Service
-public class FPReplyService extends AbstractReplyService {
+public class FPReplyService extends BaseReplyService {
 	public static final int USER_type_default = 1;// 0:老师
 
 	@Override

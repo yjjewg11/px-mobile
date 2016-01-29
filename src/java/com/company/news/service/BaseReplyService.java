@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.core.iservice.PushMsgIservice;
-import com.company.news.entity.AbstractReply;
+import com.company.news.entity.BaseReply;
 import com.company.news.entity.ClassNewsReply;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.BaseReplyJsonform;
@@ -25,7 +25,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public abstract class AbstractReplyService extends AbstractService {
+public  class BaseReplyService extends AbstractService {
 	public static final int USER_type_default = 1;// 0:老师
 	
 	@Autowired
@@ -51,7 +51,7 @@ public abstract class AbstractReplyService extends AbstractService {
 			return false;
 		}
 
-		AbstractReply cn=(AbstractReply)this.getEntityClass().newInstance();
+		BaseReply cn=(BaseReply)this.getEntityClass().newInstance();
 
 		BeanUtils.copyProperties(cn, baseReplyJsonform);
 		 cn.setStatus(SystemConstants.Check_status_fabu);
@@ -97,7 +97,7 @@ public abstract class AbstractReplyService extends AbstractService {
 	 * @return
 	 */
 	private BaseReplyJsonform warpVo(BaseReplyJsonform o,String cur_user_uuid){
-		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+//		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 //		try {
 //			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
 //			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
@@ -130,7 +130,7 @@ public abstract class AbstractReplyService extends AbstractService {
 			responseMessage.setMessage("ID不能为空！");
 			return false;
 		}
-		AbstractReply obj=(AbstractReply)this.nSimpleHibernateDao.getObject(this.getEntityClass(), uuid);
+		BaseReply obj=(BaseReply)this.nSimpleHibernateDao.getObject(this.getEntityClass(), uuid);
 		if(obj==null){
 			responseMessage.setMessage("对象不存在！");
 			return false;
@@ -186,6 +186,13 @@ public abstract class AbstractReplyService extends AbstractService {
 //		return (ClassNewsReply) this.nSimpleHibernateDao.getObjectById(
 //				ClassNewsReply.class, uuid);	
 //	}
+
+
+	@Override
+	public Class getEntityClass() {
+		// TODO Auto-generated method stub
+		return BaseReply.class;
+	}
 	
 
 

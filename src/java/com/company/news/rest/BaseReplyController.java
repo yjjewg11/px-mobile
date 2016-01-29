@@ -16,12 +16,17 @@ import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
-import com.company.news.service.AbstractReplyService;
+import com.company.news.service.BaseReplyService;
 import com.company.news.vo.ResponseMessage;
 
-public class AbstractReplyController extends AbstractRESTController {
+/**
+ * 基本回复模块.
+ * @author liumingquan
+ *
+ */
+public class BaseReplyController extends AbstractRESTController {
 
-	private AbstractReplyService abstractReplyService;
+	private BaseReplyService abstractReplyService;
 
 	/**
 	 * 组织注册
@@ -141,12 +146,12 @@ public class AbstractReplyController extends AbstractRESTController {
 	}
 
 
-	public AbstractReplyService getAbstractReplyService() {
+	public BaseReplyService getAbstractReplyService() {
 		return abstractReplyService;
 	}
 
 
-	public void setAbstractReplyService(AbstractReplyService abstractReplyService) {
+	public void setAbstractReplyService(BaseReplyService abstractReplyService) {
 		this.abstractReplyService = abstractReplyService;
 	}
 	
