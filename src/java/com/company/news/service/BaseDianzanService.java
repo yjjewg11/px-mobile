@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,18 +11,12 @@ import org.springframework.stereotype.Service;
 import com.company.news.SystemConstants;
 import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
-import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
 import com.company.news.entity.AbstractBaseReply;
-import com.company.news.entity.BaseReply21;
-import com.company.news.entity.BaseReply22;
 import com.company.news.interfaces.SessionUserInfoInterface;
-import com.company.news.jsonform.BaseReplyJsonform;
-import com.company.news.query.PageQueryResult;
+import com.company.news.jsonform.BaseDianzanJsonform;
 import com.company.news.query.PaginationData;
-import com.company.news.rest.util.DBUtil;
-import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -32,7 +25,7 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public  class BaseReplyService extends AbstractService {
+public  class BaseDianzanService extends AbstractService {
 	public static final int USER_type_default = 1;// 0:老师
 	
 	@Autowired
@@ -46,15 +39,11 @@ public  class BaseReplyService extends AbstractService {
 	 * @param request
 	 * @return
 	 */
-	public boolean add(SessionUserInfoInterface user,BaseReplyJsonform baseReplyJsonform,
+	public boolean add(SessionUserInfoInterface user,BaseDianzanJsonform baseReplyJsonform,
 			ResponseMessage responseMessage) throws Exception {
 
 		if (baseReplyJsonform.getType()==null) {
 			responseMessage.setMessage("type不能为空！");
-			return false;
-		}
-		if (StringUtils.isBlank(baseReplyJsonform.getContent())) {
-			responseMessage.setMessage("内容不能为空！");
 			return false;
 		}
 
@@ -62,23 +51,14 @@ public  class BaseReplyService extends AbstractService {
 			responseMessage.setMessage("rel_uuid不能为空！");
 			return false;
 		}
-		AbstractBaseReply cn=(AbstractBaseReply)this.getEntityClassByType(baseReplyJsonform.getType()).newInstance();
-
-		BeanUtils.copyProperties(cn, baseReplyJsonform);
-		 cn.setStatus(SystemConstants.Check_status_fabu);
-		 cn.setContent(MyUbbUtils.htmlToMyUbb(cn.getContent()));
-		cn.setCreate_time(TimeUtils.getCurrentTimestamp());
-        cn.setCreate_useruuid(user.getUuid());
-		// 有事务管理，统一在Controller调用时处理异常
-		this.nSimpleHibernateDao.getHibernateTemplate().save(cn);
-//
-//		
-//		if(cn.getType()!=null){
-//			if(SystemConstants.common_type_hudong==cn.getType().intValue()){
-//				pushMsgIservice.pushMsg_replay_to_classNews_to_teacherOrParent(cn.getNewsuuid(), user.getName()+":"+cn.getContent());
-//			}
-//		}
 		
+		String insertsql="insert into "+this.getTableNameByType(baseReplyJsonform.getType())+"(rel_uuid,create_useruuid,create_time) values('"+baseReplyJsonform.getRel_uuid()+"','"+user.getUuid()+"',now())";
+		try {
+			this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery(insertsql).executeUpdate();
+		} catch (org.hibernate.exception.ConstraintViolationException e) {
+			responseMessage.setMessage("你已过投票!");
+			return false;
+		}
 		return true;
 	}
 
@@ -88,18 +68,18 @@ public  class BaseReplyService extends AbstractService {
 	 * 
 	 * @return
 	 */
-	public PageQueryResult query(String rel_uuid,Integer type, PaginationData pData,String cur_user_uuid) {
-		String hql="from "+this.getEntityClassByType(type).getName()+" where ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")" ;	
-			hql+=" and  rel_uuid='"+rel_uuid+"'";
-		 if(StringUtils.isNotBlank(pData.getMaxTime())){
-			 hql += " and   create_time <"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
-		 }
-		pData.setOrderFiled("create_time");
-		pData.setOrderType("desc");
-		
-		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
-		
-		return pageQueryResult;
+	public Map query(String rel_uuid,Integer type,String cur_user_uuid) {
+		if(cur_user_uuid==null)cur_user_uuid="0";
+		//String sql="select count(1),sum(case when create_useruuid ='1' then 1 else 0 end)  from px_base_dianzan_21 where rel_uuid='1'";
+		String sql="select count(1) as dianzan_count,sum(case when create_useruuid ='"+cur_user_uuid+"' then 1 else 0 end)  as yidianzan   from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"'";
+		List<Map> list=this.nSimpleHibernateDao.queryMapBySql(sql);
+		if(list.size()>0){
+			return list.get(0);
+		}
+		Map map=new HashMap();
+		map.put("dianzan_count", 0);
+		map.put("yidianzan", 0);
+		return map;
 				
 	}
 
@@ -151,22 +131,16 @@ public  class BaseReplyService extends AbstractService {
 	 * 
 	 * @param uuid
 	 */
-	public boolean delete(SessionUserInfoInterface parent,String uuid,Integer type, ResponseMessage responseMessage) {
-		if (StringUtils.isBlank(uuid)) {
+	public boolean delete(SessionUserInfoInterface parent,String rel_uuid,Integer type, ResponseMessage responseMessage) {
+		if (StringUtils.isBlank(rel_uuid)) {
 
 			responseMessage.setMessage("ID不能为空！");
 			return false;
 		}
-		AbstractBaseReply obj=(AbstractBaseReply)this.nSimpleHibernateDao.getObject(this.getEntityClassByType(type), uuid);
-		if(obj==null){
-			responseMessage.setMessage("对象不存在！");
-			return false;
-		}
-		if(!parent.getUuid().equals(obj.getCreate_useruuid())){
-			responseMessage.setMessage("无权删除!");
-			return false;
-		}
-		this.nSimpleHibernateDao.delete(obj);
+		
+		//rel_uuid,create_useruuid
+		String insertsql="delete from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"' and create_useruuid='"+parent.getUuid()+"'";
+		this.nSimpleHibernateDao.createSqlQuery(insertsql).executeUpdate();
 
 		return true;
 	}
@@ -214,16 +188,16 @@ public  class BaseReplyService extends AbstractService {
 //				ClassNewsReply.class, uuid);	
 //	}
 	
-	static private Map<Integer,Class> tableNameMap=new HashMap();
+	static private Map<Integer,String> tableNameMap=new HashMap();
 	static{
-		tableNameMap.put(SystemConstants.common_type_FPPhotoItem, BaseReply21.class);
-		tableNameMap.put(SystemConstants.common_type_FPMovie, BaseReply22.class);
+		tableNameMap.put(SystemConstants.common_type_FPPhotoItem, "px_base_dianzan_21");
+		tableNameMap.put(SystemConstants.common_type_FPMovie,"px_base_dianzan_22");
 	}
-	public Class getEntityClassByType(Integer type) {
-		
-		Class tableName=tableNameMap.get(type);
+	public String getTableNameByType(Integer type) {
+		//insert into px_base_dianzan_21(rel_uuid,create_useruuid,create_time) 
+		String tableName=tableNameMap.get(type);
 		if(tableName==null){
-			throw new RuntimeException("BaseReply is null.type="+type);
+			throw new RuntimeException("px_base_dianzan is null.type="+type);
 		}
 		return tableName;
 	}

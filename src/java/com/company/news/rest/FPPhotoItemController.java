@@ -408,6 +408,13 @@ public class FPPhotoItemController extends AbstractRESTController {
 				responseMessage.setMessage("数据不存在！");
 				return "";
 			}
+			
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			String user_uuid=null;
+			if(user!=null){
+				user_uuid=user.getUuid();
+			}
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPPhotoItemService.isFavorites( user_uuid,uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -415,6 +422,7 @@ public class FPPhotoItemController extends AbstractRESTController {
 			responseMessage.setMessage("服务器异常:"+e.getMessage());
 			return "";
 		}
+	
 		model.addAttribute(RestConstants.Return_G_entity,m);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";

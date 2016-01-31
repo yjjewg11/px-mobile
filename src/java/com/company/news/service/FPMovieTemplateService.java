@@ -39,7 +39,7 @@ public class FPMovieTemplateService extends AbstractService {
 		return null;
 	}
 
-	String Selectsql=" SELECT t1.key,t1.title,t1.herald ";
+	String Selectsql=" SELECT t1.key,t1.title,t1.herald,t1.mp3 ";
 	String SqlFrom=" FROM fp_movie_template t1 ";
 
 	/**

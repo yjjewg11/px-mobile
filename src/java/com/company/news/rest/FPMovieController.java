@@ -167,13 +167,19 @@ public class FPMovieController extends AbstractRESTController {
 				responseMessage.setMessage("查询对象不存在!");
 				return "";
 			}
-			SessionUserInfoInterface user=this.getUserInfoBySession(request);
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			String user_uuid=null;
+			if(user!=null){
+				user_uuid=user.getUuid();
+			}
 			Boolean isReadOnly=true;
-			if(user.getUuid().equals(m.getCreate_useruuid())){
+			if(m.getCreate_useruuid().equals(user_uuid)){
 				isReadOnly=false;
 			}
 			model.addAttribute(RestConstants.Return_ISREADONLY,isReadOnly);
 			
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPMovieService.isFavorites( user_uuid,uuid));
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
