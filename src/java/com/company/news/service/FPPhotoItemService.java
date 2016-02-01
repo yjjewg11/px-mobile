@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
@@ -56,7 +57,7 @@ public class FPPhotoItemService extends AbstractService {
 	}
 
 	
-	String Selectsql=" SELECT t1.uuid,t1.family_uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.md5,t1.create_time";
+	String Selectsql=" SELECT t1.uuid,t1.family_uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.phone_type,t1.create_time";
 	String SqlFrom=" FROM fp_photo_item t1 ";
 
 
@@ -193,6 +194,31 @@ public class FPPhotoItemService extends AbstractService {
 	}
 	
 	
+	
+	/**
+	 * 分页同步所有上传的图片标识
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryAlreadyUploaded(String phone_uuid,PaginationData pData) {
+		pData.setPageSize(100);
+		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		String selectsql="SELECT t1.md5,t1.create_useruuid ";
+		String sql=SqlFrom;
+		
+		//过滤删除掉的.
+		 if (StringUtils.isNotBlank(phone_uuid)) {//根据家庭uuid查询
+			sql += " where t1.status<2 and  t1.phone_uuid ='"+phone_uuid+"'";
+		}
+		 
+		  sql += " order by t1.create_time asc";
+		
+		Query  query =session.createSQLQuery(selectsql+sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
+		List<Map> list=pageQueryResult.getData();
+		return pageQueryResult;
+	}
 
 	/**
 	 * 查询所有通知
@@ -213,12 +239,12 @@ public class FPPhotoItemService extends AbstractService {
 		////使用创建时间做分页显示,beforeTime 取 2016-01-15 13:13 之前的数据.按照创建时间排倒序
 		 if(StringUtils.isNotBlank(pData.getMaxTime())){
 				pData.setPageNo(1);
-				sql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
+				sql += " and   t1.create_time <"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
 				
 				  sql += " order by t1.create_time asc";
 		}else if(StringUtils.isNotBlank(pData.getMinTime())){
 				pData.setPageNo(1);
-				sql += " and   t1.create_time <="+DBUtil.queryDateStringToDateByDBType(pData.getMinTime());
+				sql += " and   t1.create_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMinTime());
 				
 				  sql += " order by t1.create_time desc";
 		}else{//默认查询,当前时间倒叙
@@ -345,17 +371,19 @@ public class FPPhotoItemService extends AbstractService {
 		
 		FPPhotoItem uploadFile = new FPPhotoItem();
 
+		
+		BeanUtils.copyProperties(uploadFile, form);
+		
 		uploadFile.setFile_size(Long.valueOf(file.getSize()));
 		uploadFile.setCreate_useruuid(user.getUuid());
 		uploadFile.setCreate_time(TimeUtils.getCurrentTimestamp());
 		uploadFile.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		uploadFile.setPhoto_time(TimeUtils.string2Timestamp(TimeUtils.DEFAULTFORMAT, form.getPhoto_time()));
-		uploadFile.setAddress(form.getAddress());
-		uploadFile.setNote(form.getNote());
-		uploadFile.setFamily_uuid(form.getFamily_uuid());
-		uploadFile.setMd5(form.getMd5());
-		
-		
+//		uploadFile.setAddress(form.getAddress());
+//		uploadFile.setNote(form.getNote());
+//		uploadFile.setFamily_uuid(form.getFamily_uuid());
+//		uploadFile.setMd5(form.getMd5());
+			
 		if(uploadFile.getPhoto_time()==null){//如果上传拍照时间,不正确或为null,则设置为拍照时间.
 			uploadFile.setPhoto_time(uploadFile.getCreate_time());
 		}

@@ -8,6 +8,8 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.FPMovie;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPMovieJsonform;
@@ -15,6 +17,7 @@ import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
+import com.company.news.service.BaseDianzanService;
 import com.company.news.service.FPMovieService;
 import com.company.news.vo.ResponseMessage;
 /**
@@ -25,7 +28,8 @@ import com.company.news.vo.ResponseMessage;
 @Controller
 @RequestMapping(value = "/fPMovie")
 public class FPMovieController extends AbstractRESTController {
-
+	@Autowired
+	private BaseDianzanService baseDianzanService;
 	@Autowired
 	private FPMovieService fPMovieService;
 
@@ -179,7 +183,9 @@ public class FPMovieController extends AbstractRESTController {
 			model.addAttribute(RestConstants.Return_ISREADONLY,isReadOnly);
 			
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPMovieService.isFavorites( user_uuid,uuid));
-
+			model.put(RestConstants.Return_ResponseMessage_dianZan,baseDianzanService.query(uuid, SystemConstants.common_type_FPMovie, user_uuid));
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getFPMovieByUuid(uuid));
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

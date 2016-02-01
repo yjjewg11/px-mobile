@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import com.company.news.SystemConstants;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.FPPhotoItem;
@@ -22,6 +23,7 @@ import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
+import com.company.news.service.BaseDianzanService;
 import com.company.news.service.FPPhotoItemService;
 import com.company.news.vo.ResponseMessage;
 /**
@@ -35,7 +37,8 @@ public class FPPhotoItemController extends AbstractRESTController {
 
 	@Autowired
 	private FPPhotoItemService fPPhotoItemService;
-	
+	@Autowired
+	private BaseDianzanService baseDianzanService;
 	
 
 	/**
@@ -102,6 +105,40 @@ public class FPPhotoItemController extends AbstractRESTController {
 		//	String photo_time=request.getParameter("photo_time");
 			if(DBUtil.isSqlInjection(family_uuid, responseMessage))return "";
 			PageQueryResult pageQueryResult= fPPhotoItemService.query(user,family_uuid,user.getUuid(),pData);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+	
+	
+	/**
+	 * 
+	 * 分页同步所有上传的图片标识
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryAlreadyUploaded", method = RequestMethod.GET)
+	public String queryAlreadyUploaded(ModelMap model, HttpServletRequest request,PaginationData pData) {
+		model.clear();
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		//设置当前用户
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
+		
+		try {
+			
+			String phone_uuid=request.getParameter("phone_uuid");
+		//	String photo_time=request.getParameter("photo_time");
+			if(DBUtil.isSqlInjection(phone_uuid, responseMessage))return "";
+			PageQueryResult pageQueryResult= fPPhotoItemService.queryAlreadyUploaded(phone_uuid,pData);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		} catch (Exception e) {
@@ -415,6 +452,46 @@ public class FPPhotoItemController extends AbstractRESTController {
 				user_uuid=user.getUuid();
 			}
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPPhotoItemService.isFavorites( user_uuid,uuid));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+	
+		model.addAttribute(RestConstants.Return_G_entity,m);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+	/**
+	 * 获取关联额外属性，是否收藏，是否点占
+	 * 
+	 * @param uuid
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/extra", method = RequestMethod.GET)
+	public String extra(@PathVariable String uuid,ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		Object m=null;
+		try {
+			
+			if(DbUtils.isSqlInjection(uuid, responseMessage)){
+				return "";
+			}
+		
+			
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			String user_uuid=null;
+			if(user!=null){
+				user_uuid=user.getUuid();
+			}
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPPhotoItemService.isFavorites( user_uuid,uuid));
+			model.put(RestConstants.Return_ResponseMessage_dianZan,baseDianzanService.query(uuid, SystemConstants.common_type_FPPhotoItem, user_uuid));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
