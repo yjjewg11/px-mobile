@@ -1,6 +1,7 @@
 package com.company.news.service;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -11,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.company.news.SystemConstants;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
-import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.ClassNewsReply;
@@ -107,7 +108,7 @@ public abstract class AbstractService {
 				
 	}
 	
-	 
+	static final String  SelectReplySql=" SELECT t1.uuid,t1.newsuuid,t1.content,t1.create_time,t1.create_useruuid,t1.status ";
 	  /**
 		 * 查询回复列表分页
 		 * 
@@ -122,18 +123,15 @@ public abstract class AbstractService {
 			
 			PaginationData pData=new PaginationData();
 			pData.setPageSize(5);
-			String hql="from ClassNewsReply where  ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+") and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
+			String hql=SelectReplySql+" from px_classnewsreply t1  where  ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+") and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
 			pData.setOrderFiled("create_time");
 			pData.setOrderType("desc");
 			
-			PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHqlNoTotal(hql, pData);
-			List<ClassNewsReply> list=pageQueryResult.getData();
+			PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findMapByPageForSqlNoTotal(hql, pData);
+			List<Map> list=pageQueryResult.getData();
 			
-			for(ClassNewsReply o:list){
-				this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
-				o.setContent(o.getContent());
-				o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
-			}
+			UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_user", "create_img");
+		
 			return pageQueryResult;
 					
 		}
@@ -151,16 +149,23 @@ public abstract class AbstractService {
 			}
 			
 			PaginationData pData=new PaginationData();
-			String hql="from ClassNewsReply where    ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")  and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
+			pData.setPageSize(5);
+			String hql=SelectReplySql+" from px_classnewsreply t1  where  ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+") and  newsuuid='"+DbUtils.safeToWhereString(newsuuid)+"'";
 			pData.setOrderFiled("create_time");
 			pData.setOrderType("desc");
 			
-			PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHqlNoTotal(hql, pData);
-			List<ClassNewsReply> list=pageQueryResult.getData();
-			this.nSimpleHibernateDao.getHibernateTemplate().clear();
-			for(ClassNewsReply o:list){
-				o.setContent(o.getContent());
-				o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+			PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findMapByPageForSqlNoTotal(hql, pData);
+			List<Map> list=pageQueryResult.getData();
+			
+			UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_user", "create_img");
+			
+			for(Map o:list){
+				try {
+					o.put("dianzan",(this.getDianzanDianzanListVO((String)o.get("uuid"), cur_user_uuid)));
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			return pageQueryResult;
 					

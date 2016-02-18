@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
@@ -209,7 +210,7 @@ public class ClassNewsService extends AbstractService {
 			warpMap(o,user);
 			uuids+=o.get("uuid")+",";
 		}
-		
+		UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_user", "create_img");
 		try {
 			countService.getIncrCountByExt_uuids(uuids);
 			Map dianZanMap=classNewsReplyService.getDianzanDianzanMap(uuids, user);

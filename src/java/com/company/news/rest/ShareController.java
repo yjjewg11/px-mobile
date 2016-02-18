@@ -36,6 +36,7 @@ import com.company.news.entity.Announcements4Q;
 import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
 import com.company.news.entity.CookbookPlan;
+import com.company.news.entity.FPMovie;
 import com.company.news.entity.FPMovieOfPlay;
 import com.company.news.entity.Group;
 import com.company.news.entity.Group4Q;
@@ -859,38 +860,42 @@ String mappoint = request.getParameter("map_point");
 	private FPPhotoItemService fPPhotoItemService;
 	
 		@RequestMapping("/getFPMovie")  
-	    public void exchangeJson(ModelMap model, HttpServletRequest request,HttpServletResponse response,PaginationData pData) {  
+	    public void getFPMovie(ModelMap model, HttpServletRequest request,HttpServletResponse response,PaginationData pData) {  
 	       try {  
 	    	   model.clear();
+	    	   ResponseMessage responseMessage = RestUtil
+	   				.addResponseMessageForModelMap(model);
 	    	   
 	    	  // String jsonpCallback = request.getParameter("jsonpCallback");//客户端请求参数  
 	    	   String family_uuid = request.getParameter("family_uuid");//客户端请求参数  
 	    	   String movie_uuid = request.getParameter("movie_uuid");//客户端请求参数  
 		    	  
-	    	   PageQueryResult pageQueryResult=  fPPhotoItemService.queryForMovie(family_uuid, pData, model);
+	    	   
+	    	   FPMovie fPMovie= (FPMovie)this.nSimpleHibernateDao.getObject(FPMovie.class, movie_uuid);
+	    	   if(fPMovie==null){
+	    		   responseMessage.setMessage("动态相册不存在！");
+	    		   HttpRequestUtils.responseJSONP(model, response, "getFPMovie");
+	    		   return;
+	    	   }
+	    	   
+	    	   
+	    	   this.nSimpleHibernateDao.getHibernateTemplate().evict(fPMovie);
+	    	   pData.setPageSize(20);
+	    	   PageQueryResult pageQueryResult=  fPPhotoItemService.queryForMoviePhoto_uuids(fPMovie.getPhoto_uuids(), pData, model);
+	    	   fPMovie.setPhoto_uuids(null);
+	    	   
 	    	   model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
-	    	   FPMovieOfPlay fPMovie=new FPMovieOfPlay();
-	    	   fPMovie.setUuid(movie_uuid);
-	    	   fPMovie.setMp3("http://img.wenjienet.com/mp3/致爱丽丝.mp3");
-	    	   fPMovie.setTitle("动态照片");
-	    	   fPMovie.setTemplate_key("fp_movie1");
-	    	   fPMovie.setPhoto_count(pageQueryResult.getTotalCount());
+	    	//   FPMovieOfPlay fPMovie=new FPMovieOfPlay();
+//	    	   fPMovie.setUuid(movie_uuid);
+//	    	   fPMovie.setMp3("http://img.wenjienet.com/mp3/致爱丽丝.mp3");
+//	    	   fPMovie.setTitle("动态照片");
+//	    	   fPMovie.setTemplate_key("fp_movie1");
+//	    	   fPMovie.setPhoto_count(pageQueryResult.getTotalCount());
 	    	   model.addAttribute(RestConstants.Return_G_entity,fPMovie);
 	    	   
-	    	   response.setContentType("text/plain");  
-	        response.setHeader("Pragma", "No-cache");  
-	        response.setHeader("Cache-Control", "no-cache");  
-	        response.setDateHeader("Expires", 0);  
-	         
-	        PrintWriter out = response.getWriter();       
-	        
-//	        net.sf.json.JSONObject resultJSON = net.sf.json.JSONObject.fromObject(model); //根据需要拼装json  
-	       // if(StringUtils.isBlank(jsonpCallback))jsonpCallback="jsonpCallback";
-	        
-	        out.println("var getFPMovie="+JSONUtils.getJsonString(model));//返回jsonp格式数据  
-//	        out.println(JSONUtils.getJsonString(model));//返回jsonp格式数据  
-	        out.flush();  
-	        out.close();  
+	    	   
+	    	   responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+	    	 HttpRequestUtils.responseJSONP(model, response, "getFPMovie");
 	      } catch (IOException e) {  
 	       e.printStackTrace();  
 	      }  

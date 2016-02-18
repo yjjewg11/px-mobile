@@ -231,8 +231,8 @@ public class UserinfoService extends AbstractService {
 	public void relUpdate_updateSessionUserInfoInterface(
 			SessionUserInfoInterface user) {
 		UserRedisCache.setUserCacheByParent(user);
-		//return;
-		int count = 0;
+		return;
+//		int count = 0;
 
 //		
 //		//更新话题表
@@ -252,14 +252,14 @@ public class UserinfoService extends AbstractService {
 //
 //				this.logger.info("update ClassNewsReply count=" + count);
 		//更新互动表
-		count = this.nSimpleHibernateDao
-				.getHibernateTemplate()
-				.bulkUpdate(
-						"update ClassNewsReply set create_user=?,create_img=? where create_useruuid =?",
-						user.getName(), user.getImg(), user.getUuid());
-
-		this.logger.info("update ClassNewsReply count=" + count);
-		
+//		count = this.nSimpleHibernateDao
+//				.getHibernateTemplate()
+//				.bulkUpdate(
+//						"update ClassNewsReply set create_user=?,create_img=? where create_useruuid =?",
+//						user.getName(), user.getImg(), user.getUuid());
+//
+//		this.logger.info("update ClassNewsReply count=" + count);
+//		
 		
 
 		// 这个根据学生uuid生成
@@ -269,17 +269,17 @@ public class UserinfoService extends AbstractService {
 		// user.getName(),user.getImg(), user.getUuid());
 		// this.logger.info("update ClassNews count="+count);
 		//更新消息表发送者
-		count = this.nSimpleHibernateDao
-				.getHibernateTemplate()
-				.bulkUpdate(
-						"update Message set send_user=?,send_userimg=? where send_useruuid =?",
-						user.getName(), user.getImg(), user.getUuid());
-		this.logger.info("update Message count=" + count);
-		//更新消息表发送者接收者
-		count = this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
-				"update Message set revice_user=? where revice_useruuid =?",
-				user.getName(), user.getUuid());
-		this.logger.info("update Message count=" + count);
+//		count = this.nSimpleHibernateDao
+//				.getHibernateTemplate()
+//				.bulkUpdate(
+//						"update Message set send_user=?,send_userimg=? where send_useruuid =?",
+//						user.getName(), user.getImg(), user.getUuid());
+//		this.logger.info("update Message count=" + count);
+//		//更新消息表发送者接收者
+//		count = this.nSimpleHibernateDao.getHibernateTemplate().bulkUpdate(
+//				"update Message set revice_user=? where revice_useruuid =?",
+//				user.getName(), user.getUuid());
+//		this.logger.info("update Message count=" + count);
 
 	}
 

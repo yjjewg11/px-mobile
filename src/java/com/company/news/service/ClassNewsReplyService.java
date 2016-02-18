@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
+import com.company.news.cache.redis.UserRedisCache;
+import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
 import com.company.news.entity.ClassNews;
@@ -114,24 +116,63 @@ public class ClassNewsReplyService extends AbstractService {
 		return true;
 	}
 
+	
+	
+	
+	static final String  SelectSql=" SELECT t1.uuid,t1.newsuuid,t1.content,t1.create_time,t1.create_useruuid,t1.status ";
 	/**
 	 * 查询所有班级
 	 * 
 	 * @return
 	 */
 	public PageQueryResult query(String newsuuid, PaginationData pData,String cur_user_uuid) {
-		String hql="from ClassNewsReply where ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")" ;	
+		
+		String sql = SelectSql+"from px_classnewsreply t1 where ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")" ;	
 		if (StringUtils.isNotBlank(newsuuid))
-			hql+=" and  newsuuid='"+DBUtil.safeToWhereString(newsuuid)+"'";
+			sql+=" and  newsuuid='"+DBUtil.safeToWhereString(newsuuid)+"'";
 		
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		
-		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHqlNoTotal(hql, pData);
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findMapByPageForSqlNoTotal(sql, pData);
+//		List<ClassNewsReply> list = pageQueryResult.getData();
+		this.warpMapList(pageQueryResult.getData(), cur_user_uuid);
 		
 		return pageQueryResult;
 				
 	}
+	
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List warpMapList(List<Map> list,String cur_user_uuid ) {
+		if(list.size()==0)return list;
+		//从缓存中获取用户资料,包装用户名和头像.
+		UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_user", "create_img");
+		//t1.create_useruuid,t1.create_user,t1.create_img
+		for(Map o:list){
+			warpMap(o,cur_user_uuid);
+		}
+		return list;
+	}
+	/**
+	 * vo输出转换
+	 * 
+	 * @param list
+	 * @return
+	 */
+	private Map warpMap(Map o,String cur_user_uuid) {
+		try {
+			o.put("dianzan",(this.getDianzanDianzanListVO((String)o.get("uuid"), cur_user_uuid)));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return o;
+	}
+	
 
 	/**
 	 * vo输出转换

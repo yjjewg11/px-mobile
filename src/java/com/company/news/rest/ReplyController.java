@@ -103,7 +103,7 @@ public class ReplyController extends AbstractRESTController {
 			PaginationData pData=this.getPaginationDataByRequest(request);
 			PageQueryResult pageQueryResult = classNewsReplyService.query(request.getParameter("newsuuid"), pData,cur_user_uuid);
 		
-			classNewsReplyService.warpVoList(pageQueryResult.getData(), cur_user_uuid);
+//			classNewsReplyService.warpVoList(pageQueryResult.getData(), cur_user_uuid);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 			return "";

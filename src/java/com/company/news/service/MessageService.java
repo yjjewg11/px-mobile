@@ -1,6 +1,7 @@
 package com.company.news.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
@@ -83,6 +85,8 @@ public class MessageService extends AbstractService {
 		}
 		return true;
 	}
+	
+	static final String  SelectSql=" SELECT t1.uuid,t1.create_time,t1.send_useruuid,t1.title,t1.type,t1.isread,t1.message,t1.group_uuid,t1.revice_useruuid,t1.revice_user,t1.send_user,t1.send_userimg ";
 
 	/**
 	 * 查询所有通知
@@ -91,15 +95,14 @@ public class MessageService extends AbstractService {
 	 */
 	public PageQueryResult query(String type, String useruuid,PaginationData pData) {
 
-		String hql = "from Message where isdelete=" + announcements_isdelete_no;
+		String hql = SelectSql+" from px_message t1 where isdelete=" + announcements_isdelete_no;
 		if (StringUtils.isNotBlank(type))
 			hql += " and type=" + type;
 		if (StringUtils.isNotBlank(useruuid))
 			hql += " and revice_useruuid='" + DbUtils.safeToWhereString(useruuid) + "'";
-		pData.setOrderFiled("create_time");
-		pData.setOrderType("desc");
+		hql += " order by create_time desc" ;
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHqlNoTotal(hql, pData);
+				.findMapByPageForSqlNoTotal(hql, pData);
 		return pageQueryResult;
 	}
 
@@ -179,17 +182,17 @@ public class MessageService extends AbstractService {
 		
 		useruuid=DbUtils.safeToWhereString(useruuid);
 		parentuuid=DbUtils.safeToWhereString(parentuuid);
-		String hql = "from Message where isdelete=" + announcements_isdelete_no;
+		String hql = SelectSql+" from px_message t1 where isdelete=" + announcements_isdelete_no;
 		hql += " and type=1 " ;
 		hql += " and (" ;
 			hql += "  (revice_useruuid='" + useruuid + "' and send_useruuid='" + parentuuid + "')";//家长发给我的.
 			hql += " or (send_useruuid='" + useruuid + "' and revice_useruuid='" + parentuuid + "')";//我发给家长的.
 		hql += "  )" ;
-		pData.setOrderFiled("create_time");
-		pData.setOrderType("desc");
+		
+		hql += " order by create_time desc" ;
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHqlNoTotal(hql, pData);
-		this.warpVoList(pageQueryResult.getData());
+				.findMapByPageForSqlNoTotal(hql, pData);
+		this.warpMapList(pageQueryResult.getData());
 		return pageQueryResult;
 	}
 	/**
@@ -201,21 +204,31 @@ public class MessageService extends AbstractService {
 		useruuid=DbUtils.safeToWhereString(useruuid);
 		parentuuid=DbUtils.safeToWhereString(parentuuid);
 		
-		String hql = "from Message where isdelete=" + announcements_isdelete_no;
+		String hql = SelectSql+" from px_message t1 where isdelete=" + announcements_isdelete_no;
 		hql += " and type=2 " ;
 		hql += " and (" ;
 			hql += "  (revice_useruuid='" + useruuid + "' and send_useruuid='" + parentuuid + "')";//家长发给我的.
 			hql += " or (send_useruuid='" + useruuid + "' and revice_useruuid='" + parentuuid + "')";//我发给家长的.
 		hql += "  )" ;
-		pData.setOrderFiled("create_time");
-		pData.setOrderType("desc");
+		hql += " order by create_time desc" ;
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
-				.findByPaginationToHqlNoTotal(hql, pData);
-		this.warpVoList(pageQueryResult.getData());
+				.findMapByPageForSqlNoTotal(hql, pData);
+		this.warpMapList(pageQueryResult.getData());
 		return pageQueryResult;
 	}
 	
-	
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	public List<Map> warpMapList(List<Map> list){
+		
+		UserRedisCache.warpListMapByUserCache(list, "send_useruuid", "send_user", "send_userimg");
+		UserRedisCache.warpListMapByUserCache(list, "revice_useruuid", "revice_user", null);
+		
+		return list;
+	}
 	/**
 	 * vo输出转换
 	 * @param list
