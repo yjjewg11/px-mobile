@@ -83,13 +83,16 @@ public  class BaseReplyService extends AbstractService {
 	}
 
 
+	//create_img,create_user,to_user
+	String selectSql="select uuid,create_time,content,create_useruuid,to_useruuid ";
 	/**
 	 * 查询
 	 * 
 	 * @return
 	 */
 	public PageQueryResult query(String rel_uuid,Integer type, PaginationData pData,String cur_user_uuid) {
-		String hql="from "+this.getEntityClassByType(type).getName()+" where ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")" ;	
+		String tableName="px_base_reply_"+type;
+		String hql=selectSql+"from "+tableName+" where ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")" ;	
 			hql+=" and  rel_uuid='"+rel_uuid+"'";
 		 if(StringUtils.isNotBlank(pData.getMaxTime())){
 			 hql += " and   create_time <"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
@@ -97,7 +100,7 @@ public  class BaseReplyService extends AbstractService {
 		pData.setOrderFiled("create_time");
 		pData.setOrderType("desc");
 		
-		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findByPaginationToHql(hql, pData);
+		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findMapByPageForSqlNoTotal(hql, pData);
 		
 		return pageQueryResult;
 				
@@ -108,41 +111,12 @@ public  class BaseReplyService extends AbstractService {
 	 * @param list
 	 * @return
 	 */
-	public List<AbstractBaseReply> warpVoList(List<AbstractBaseReply> list,String cur_user_uuid){
+	public List<Map> warpVoList(List<Map> list,String cur_user_uuid){
 //		for(ClassNewsReply o:list){
 //			warpVo(o,cur_user_uuid);
 //		}
-		
-		
-		//批量获取redis中用户
-		String[] userUuids=new String[list.size()];
-		for(int i=0,len=list.size();i<len;i++){
-			AbstractBaseReply o=list.get(i);
-			String useruuid=o.getCreate_useruuid();
-			if(StringUtils.isBlank(useruuid)){
-				useruuid="-1";
-			}
-			userUuids[i]=useruuid;
-		}
-		
-		
-		Map<String,UserCache> userMap=UserRedisCache.getUserCache(userUuids);
-		
-		for(AbstractBaseReply o:list){
-			String useruuid=o.getCreate_useruuid();
-			if(StringUtils.isBlank(useruuid)){
-				continue;
-			}
-			
-			UserCache userCahce=userMap.get(useruuid);
-			if(userCahce==null){
-				logger.error("redis userCahce is null,uuid="+useruuid);
-				continue;
-			}
-			o.setCreate_user(userCahce.getN());
-			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(userCahce.getI()));
-			
-		}
+		UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_user", "create_img");
+		UserRedisCache.warpListMapByUserCache(list, "to_useruuid", "to_user", null);
 		return list;
 	}
 

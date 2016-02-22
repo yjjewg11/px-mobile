@@ -427,6 +427,41 @@ public class FPPhotoItemController extends AbstractRESTController {
 	
 
 	
+
+	@RequestMapping(value = "/get", method = RequestMethod.GET)
+	public String get2(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		Object m=null;
+		try {
+			String uuid=request.getParameter("uuid");
+			if(DbUtils.isSqlInjection(uuid, responseMessage)){
+				return "";
+			}
+			m = fPPhotoItemService.get(uuid);
+			if(m==null){
+				responseMessage.setMessage("数据不存在！");
+				return "";
+			}
+			
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			String user_uuid=null;
+			if(user!=null){
+				user_uuid=user.getUuid();
+			}
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPPhotoItemService.isFavorites( user_uuid,uuid));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+	
+		model.addAttribute(RestConstants.Return_G_entity,m);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
 	
 
 	
@@ -474,12 +509,11 @@ public class FPPhotoItemController extends AbstractRESTController {
 	 * @return
 	 */
 	@RequestMapping(value = "/extra", method = RequestMethod.GET)
-	public String extra(@PathVariable String uuid,ModelMap model, HttpServletRequest request) {
+	public String extra(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		Object m=null;
 		try {
-			
+			String uuid=request.getParameter("uuid");
 			if(DbUtils.isSqlInjection(uuid, responseMessage)){
 				return "";
 			}
@@ -500,7 +534,6 @@ public class FPPhotoItemController extends AbstractRESTController {
 			return "";
 		}
 	
-		model.addAttribute(RestConstants.Return_G_entity,m);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		return "";
 	}

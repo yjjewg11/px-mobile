@@ -73,7 +73,7 @@ public class FPPhotoItemService extends AbstractService {
 		
 		//获取MaxTime 时间后的新数据总数量
 		String countNewDataSql="select count(*)  FROM fp_photo_item t1 ";
-		countNewDataSql += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
+		countNewDataSql += " where   t1.status<2 and   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
 			 countNewDataSql += " and   t1.create_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
 		Object  countNewData=session.createSQLQuery(countNewDataSql).uniqueResult();
 		
@@ -138,7 +138,8 @@ public class FPPhotoItemService extends AbstractService {
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String selectsql=Selectsql;
 		String sqlFrom=SqlFrom;
-		sqlFrom += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
+		//修复，增量查询是不查询已经删除了得
+		sqlFrom += " where  t1.status<2 and t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
 		
 		
 		String sql=sqlFrom;

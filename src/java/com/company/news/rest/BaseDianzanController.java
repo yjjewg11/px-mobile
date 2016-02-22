@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.BaseDianzanJsonform;
-import com.company.news.jsonform.BaseReplyJsonform;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.BaseDianzanService;
@@ -49,7 +48,7 @@ public class BaseDianzanController extends AbstractRESTController {
 			
 			
 			baseReplyJsonform = (BaseDianzanJsonform) this.bodyJsonToFormObject(
-					bodyJson, BaseReplyJsonform.class);
+					bodyJson, BaseDianzanJsonform.class);
 			
 			
 		//设置当前用户

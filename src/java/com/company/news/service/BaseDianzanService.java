@@ -56,7 +56,7 @@ public  class BaseDianzanService extends AbstractService {
 		try {
 			this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().getCurrentSession().createSQLQuery(insertsql).executeUpdate();
 		} catch (org.hibernate.exception.ConstraintViolationException e) {
-			responseMessage.setMessage("你已过投票!");
+			responseMessage.setMessage("你已点赞!");
 			return false;
 		}
 		return true;
@@ -74,7 +74,11 @@ public  class BaseDianzanService extends AbstractService {
 		String sql="select count(1) as dianzan_count,sum(case when create_useruuid ='"+cur_user_uuid+"' then 1 else 0 end)  as yidianzan   from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"'";
 		List<Map> list=this.nSimpleHibernateDao.queryMapBySql(sql);
 		if(list.size()>0){
-			return list.get(0);
+			Map map= list.get(0);
+			if(map.get("yidianzan")==null){
+				map.put("yidianzan", 0);
+			}
+			return map;
 		}
 		Map map=new HashMap();
 		map.put("dianzan_count", 0);
