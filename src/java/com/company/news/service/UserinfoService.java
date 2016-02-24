@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -22,9 +21,10 @@ import com.company.http.PxHttpSession;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.cache.UserCache;
+import com.company.news.cache.redis.SessionUserRedisCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
-import com.company.news.commons.util.JavaLockUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.NewMsgNumberIservice;
 import com.company.news.entity.Group;
@@ -43,13 +43,13 @@ import com.company.news.jsonform.UserRegJsonform;
 import com.company.news.rest.RestConstants;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.session.UserOfSession;
 import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
 import com.company.news.vo.TeacherPhone;
 import com.company.plugin.security.LoginLimit;
 import com.company.web.filter.UserInfoFilter;
 import com.company.web.listener.SessionListener;
-import com.company.web.session.UserOfSession;
 
 /**
  * 
@@ -377,6 +377,8 @@ public class UserinfoService extends AbstractService {
 		}
 		session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
 
+		
+		
 		// 移到CONTROLLER调用，减少长事务执行
 		// List<StudentOfSession>
 		// studentOfSessionlist=this.getStudentOfSessionByParentuuid(parent.getUuid());
@@ -800,7 +802,10 @@ public class UserinfoService extends AbstractService {
 	 * @param loginname
 	 * @return
 	 */
+	@Deprecated
 	public Parent getUserBySessionid(String sessionid) {
+		
+		
 		
 		String hql="from Parent where sessionid=:sessionid or uuid in (select DISTINCT user_uuid from PushMsgDevice where sessionid=:sessionid2)";
 		
@@ -829,35 +834,38 @@ public class UserinfoService extends AbstractService {
 		//根据参数相同视为同一把锁.
 	
 		try {
-			Object lockObject=JavaLockUtils.getLockObj(jessionid);
-			Parent user = null;
+//			Object lockObject=JavaLockUtils.getLockObj(jessionid);
+			UserCache user = null;
 			HttpSession session = null;
 			
-
-				synchronized (lockObject) {
+				//导致死锁
+				//synchronized (lockObject)
+				{
 					session=SessionListener.getSession(request);
 					// 同步加锁情况下,再次判断,防止多次创建session
 					if (session != null&&session.getAttribute(RestConstants.Session_UserInfo)!=null) {
 						return true;
 					}
 					
-					this.logger.info("jessionid="+jessionid);
-					user = getUserBySessionid(jessionid);
-					if (user == null){// 请求服务返回失败标示
+					//从缓存中取
+					UserOfSession userOfSession =SessionUserRedisCache.getUserOfSessionBySessionid(jessionid);
+//					user = getUserBySessionid(jessionid);
+					if (userOfSession == null){// 请求服务返回失败标示
+						this.logger.info("user is null,jessionid="+jessionid);
 						return false;
 					
 					}
-					
+					this.logger.info("jessionid="+jessionid);
 					
 					session = new PxHttpSession(jessionid);
 					SessionListener.putSessionByJSESSIONID(session);
 					//修复多并发取不到.Session_UserInfo bug.
-					UserOfSession userOfSession = new UserOfSession();
-					try {
-						BeanUtils.copyProperties(userOfSession, user);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+//					try {
+//						BeanUtils.copyProperties(userOfSession, user);
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+					
 					session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
 					// 设置session数据
 					this.putSession(session, userOfSession, request);
@@ -878,7 +886,7 @@ public class UserinfoService extends AbstractService {
 			return false;
 			
 		}finally{
-        	JavaLockUtils.removeLockObj(jessionid);
+//        	JavaLockUtils.removeLockObj(jessionid);
 		}
 
 	}
@@ -897,6 +905,10 @@ public class UserinfoService extends AbstractService {
 		//我的孩子参加的培训班
 		session.setAttribute(RestConstants.Session_MyStudentClassUuids, getPxClassuuidsByMyChild(parent.getUuid()));
 		
+		
+		
+		//redis 缓存sessionid
+				SessionUserRedisCache.set(session.getId(), (UserOfSession)parent);
 	}
 
 	public Map getNewMsgNumber(HttpServletRequest request,

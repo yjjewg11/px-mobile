@@ -73,11 +73,17 @@ public class SessionListener implements HttpSessionListener {
       session=getSessionFromCache(tmpsession);
       if(session!=null)return session;
       
+      if(session==null){
+     	 logger.warn("Return_JSESSIONID is null.sessionid="+JSESSIONID);
+     }
+      
    }
     //从cookie中取sessionid
     JSESSIONID=UserInfoFilter.getJSESSIONIDCookies(request);
     session=(HttpSession)getSessionFromCache(JSESSIONID);
-    
+    if(session==null){
+    	 logger.warn("session is null.sessionid="+JSESSIONID);
+    }
     return session;
   }
   

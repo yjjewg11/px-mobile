@@ -144,9 +144,14 @@ public  class BaseDianzanService extends AbstractService {
 		
 		//rel_uuid,create_useruuid
 		String insertsql="delete from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"' and create_useruuid='"+parent.getUuid()+"'";
-		this.nSimpleHibernateDao.createSqlQuery(insertsql).executeUpdate();
-
-		return true;
+		int count=this.nSimpleHibernateDao.createSqlQuery(insertsql).executeUpdate();
+		
+		
+		
+		if(count>0)
+			return true;
+		responseMessage.setMessage("无数据");
+		return false;
 	}
 //	/**
 //	 * 获取点赞列表信息

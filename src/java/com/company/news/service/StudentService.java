@@ -23,10 +23,10 @@ import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.StudentJsonform;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.session.UserOfSession;
 import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
-import com.company.web.session.UserOfSession;
 
 /**
  * 

@@ -50,14 +50,11 @@ public class BaseDianzanController extends AbstractRESTController {
 			baseReplyJsonform = (BaseDianzanJsonform) this.bodyJsonToFormObject(
 					bodyJson, BaseDianzanJsonform.class);
 			
-			
+			baseReplyJsonform.setUuid(null);
 		//设置当前用户
 		SessionUserInfoInterface user=this.getUserInfoBySession(request);
 		//转换特定格式.
-			boolean flag=false;
-			if(StringUtils.isEmpty(baseReplyJsonform.getUuid()))
-			    flag = baseDianzanService.add(user,baseReplyJsonform, responseMessage);
-			
+			boolean flag = baseDianzanService.add(user,baseReplyJsonform, responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 		} catch (Exception e) {

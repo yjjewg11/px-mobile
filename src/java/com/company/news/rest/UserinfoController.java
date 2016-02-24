@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.cache.CommonsCache;
+import com.company.news.cache.redis.SessionUserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
 import com.company.news.entity.User4Q;
@@ -202,10 +203,12 @@ public class UserinfoController extends AbstractRESTController {
 			if (session != null) {
 				// UserInfo
 				// userInfo=(UserInfo)session.getAttribute(RestConstants.Session_UserInfo);
+				
+				SessionUserRedisCache.remove(session.getId());
 				session.invalidate();
 			}
 
-	
+			
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
