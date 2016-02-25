@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.entity.PxStudent;
 import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.PxClassService;
 import com.company.news.service.PxStudentService;
@@ -57,6 +58,8 @@ public class PxStudentController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		PxStudent s;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			s = pxStudentService.get(uuid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

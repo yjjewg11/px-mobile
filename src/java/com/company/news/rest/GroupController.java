@@ -20,6 +20,7 @@ import com.company.news.entity.Group4Q;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.CountService;
 import com.company.news.service.GroupService;
@@ -137,6 +138,8 @@ public class GroupController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		Group c;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			c = groupService.get(uuid);
 			if(c ==null){
 				responseMessage.setMessage("学校不存在！");

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.entity.StudentBind;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.StudentBindJsonform;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.StudentBindService;
 import com.company.news.vo.ResponseMessage;
@@ -129,6 +130,8 @@ public class StudentBindController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		StudentBind s;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			s = studentBindService.get(uuid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

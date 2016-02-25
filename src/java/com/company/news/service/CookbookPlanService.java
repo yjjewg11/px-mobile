@@ -1,32 +1,22 @@
 package com.company.news.service;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.ClassNews;
 import com.company.news.entity.Cookbook;
 import com.company.news.entity.CookbookPlan;
-import com.company.news.entity.Group;
-import com.company.news.entity.PClass;
-import com.company.news.entity.Right;
 import com.company.news.entity.User;
-import com.company.news.entity.UserClassRelation;
-import com.company.news.entity.UserGroupRelation;
-import com.company.news.jsonform.ClassRegJsonform;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.CookbookPlanJsonform;
-import com.company.news.jsonform.GroupRegJsonform;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
@@ -108,7 +98,7 @@ public class CookbookPlanService extends AbstractService {
 	 * @throws Exception 
 	 */
 	public List<CookbookPlan> query(String begDateStr, String endDateStr,
-			String groupuuid,String cur_user_uuid)  throws Exception{
+			String groupuuid,SessionUserInfoInterface user)  throws Exception{
 		if (StringUtils.isBlank(groupuuid)) {
 			return null;
 		}
@@ -130,7 +120,7 @@ public class CookbookPlanService extends AbstractService {
 				.find("from CookbookPlan where groupuuid=? and plandate<=? and plandate >=?  order by plandate asc",
 						groupuuid, endDate, begDate);
 		this.nSimpleHibernateDao.getHibernateTemplate().clear();
-		this.warpVoList(list, cur_user_uuid);
+		this.warpVoList(list, user);
 		
 		return list;
 	}
@@ -163,11 +153,11 @@ public class CookbookPlanService extends AbstractService {
 	 * @param uuid
 	 * @return
 	 */
-	public CookbookPlan get(String uuid,String cur_user_uuid) {
+	public CookbookPlan get(String uuid,SessionUserInfoInterface user) {
 		CookbookPlan c = (CookbookPlan) this.nSimpleHibernateDao.getObjectById(
 				CookbookPlan.class, uuid);
 		this.nSimpleHibernateDao.getHibernateTemplate().clear();
-		warpVo(c,cur_user_uuid);
+		warpVo(c,user);
 		return c;
 
 	}
@@ -178,7 +168,7 @@ public class CookbookPlanService extends AbstractService {
 	 * @param list
 	 * @return
 	 */
-	private CookbookPlan warpVo(CookbookPlan c,String cur_user_uuid){
+	private CookbookPlan warpVo(CookbookPlan c,SessionUserInfoInterface user){
 		if(c==null)return c;
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(c);
 		try {
@@ -188,8 +178,8 @@ public class CookbookPlanService extends AbstractService {
 			c.setList_time_4(this.getCookbookList(c.getTime_4()));
 			c.setList_time_5(this.getCookbookList(c.getTime_5()));
 			c.setCount(countService.count(c.getUuid(), SystemConstants.common_type_shipu));
-			c.setDianzan(this.getDianzanDianzanListVO(c.getUuid(), cur_user_uuid));
-			c.setReplyPage(this.getReplyPageList(c.getUuid()));
+			c.setDianzan(this.getDianzanDianzanListVO(c.getUuid(), user.getUuid()));
+			c.setReplyPage(this.getReplyPageList(c.getUuid(),user));
 
 			c.setShare_url(PxStringUtil.getCookbookPlanByUuid(c.getUuid()));
 		} catch (Exception e) {
@@ -203,9 +193,9 @@ public class CookbookPlanService extends AbstractService {
 	 * @param list
 	 * @return
 	 */
-	private List<CookbookPlan> warpVoList(List<CookbookPlan> list,String cur_user_uuid){
+	private List<CookbookPlan> warpVoList(List<CookbookPlan> list,SessionUserInfoInterface user){
 		for(CookbookPlan o:list){
-			warpVo(o,cur_user_uuid);
+			warpVo(o,user);
 		}
 		return list;
 	}

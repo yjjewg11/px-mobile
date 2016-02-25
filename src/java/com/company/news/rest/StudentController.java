@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.entity.Student;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.StudentJsonform;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.StudentService;
 import com.company.news.vo.ResponseMessage;
@@ -86,6 +87,8 @@ public class StudentController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		Student s;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			s = studentService.get(uuid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

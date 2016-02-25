@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.company.news.SystemConstants;
+import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
@@ -102,7 +103,15 @@ public abstract class AbstractService {
 		for(ClassNewsReply o:list){
 			this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 			o.setContent(o.getContent());
-			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
+			UserCache userCache=UserRedisCache.getUserCache(o.getCreate_useruuid());
+			if(userCache!=null){
+				o.setCreate_user(userCache.getN());
+				o.setCreate_img(userCache.getI());
+				o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
+				
+			}
+			
+			
 		}
 		return pageQueryResult;
 				

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.entity.PxClass;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.PxClassService;
 import com.company.news.vo.ResponseMessage;
@@ -137,6 +138,8 @@ public class PxClassController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		PxClass c;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			c = pxClassService.get(uuid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

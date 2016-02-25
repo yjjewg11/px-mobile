@@ -14,6 +14,7 @@ import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FavoritesJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.FavoritesService;
 import com.company.news.vo.ResponseMessage;
@@ -155,6 +156,8 @@ public class FavoritesController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		Favorites m;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			m = favoritesService.get(uuid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

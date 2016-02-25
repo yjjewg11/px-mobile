@@ -17,6 +17,7 @@ import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.MessageJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.right.RightConstants;
 import com.company.news.right.RightUtils;
@@ -393,6 +394,8 @@ public class MessageController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		Message m;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			m = messageService.get(uuid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

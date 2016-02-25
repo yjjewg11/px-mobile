@@ -1,5 +1,7 @@
 package com.company.news.rest;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
@@ -13,11 +15,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.MyUbbUtils;
 import com.company.news.commons.util.PxStringUtil;
-import com.company.news.entity.ClassNews;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassNewsJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.ClassNewsService;
 import com.company.news.service.CountService;
@@ -222,8 +224,11 @@ public class ClassNewsController extends AbstractRESTController {
 			HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		ClassNews c=null;
+		Map c=null;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage)){
+				return "";
+			}
 			c = classNewsService.get(this.getUserInfoBySession(request),uuid);
 			
 			//定义接口,返回浏览总数.

@@ -17,6 +17,7 @@ import com.company.news.entity.PxCourse4Q;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.CountService;
 import com.company.news.service.PxCourseService;
@@ -127,6 +128,8 @@ public class PxCourseController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			PxCourse t = pxCourseService.get(uuid);
 		
 			if(t==null){

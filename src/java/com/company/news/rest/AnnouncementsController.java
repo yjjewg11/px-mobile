@@ -18,6 +18,7 @@ import com.company.news.commons.util.PxStringUtil;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.AnnouncementsService;
 import com.company.news.service.CountService;
@@ -119,8 +120,13 @@ public class AnnouncementsController extends AbstractRESTController {
 	public String get(@PathVariable String uuid,ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
+		
+		
 		AnnouncementsVo a=null;
 		try {
+			
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			a = announcementsService.get(uuid);
 			
 			if(a==null){

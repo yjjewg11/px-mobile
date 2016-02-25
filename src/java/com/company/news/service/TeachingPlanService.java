@@ -24,6 +24,7 @@ import com.company.news.entity.Teachingplan;
 import com.company.news.entity.User;
 import com.company.news.entity.UserClassRelation;
 import com.company.news.entity.UserGroupRelation;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.ClassRegJsonform;
 import com.company.news.jsonform.CookbookPlanJsonform;
 import com.company.news.jsonform.GroupRegJsonform;
@@ -107,7 +108,7 @@ public class TeachingPlanService extends AbstractService {
 	 * @return
 	 */
 	public List<Teachingplan> query(String begDateStr, String endDateStr,
-			String classuuid,String cur_user_uuid) {
+			String classuuid,SessionUserInfoInterface user) {
 		if (StringUtils.isBlank(classuuid)) {
 			return null;
 		}
@@ -131,7 +132,7 @@ public class TeachingPlanService extends AbstractService {
 						classuuid, endDate, begDate);
 		
 
-				this.warpVoList(list, cur_user_uuid);
+				this.warpVoList(list, user);
 		
 		return list;
 	}
@@ -142,11 +143,11 @@ public class TeachingPlanService extends AbstractService {
 	 * @param uuid
 	 * @return
 	 */
-	public Teachingplan get(String uuid,String cur_user_uuid) {
+	public Teachingplan get(String uuid,SessionUserInfoInterface user) {
 		Teachingplan t = (Teachingplan) this.nSimpleHibernateDao.getObjectById(
 				Teachingplan.class, uuid);
 		
-		return warpVo(t,cur_user_uuid);
+		return warpVo(t,user);
 
 	}
 
@@ -157,13 +158,13 @@ public class TeachingPlanService extends AbstractService {
 	 * @param list
 	 * @return
 	 */
-	private Teachingplan warpVo(Teachingplan o,String cur_user_uuid){
+	private Teachingplan warpVo(Teachingplan o,SessionUserInfoInterface user){
 		if(o==null)return null;
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		try {
 			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_jiaoxuejihua));
-			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
-			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(),  user.getUuid()));
+			o.setReplyPage(this.getReplyPageList(o.getUuid(),user));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -175,9 +176,9 @@ public class TeachingPlanService extends AbstractService {
 	 * @param list
 	 * @return
 	 */
-	private List<Teachingplan> warpVoList(List<Teachingplan> list,String cur_user_uuid){
+	private List<Teachingplan> warpVoList(List<Teachingplan> list,SessionUserInfoInterface user){
 		for(Teachingplan o:list){
-			warpVo(o,cur_user_uuid);
+			warpVo(o,user);
 		}
 		return list;
 	}

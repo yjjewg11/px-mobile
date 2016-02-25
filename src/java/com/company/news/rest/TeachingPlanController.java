@@ -18,6 +18,7 @@ import com.company.news.jsonform.ClassRegJsonform;
 import com.company.news.jsonform.CookbookPlanJsonform;
 import com.company.news.jsonform.StudentJsonform;
 import com.company.news.jsonform.TeachingPlanJsonform;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.CookbookPlanService;
 import com.company.news.service.TeachingPlanService;
@@ -46,9 +47,14 @@ public class TeachingPlanController extends AbstractRESTController {
 
 		try {
 			
+			
 			String begDateStr=request.getParameter("begDateStr");
+			if(DBUtil.isSqlInjection(begDateStr, responseMessage))return "";
+			
 			String endDateStr=request.getParameter("endDateStr");
+			if(DBUtil.isSqlInjection(endDateStr, responseMessage))return "";
 			String classuuid=request.getParameter("classuuid");
+			if(DBUtil.isSqlInjection(classuuid, responseMessage))return "";
 			if(StringUtils.isBlank(begDateStr)){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
 				responseMessage.setMessage("参数begDateStr不能为空!");
@@ -67,7 +73,7 @@ public class TeachingPlanController extends AbstractRESTController {
 			List<Teachingplan> list = teachingPlanService.query(
 					request.getParameter("begDateStr"),
 					request.getParameter("endDateStr"),
-					request.getParameter("classuuid"),this.getUserInfoBySession(request).getUuid());
+					request.getParameter("classuuid"),this.getUserInfoBySession(request));
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -87,7 +93,10 @@ public class TeachingPlanController extends AbstractRESTController {
 			HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		Teachingplan t = teachingPlanService.get(uuid,this.getUserInfoBySession(request).getUuid());
+		
+		if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+		
+		Teachingplan t = teachingPlanService.get(uuid,this.getUserInfoBySession(request));
 
 		model.addAttribute(RestConstants.Return_G_entity, t);
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);

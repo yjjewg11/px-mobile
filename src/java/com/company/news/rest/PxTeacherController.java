@@ -14,6 +14,7 @@ import com.company.news.entity.PxTeacher;
 import com.company.news.jsonform.PxTeacherJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.right.RightUtils;
 import com.company.news.service.PxTeacherService;
@@ -34,6 +35,8 @@ public class PxTeacherController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		PxTeacher s;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			s = pxTeacherService.get(uuid);
 			if(s==null){
 				responseMessage.setMessage("资料不存在.uuid="+uuid);

@@ -13,6 +13,7 @@ import com.company.news.entity.PushMessage;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.right.RightConstants;
 import com.company.news.right.RightUtils;
@@ -42,8 +43,13 @@ public class PushMessageController extends AbstractRESTController {
 			//设置当前用户
 			SessionUserInfoInterface user=this.getUserInfoBySession(request);
 			
+			
+			String type=request.getParameter("type");
+			if(DBUtil.isSqlInjection(type, responseMessage)){
+				return "";
+			}
 			PaginationData pData = this.getPaginationDataByRequest(request);
-			PageQueryResult pageQueryResult= pushMessageService.query(request.getParameter("type"),user.getUuid(),pData);
+			PageQueryResult pageQueryResult= pushMessageService.query(type,user.getUuid(),pData);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -130,6 +136,8 @@ public class PushMessageController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		PushMessage m;
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			m = pushMessageService.get(uuid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

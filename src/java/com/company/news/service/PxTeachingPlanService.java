@@ -17,6 +17,7 @@ import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.PxTeachingplan;
 import com.company.news.entity.User;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
@@ -37,7 +38,7 @@ public class PxTeachingPlanService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult query(String begDateStr, String endDateStr,
-			String classuuid, PaginationData pData, String cur_user_uuid) {
+			String classuuid, PaginationData pData, SessionUserInfoInterface user) {
 		if (StringUtils.isBlank(classuuid)) {
 			return null;
 		}
@@ -55,7 +56,7 @@ public class PxTeachingPlanService extends AbstractService {
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao
 				.findByPaginationToHql(hql, pData);
 
-		this.warpVoList(pageQueryResult.getData(), cur_user_uuid);
+		this.warpVoList(pageQueryResult.getData(),  user);
 		return pageQueryResult;
 	}
 	/**
@@ -85,7 +86,7 @@ public class PxTeachingPlanService extends AbstractService {
 	 * @param list
 	 * @return
 	 */
-	private PxTeachingplan warpVo(PxTeachingplan o, String cur_user_uuid) {
+	private PxTeachingplan warpVo(PxTeachingplan o, SessionUserInfoInterface user) {
 		if (o == null)
 			return null;
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
@@ -93,8 +94,8 @@ public class PxTeachingPlanService extends AbstractService {
 			o.setCount(countService.count(o.getUuid(),
 					SystemConstants.common_type_jiaoxuejihua));
 			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(),
-					cur_user_uuid));
-			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+					user.getUuid()));
+			o.setReplyPage(this.getReplyPageList(o.getUuid(), user));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -109,9 +110,9 @@ public class PxTeachingPlanService extends AbstractService {
 	 * @return
 	 */
 	private List<PxTeachingplan> warpVoList(List<PxTeachingplan> list,
-			String cur_user_uuid) {
+			SessionUserInfoInterface user) {
 		for (PxTeachingplan o : list) {
-			warpVo(o, cur_user_uuid);
+			warpVo(o, user);
 		}
 		return list;
 	}
@@ -202,7 +203,7 @@ order by t1.plandate asc
 
 
 	 */
-	public List nextList(String cur_user_uuid) {
+	public List nextList(SessionUserInfoInterface user ) {
 		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
 				.getSessionFactory().openSession();
 		String sql = " SELECT * from (";
@@ -216,14 +217,14 @@ order by t1.plandate asc
 		sql+=" LEFT JOIN  px_group t5 on t2.groupuuid=t5.uuid ";
 		sql+= " left join px_pxcourse t6 on t2.courseuuid=t6.uuid  ";
 		sql+=" where  t1.plandate>=curdate() ";
-		sql+=" and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"+cur_user_uuid+"' )";
+		sql+=" and t4.uuid in(select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"+user.getUuid()+"' )";
 		sql+=" order by t1.plandate asc";
 		sql+=" ) t GROUP BY t.classuuid";
 		sql+="";
 		Query q = s.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		List<Map> list = q.list();
-		warpVoList_Map(list,cur_user_uuid);
+		warpVoList_Map(list, user );
 		return list;
 	}
 	
@@ -235,21 +236,25 @@ order by t1.plandate asc
 	 * @return
 	 */
 	private Map warpVo_Map(Map
-		o, String cur_user_uuid) {
+		o, SessionUserInfoInterface user ) {
 		if (o == null)
 			return null;
 		//this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		try {
 		
+			String cur_user_uuid="";
+			if(user!=null)cur_user_uuid=user.getUuid();
+			
 			String student_headimg=(String)o.get("student_headimg");
 			o.put("student_headimg", PxStringUtil.imgSmallUrlByUuid(student_headimg));
 			
 			
 			o.put("count",countService.count((String)o.get("uuid"),
 					SystemConstants.common_type_pxteachingPlan));
+			
 			o.put("dianzan", this.getDianzanDianzanListVO((String)o.get("uuid"),
 					cur_user_uuid));
-			o.put("replyPage", this.getReplyPageList((String)o.get("uuid")));
+			o.put("replyPage", this.getReplyPageList((String)o.get("uuid"),user));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -264,9 +269,9 @@ order by t1.plandate asc
 	 * @return
 	 */
 	private List<Map> warpVoList_Map(List<Map> list,
-			String cur_user_uuid) {
+			SessionUserInfoInterface user ) {
 		for (Map o : list) {
-			warpVo_Map(o, cur_user_uuid);
+			warpVo_Map(o, user );
 		}
 		return list;
 	}

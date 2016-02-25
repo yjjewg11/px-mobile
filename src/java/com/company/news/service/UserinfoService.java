@@ -841,11 +841,7 @@ public class UserinfoService extends AbstractService {
 				//导致死锁
 				//synchronized (lockObject)
 				{
-					session=SessionListener.getSession(request);
-					// 同步加锁情况下,再次判断,防止多次创建session
-					if (session != null&&session.getAttribute(RestConstants.Session_UserInfo)!=null) {
-						return true;
-					}
+					
 					
 					//从缓存中取
 					UserOfSession userOfSession =SessionUserRedisCache.getUserOfSessionBySessionid(jessionid);
@@ -855,10 +851,19 @@ public class UserinfoService extends AbstractService {
 						return false;
 					
 					}
+					
+					session=SessionListener.getSession(request);
+					// 同步加锁情况下,再次判断,防止多次创建session
+					if (session != null&&session.getAttribute(RestConstants.Session_UserInfo)!=null) {
+						return true;
+					}
+					
 					this.logger.info("jessionid="+jessionid);
 					
 					session = new PxHttpSession(jessionid);
 					SessionListener.putSessionByJSESSIONID(session);
+
+					session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
 					//修复多并发取不到.Session_UserInfo bug.
 //					try {
 //						BeanUtils.copyProperties(userOfSession, user);
@@ -866,7 +871,6 @@ public class UserinfoService extends AbstractService {
 //						e.printStackTrace();
 //					}
 					
-					session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
 					// 设置session数据
 					this.putSession(session, userOfSession, request);
 				}

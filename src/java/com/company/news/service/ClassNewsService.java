@@ -147,7 +147,7 @@ public class ClassNewsService extends AbstractService {
 
 		return true;
 	}
-
+	String selectSql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name,t1.url";
 	/**
 	 * 查询所有班级
 	 * 
@@ -157,9 +157,9 @@ public class ClassNewsService extends AbstractService {
 	public PageQueryResult query(SessionUserInfoInterface user ,String classuuid, PaginationData pData) throws Exception {
 		
 		//修复班级互动,头像没显示bug.
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
-		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name,t1.url";
-		sql+=" FROM px_classnews t1 ";
+		Session session=this.nSimpleHibernateDao.getSession();
+//		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name,t1.url";
+		String sql=selectSql+" FROM px_classnews t1 ";
 		sql+=" where t1.status=0  ";	
 		if (StringUtils.isNotBlank(classuuid))
 			sql += " and  t1.classuuid in("+DBUtil.stringsToWhereInValue(classuuid)+")";
@@ -205,12 +205,14 @@ public class ClassNewsService extends AbstractService {
 	 */
 	private List warpMapList(List<Map> list,SessionUserInfoInterface user ) {
 		
+		UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_user", "create_img");
+		
 		String uuids="";
 		for(Map o:list){
 			warpMap(o,user);
 			uuids+=o.get("uuid")+",";
 		}
-		UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_user", "create_img");
+		
 		try {
 			countService.getIncrCountByExt_uuids(uuids);
 			Map dianZanMap=classNewsReplyService.getDianzanDianzanMap(uuids, user);
@@ -372,11 +374,26 @@ public class ClassNewsService extends AbstractService {
 		return true;
 	}
 
-	public ClassNews get(SessionUserInfoInterface user ,String uuid) throws Exception {
-		ClassNews cn = (ClassNews) this.nSimpleHibernateDao.getObjectById(
-				ClassNews.class, uuid);
-		this.warpVo(cn, user.getUuid());
-		return cn;
+	public Map get(SessionUserInfoInterface user ,String uuid) throws Exception {
+		
+		
+		//修复班级互动,头像没显示bug.
+		Session session=this.nSimpleHibernateDao.getSession();
+//		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name,t1.url";
+		String sql=selectSql+" FROM px_classnews t1 ";
+		sql+=" where t1.status=0  and uuid='"+uuid+"' ";	
+		
+		Query  query =session.createSQLQuery(sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		PaginationData pData=new PaginationData();
+		pData.setPageSize(1);
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
+		List<Map> list=pageQueryResult.getData();
+		if(list.size()>0){
+			this.warpMapList(list, user);
+			return list.get(0);
+		}
+		return null;
 
 	}
 
@@ -387,39 +404,41 @@ public class ClassNewsService extends AbstractService {
 		// TODO Auto-generated method stub
 		return ClassNews.class;
 	}
-	
-
-	/**
-	 * vo输出转换
-	 * @param list
-	 * @return
-	 */
-	private ClassNews warpVo(ClassNews o,String cur_user_uuid){
-		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
-		
-		o.setImgsList(PxStringUtil.uuids_to_imgMiddleurlList(o.getImgs()));
-		o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
-		try {
-			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));
-			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
-			o.setReplyPage(this.getReplyPageList(o.getUuid()));
-			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return o;
-	}
-	/**
-	 * vo输出转换
-	 * @param list
-	 * @return
-	 */
-	private List<ClassNews> warpVoList(List<ClassNews> list,String cur_user_uuid){
-		for(ClassNews o:list){
-			warpVo(o,cur_user_uuid);
-		}
-		return list;
-	}
+//	
+//
+//	/**
+//	 * vo输出转换
+//	 * @param list
+//	 * @return
+//	 */
+//	@Deprecated
+//	private ClassNews warpVo(ClassNews o,String cur_user_uuid){
+//		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
+//		
+//		o.setImgsList(PxStringUtil.uuids_to_imgMiddleurlList(o.getImgs()));
+//		o.setShare_url(PxStringUtil.getClassNewsByUuid(o.getUuid()));
+//		try {
+//			o.setCount(countService.count(o.getUuid(), SystemConstants.common_type_hudong));
+//			o.setDianzan(this.getDianzanDianzanListVO(o.getUuid(), cur_user_uuid));
+//			o.setReplyPage(this.getReplyPageList(o.getUuid()));
+//			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(o.getCreate_img()));
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		return o;
+//	}
+//	/**
+//	 * vo输出转换
+//	 * @param list
+//	 * @return
+//	 */
+//	@Deprecated
+//	private List<ClassNews> warpVoList(List<ClassNews> list,String cur_user_uuid){
+//		for(ClassNews o:list){
+//			warpVo(o,cur_user_uuid);
+//		}
+//		return list;
+//	}
 
 }

@@ -16,6 +16,7 @@ import com.company.news.SystemConstants;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.CookbookPlan;
 import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.CookbookPlanService;
 import com.company.news.service.CountService;
@@ -43,8 +44,11 @@ public class CookbookPlanController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			String begDateStr=request.getParameter("begDateStr");
+			if(DBUtil.isSqlInjection(begDateStr, responseMessage))return "";
 			String endDateStr=request.getParameter("endDateStr");
+			if(DBUtil.isSqlInjection(endDateStr, responseMessage))return "";
 			String groupuuid=request.getParameter("groupuuid");
+			if(DBUtil.isSqlInjection(groupuuid, responseMessage))return "";
 			if(StringUtils.isBlank(begDateStr)){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
 				responseMessage.setMessage("参数begDateStr不能为空!");
@@ -63,8 +67,8 @@ public class CookbookPlanController extends AbstractRESTController {
 			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			List<CookbookPlan> list = cookbookPlanService.query(
 					begDateStr,
-					endDateStr,
-					groupuuid,user.getUuid());
+					endDateStr,groupuuid,
+					user);
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -87,8 +91,10 @@ public class CookbookPlanController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			SessionUserInfoInterface user = this.getUserInfoBySession(request);
-			CookbookPlan c = cookbookPlanService.get(uuid,user.getUuid());
+			CookbookPlan c = cookbookPlanService.get(uuid,user);
 			//定义接口,返回浏览总数.
 			model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_shipu));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getCookbookPlanByUuid(uuid));

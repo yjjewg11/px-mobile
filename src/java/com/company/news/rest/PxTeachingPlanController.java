@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.company.news.entity.PxTeachingplan;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.PxTeachingPlanService;
 import com.company.news.vo.ResponseMessage;
@@ -75,12 +76,20 @@ public class PxTeachingPlanController extends AbstractRESTController {
 
 		
 		try {
+			
+			String begDateStr=request.getParameter("begDateStr");
+			if(DBUtil.isSqlInjection(begDateStr, responseMessage))return "";
+			
+			String endDateStr=request.getParameter("endDateStr");
+			if(DBUtil.isSqlInjection(endDateStr, responseMessage))return "";
+			String classuuid=request.getParameter("classuuid");
+			if(DBUtil.isSqlInjection(classuuid, responseMessage))return "";
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			
 			PageQueryResult pageQueryResult = pxTeachingPlanService.query(
-					request.getParameter("begDateStr"),
-					request.getParameter("endDateStr"),
-					request.getParameter("classuuid"),pData,this.getUserInfoBySession(request).getUuid());
+					begDateStr,
+					endDateStr,
+					classuuid,pData,this.getUserInfoBySession(request));
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
 
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
@@ -132,6 +141,9 @@ public class PxTeachingPlanController extends AbstractRESTController {
 			HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
+				
+				if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+		
 		PxTeachingplan t = pxTeachingPlanService.get(uuid);
 
 		model.addAttribute(RestConstants.Return_G_entity, t);
@@ -156,7 +168,7 @@ public class PxTeachingPlanController extends AbstractRESTController {
 		
 		try {
 			
-			List list = pxTeachingPlanService.nextList(this.getUserInfoBySession(request).getUuid());
+			List list = pxTeachingPlanService.nextList(this.getUserInfoBySession(request));
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
