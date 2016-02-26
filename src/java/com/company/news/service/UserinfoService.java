@@ -455,23 +455,6 @@ public class UserinfoService extends AbstractService {
 		return list;
 	}
 
-	/**
-	 * 查询指定机构的用户列表
-	 * 
-	 * @return
-	 */
-	public List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
-		String sql = "";
-		Query q = s
-				.createSQLQuery(
-						"select  DISTINCT {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
-								+ DbUtils.safeToWhereString(uuid) + "'").addEntity("t1",
-						StudentOfSession.class);
-
-		return q.list();
-	}
 	
 
 	/**
@@ -491,21 +474,7 @@ public class UserinfoService extends AbstractService {
 		return StringUtils.join(list, ",");
 	}
 	
-	/**
-	 * 返回孩子在培训机构登记的uuid.
-	 * 
-	 * @return
-	 */
-	public String getPxClassuuidsByMyChild(String parentuuid) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
-		String sql = "select class_uuid from px_pxstudentpxclassrelation where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
-								+DbUtils.safeToWhereString( parentuuid) + "' )";
-		Query q = s
-				.createSQLQuery(sql);
-		List list=q.list();
-		return StringUtils.join(list, ",");
-	}
+	
 
 	/**
 	 * 
@@ -894,26 +863,7 @@ public class UserinfoService extends AbstractService {
 		}
 
 	}
-	/**
-	 * 返回客户端用户信息放入Map
-	 * 
-	 * @param request
-	 * @return
-	 * @throws Exception
-	 */
-	public void putSession( HttpSession session,
-			SessionUserInfoInterface parent, HttpServletRequest request)
-			 {
-		List<StudentOfSession> studentOfSessionlist=getStudentOfSessionByParentuuid(parent.getUuid());
-		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
-		//我的孩子参加的培训班
-		session.setAttribute(RestConstants.Session_MyStudentClassUuids, getPxClassuuidsByMyChild(parent.getUuid()));
-		
-		
-		
-		//redis 缓存sessionid
-				SessionUserRedisCache.set(session.getId(), (UserOfSession)parent);
-	}
+	
 
 	public Map getNewMsgNumber(HttpServletRequest request,
 			ResponseMessage responseMessage) {

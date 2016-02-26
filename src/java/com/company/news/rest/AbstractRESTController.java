@@ -31,6 +31,7 @@ import com.company.web.listener.SessionListener;
 
 
 public class AbstractRESTController   {
+	
 	static{
 		ConvertUtils.register(new DateConverter(null), java.util.Date.class); 
 		ConvertUtils.register(new SqlTimestampConverter(), java.sql.Timestamp.class);
@@ -81,15 +82,6 @@ public class AbstractRESTController   {
 		    return user;
 		  }
 	  
-	  /**
-	   *  获取我的孩子列表
-	   * @param request
-	   * @return
-	   */
-	  protected List<StudentOfSession>  getMyChildrenBySession(HttpServletRequest request){
-		  HttpSession session =SessionListener.getSession(request);
-		    return (List<StudentOfSession> )session.getAttribute(RestConstants.Session_StudentslistOfParent);
-		  }
 	  
 	  /**
 	   *  获取session中的值,根据key
@@ -98,63 +90,11 @@ public class AbstractRESTController   {
 	   */
 	  protected Object  getValueOfSession(HttpServletRequest request,String key){
 		  HttpSession session =SessionListener.getSession(request);
+		  
+		  
 		    return session.getAttribute(key);
 		  }
 	  
-	  /**
-	   * 获取我的孩子关联班级的uuid
-	   * 
-	   * @param request
-	   * @return 多个逗号分割.
-	   * uuids:uuid1,uuid2
-	   */
-	  protected String  getMyChildrenClassuuidsBySession(HttpServletRequest request){
-		  String uuids="";
-		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
-		  for (StudentOfSession stu:list){
-			  if(SystemConstants.DB_String_unrelated_Value.equals(stu.getClassuuid())){
-				  continue;
-			  }
-			  uuids+=stu.getClassuuid()+",";
-		  }
-		  return StringOperationUtil.trimSeparatorChars(uuids);
-		}
-	  
-	  /**
-	   * 获取我的孩子关联的组织uuid
-	   * 
-	   * @param request
-	   * @return 多个逗号分割.
-	   * uuids:uuid1,uuid2
-	   */
-	  protected String  getMyChildrenGroupUuidsBySession(HttpServletRequest request){
-		  String uuids="";
-		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
-		  for (StudentOfSession stu:list){
-			  if(SystemConstants.DB_String_unrelated_Value.equals(stu.getGroupuuid())){
-				  continue;
-			  }
-			  if(uuids.indexOf(stu.getGroupuuid())==-1)
-				  uuids+=stu.getGroupuuid()+",";
-		  }
-		  return StringOperationUtil.trimSeparatorChars(uuids);
-		}
-	  
-	  /**
-	   * 获取我的孩子uuid
-	   * 
-	   * @param request
-	   * @return 多个逗号分割.
-	   * uuids:uuid1,uuid2
-	   */
-	  protected String  getMyChildrenUuidsBySession(HttpServletRequest request){
-		  String uuids="";
-		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
-		  for (StudentOfSession stu:list){
-			  uuids+=stu.getUuid()+",";
-		  }
-		  return StringOperationUtil.trimSeparatorChars(uuids);
-		}
 	  /**
 	   * 
 	   * @param bodyJson

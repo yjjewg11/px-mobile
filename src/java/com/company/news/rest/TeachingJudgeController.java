@@ -119,7 +119,7 @@ public class TeachingJudgeController extends AbstractRESTController {
 		
 		try {
 			SessionUserInfoInterface user=this.getUserInfoBySession(request);	
-			String class_uuids=this.getMyChildrenClassuuidsBySession(request);
+			String class_uuids=teachingJudgeService.getMyChildrenClassuuidsBySession(request);
 			
 			 teachingJudgeService.getTeachersAndJudges(user.getUuid(),class_uuids,model);
 			 

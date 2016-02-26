@@ -105,6 +105,21 @@ public  class BaseReplyService extends AbstractService {
 		return pageQueryResult;
 				
 	}
+	
+	/**
+	 * 查询总数
+	 * @param rel_uuid
+	 * @param type
+	 * @return
+	 */
+	public Object queryCount(String rel_uuid,Integer type) {
+		String tableName="px_base_reply_"+type;
+		String sql="select count(1) from "+tableName+" where  status ="+SystemConstants.Check_status_fabu ;	
+		sql+=" and  rel_uuid='"+rel_uuid+"'";
+		
+		return this.nSimpleHibernateDao.createSqlQuery(sql).uniqueResult();
+				
+	}
 
 	/**
 	 * vo输出转换

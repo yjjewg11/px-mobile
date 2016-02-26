@@ -223,9 +223,13 @@ public class MessageService extends AbstractService {
 	 * @return
 	 */
 	public List<Map> warpMapList(List<Map> list){
-		
-		UserRedisCache.warpListMapByUserCache(list, "send_useruuid", "send_user", "send_userimg");
-		UserRedisCache.warpListMapByUserCache(list, "revice_useruuid", "revice_user", null);
+		if(list.size()>0){
+			Map o=list.get(0);
+			if(SystemConstants.Message_type_1.toString().equals(o.get("type")+"")){
+				UserRedisCache.warpListMapByUserCache(list, "send_useruuid", "send_user", "send_userimg");
+				UserRedisCache.warpListMapByUserCache(list, "revice_useruuid", "revice_user", null);
+			}
+		}
 		
 		return list;
 	}

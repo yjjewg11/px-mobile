@@ -701,13 +701,12 @@ public class ShareController extends AbstractRESTController {
 		try {
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			
-String mappoint = request.getParameter("map_point");
+				String mappoint = request.getParameter("map_point");
+			if(DBUtil.isSqlInjection(mappoint, responseMessage))return "";
 			
-			
-			String teacheruuid = request.getParameter("teacheruuid");
 			//sort	 否	排序.取值: intelligent(智能排序). appraise(评价最高).distance(距离最近)
 			String sort = request.getParameter("sort");
-			
+			if(DBUtil.isSqlInjection(sort, responseMessage))return "";
 			
 			PageQueryResult list = announcementsService.pxbenefitListByPage(pData,mappoint,sort);
 			

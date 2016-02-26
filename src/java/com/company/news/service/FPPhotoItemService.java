@@ -136,6 +136,7 @@ public class FPPhotoItemService extends AbstractService {
 	 */
 	public PageQueryResult queryOfIncrement(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData,ModelMap model) {
 		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
+		pData.setPageSize(50);
 		String selectsql=Selectsql;
 		String sqlFrom=SqlFrom;
 		//修复，增量查询是不查询已经删除了得
@@ -265,7 +266,7 @@ public class FPPhotoItemService extends AbstractService {
 	
 	private void warpMap(Map o, SessionUserInfoInterface user) {
 		try {
-			o.put("path", PxStringUtil.imgMiddleUrlByRelativePath_sub((String)o.get("path")));
+			o.put("path", PxStringUtil.imgFPPhotoUrlByRelativePath_sub((String)o.get("path")));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

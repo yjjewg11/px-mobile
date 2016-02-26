@@ -18,6 +18,7 @@ import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.BaseDianzanService;
+import com.company.news.service.BaseReplyService;
 import com.company.news.service.FPMovieService;
 import com.company.news.vo.ResponseMessage;
 /**
@@ -32,7 +33,8 @@ public class FPMovieController extends AbstractRESTController {
 	private BaseDianzanService baseDianzanService;
 	@Autowired
 	private FPMovieService fPMovieService;
-
+	@Autowired
+	private BaseReplyService baseReplyService;
 	/**
 	 * 修改保存相册基本资料
 	 * 
@@ -185,6 +187,8 @@ public class FPMovieController extends AbstractRESTController {
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPMovieService.isFavorites( user_uuid,uuid));
 			model.put(RestConstants.Return_ResponseMessage_dianZan,baseDianzanService.query(uuid, SystemConstants.common_type_FPMovie, user_uuid));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getFPMovieByUuid(uuid));
+			model.put(RestConstants.Return_ResponseMessage_reply_count,baseReplyService.queryCount(uuid, SystemConstants.common_type_FPMovie));
+			
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

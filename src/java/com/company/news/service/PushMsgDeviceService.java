@@ -1,6 +1,8 @@
 package com.company.news.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -10,7 +12,9 @@ import org.springframework.stereotype.Service;
 
 import com.company.news.commons.util.DbUtils;
 import com.company.news.entity.PushMsgDevice;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.PushMsgDeviceJsonform;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
@@ -33,37 +37,42 @@ public class PushMsgDeviceService extends AbstractService {
 	 */
 	public boolean save(PushMsgDeviceJsonform jsonform,
 			ResponseMessage responseMessage,HttpServletRequest request) throws Exception {
-		if (StringUtils.isBlank(jsonform.getUser_uuid())) {
-			responseMessage.setMessage("User_uuid");
-			return false;
-		}
-		String group_uuids=jsonform.getGroup_uuid();
-		if(group_uuids==null)group_uuids="";
-		String[] group_uuidsArr= group_uuids.split(",");
-		for(String o :group_uuidsArr){
-			String hql = "from PushMsgDevice where device_type='" + DbUtils.safeToWhereString(jsonform.getDevice_type())+"'";
-			hql += " and type="+jsonform.getType() ;
-			hql += " and device_id='"+DbUtils.safeToWhereString(jsonform.getDevice_id())+"'";
-			hql += " and group_uuid='"+DbUtils.safeToWhereString(o)+"'";
-			
-			List  list= this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
-			PushMsgDevice message=null;
-			if(list.size()==0){
-				message = new PushMsgDevice();
-			}else{
-				message=(PushMsgDevice)list.get(0);
-				jsonform.setUuid(message.getUuid());
-			}
+		SessionUserInfoInterface user=SessionListener.getUserInfoBySession(request);
+		String hql = "from PushMsgDevice where device_type='" + DBUtil.safeToWhereString(jsonform.getDevice_type())+"'";
+		hql += " and type="+jsonform.getType() ;
+		hql += " and device_id='"+DbUtils.safeToWhereString(jsonform.getDevice_id())+"'";
+		//hql += " and group_uuid='"+DbUtils.safeToWhereString(o)+"'";
+		//查询出这个设备关联的所有学校推送.
+		List<PushMsgDevice>  list= (List<PushMsgDevice>)this.nSimpleHibernateDao.getHibernateTemplate().find(hql);
+		//没有则创建
+		if(list.size()==0){
+			PushMsgDevice message = new PushMsgDevice();
 			BeanUtils.copyProperties(message, jsonform);
-			message.setGroup_uuid(o);
-			message.setUpdate_time(TimeUtils.getCurrentTimestamp());
-			message.setSessionid(SessionListener.getSession(request).getId());
-			// 有事务管理，统一在Controller调用时处理异常
+			message.setUuid(null);
+			message.setUser_uuid(user.getUuid());
 			this.nSimpleHibernateDao.getHibernateTemplate().save(message);
+			return true;
+		}
+		//有则判断是否状态更新
+		if(list.size()>0){
+			PushMsgDevice message =list.get(0);
+			if(!jsonform.getStatus().equals(message.getStatus())){
+				message.setStatus(jsonform.getStatus());
+				this.nSimpleHibernateDao.getHibernateTemplate().save(message);
+				return true;
+			}
+		}
+		
+		//删除多余无效的.
+		if(list.size()>1){
+			for(int i=1;i<list.size();i++){
+				this.nSimpleHibernateDao.delete(list.get(i));
+			}
 		}
 		
 
 		return true;
+		
 	}
 
 	

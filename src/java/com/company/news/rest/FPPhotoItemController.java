@@ -24,6 +24,7 @@ import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.BaseDianzanService;
+import com.company.news.service.BaseReplyService;
 import com.company.news.service.FPPhotoItemService;
 import com.company.news.vo.ResponseMessage;
 /**
@@ -39,6 +40,8 @@ public class FPPhotoItemController extends AbstractRESTController {
 	private FPPhotoItemService fPPhotoItemService;
 	@Autowired
 	private BaseDianzanService baseDianzanService;
+	@Autowired
+	private BaseReplyService baseReplyService;
 	
 
 	/**
@@ -526,6 +529,7 @@ public class FPPhotoItemController extends AbstractRESTController {
 			}
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPPhotoItemService.isFavorites( user_uuid,uuid));
 			model.put(RestConstants.Return_ResponseMessage_dianZan,baseDianzanService.query(uuid, SystemConstants.common_type_FPPhotoItem, user_uuid));
+			model.put(RestConstants.Return_ResponseMessage_reply_count,baseReplyService.queryCount(uuid, SystemConstants.common_type_FPPhotoItem));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -47,7 +47,7 @@ public class ReplyController extends AbstractRESTController {
 			classNewsReplyJsonform = (ClassNewsReplyJsonform) this.bodyJsonToFormObject(
 					bodyJson, ClassNewsReplyJsonform.class);
 			
-			String classuuids=this.getMyChildrenClassuuidsBySession(request);
+			String classuuids=classNewsReplyService.getMyChildrenClassuuidsBySession(request);
 			if(StringUtils.isBlank(classuuids)){
 				responseMessage.setMessage("没有你的孩子信息,不能发布评论!");
 				return "";

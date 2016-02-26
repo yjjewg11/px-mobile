@@ -46,9 +46,9 @@ public class StudentSignRecordController extends AbstractRESTController {
 		SessionUserInfoInterface user = this.getUserInfoBySession(request);
 		String student_uuid=request.getParameter("studentuuid");
 		if(StringUtils.isBlank(student_uuid)){
-			student_uuid=this.getMyChildrenUuidsBySession(request);
+			student_uuid=studentSignRecordService.getMyChildrenUuidsBySession(request);
 		}else{
-			String mystudent_uuid=this.getMyChildrenUuidsBySession(request);
+			String mystudent_uuid=studentSignRecordService.getMyChildrenUuidsBySession(request);
 			if(mystudent_uuid==null||!mystudent_uuid.contains(student_uuid)){
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
 				responseMessage.setMessage("非法参数,不是该学生的家长.student_uuid="+student_uuid);

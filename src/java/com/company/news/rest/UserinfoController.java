@@ -351,7 +351,7 @@ public class UserinfoController extends AbstractRESTController {
 		try {
 			list = userinfoService.getStudentByParentuuid(this.getUserInfoBySession(
 					request).getUuid());
-			String group_uuids=this.getMyChildrenGroupUuidsBySession(request);
+			String group_uuids=userinfoService.getMyChildrenGroupUuidsBySession(request);
 			//String class_uuids=this.getMyChildrenClassuuidsBySession(request);
 			model.addAttribute("group_list", userinfoService.getGroupVObyUuids(group_uuids));
 			//model.addAttribute("class_list", userinfoService.getPClassbyUuids(class_uuids));
@@ -548,8 +548,8 @@ public class UserinfoController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		
 		try {
-			String group_uuids=this.getMyChildrenGroupUuidsBySession(request);
-			String class_uuids=this.getMyChildrenClassuuidsBySession(request);
+			String group_uuids=userinfoService.getMyChildrenGroupUuidsBySession(request);
+			String class_uuids=userinfoService.getMyChildrenClassuuidsBySession(request);
 			
 			List listKD = userinfoService.getKDTeacherPhoneList(group_uuids);
 			List list = userinfoService.getTeacherPhoneList(class_uuids);

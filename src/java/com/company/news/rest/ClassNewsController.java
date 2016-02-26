@@ -166,7 +166,7 @@ public class ClassNewsController extends AbstractRESTController {
 			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			String classuuids=request.getParameter("classuuid");
 			if(StringUtils.isBlank(classuuids)){
-				classuuids=this.getMyChildrenClassuuidsBySession(request);
+				classuuids=classNewsService.getMyChildrenClassuuidsBySession(request);
 				String pxclassuuids=(String)this.getValueOfSession(request,RestConstants.Session_MyStudentClassUuids);
 				classuuids+=","+pxclassuuids;
 				classuuids=PxStringUtil.StringDecComma(classuuids);

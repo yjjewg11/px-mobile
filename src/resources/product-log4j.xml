@@ -20,7 +20,7 @@
 		<param name="Append" value="true" />
 		<param name="MaxBackupIndex" value="10" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%p (%c:%L)- %m%n" />
+			<param name="ConversionPattern" value="%d{dd HH:mm:ss} %p (%c:%L)- %m%n" />
 		</layout>
 		<!--过滤器设置输出的级别 -->
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
@@ -36,7 +36,7 @@
 		<param name="Append" value="true" />
 		<param name="MaxBackupIndex" value="10" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%p (%c:%L)- %m%n" />
+			<param name="ConversionPattern" value="%d{dd HH:mm:ss} %p (%c:%L)- %m%n" />
 		</layout>
 		<!--过滤器设置输出的级别 -->
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
@@ -52,7 +52,7 @@
 		<param name="Append" value="true" />
 		<param name="MaxBackupIndex" value="10" />
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%p (%c:%L)- %m%n" />
+			<param name="ConversionPattern" value="%d{dd HH:mm:ss} %p (%c:%L)- %m%n" />
 		</layout>
 		<!--过滤器设置输出的级别 -->
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">

@@ -66,7 +66,7 @@ public class StudentController extends AbstractRESTController {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		try {
-			List<Student> list = studentService.listByMyChildren(this.getMyChildrenUuidsBySession(request));
+			List<Student> list = studentService.listByMyChildren(studentService.getMyChildrenUuidsBySession(request));
 			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		} catch (Exception e) {

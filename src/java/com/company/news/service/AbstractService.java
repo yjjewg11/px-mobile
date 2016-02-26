@@ -1,11 +1,15 @@
 package com.company.news.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +17,21 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.company.news.SystemConstants;
 import com.company.news.cache.UserCache;
+import com.company.news.cache.redis.SessionUserRedisCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.ClassNewsReply;
 import com.company.news.entity.Operate;
+import com.company.news.entity.StudentOfSession;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.RestConstants;
+import com.company.news.rest.util.StringOperationUtil;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.session.UserOfSession;
 import com.company.news.vo.DianzanListVO;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
@@ -38,8 +47,131 @@ public abstract class AbstractService {
    * @return
    */
   public abstract Class getEntityClass();
-  
+  /**
+	 * 查询指定机构的用户列表
+	 * 
+	 * @return
+	 */
+	public List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql = "";
+		Query q = s
+				.createSQLQuery(
+						"select  DISTINCT {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
+								+ DbUtils.safeToWhereString(uuid) + "'").addEntity("t1",
+						StudentOfSession.class);
 
+		return q.list();
+	}
+	/**
+	 * 返回孩子在培训机构登记的uuid.
+	 * 
+	 * @return
+	 */
+	public String getPxClassuuidsByMyChild(String parentuuid) {
+		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+				.getSessionFactory().openSession();
+		String sql = "select class_uuid from px_pxstudentpxclassrelation where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
+								+DbUtils.safeToWhereString( parentuuid) + "' )";
+		Query q = s
+				.createSQLQuery(sql);
+		List list=q.list();
+		return StringUtils.join(list, ",");
+	}
+
+	  /**
+	   * 获取我的孩子uuid
+	   * 
+	   * @param request
+	   * @return 多个逗号分割.
+	   * uuids:uuid1,uuid2
+	   */
+	  public String  getMyChildrenUuidsBySession(HttpServletRequest request){
+		  String uuids="";
+		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
+		  for (StudentOfSession stu:list){
+			  uuids+=stu.getUuid()+",";
+		  }
+		  return StringOperationUtil.trimSeparatorChars(uuids);
+		}
+	  /**
+	   * 获取我的孩子关联班级的uuid
+	   * 
+	   * @param request
+	   * @return 多个逗号分割.
+	   * uuids:uuid1,uuid2
+	   */
+	  public String  getMyChildrenClassuuidsBySession(HttpServletRequest request){
+		  String uuids="";
+		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
+		  for (StudentOfSession stu:list){
+			  if(SystemConstants.DB_String_unrelated_Value.equals(stu.getClassuuid())){
+				  continue;
+			  }
+			  uuids+=stu.getClassuuid()+",";
+		  }
+		  return StringOperationUtil.trimSeparatorChars(uuids);
+		}
+
+	  /**
+	   * 获取我的孩子关联的组织uuid
+	   * 
+	   * @param request
+	   * @return 多个逗号分割.
+	   * uuids:uuid1,uuid2
+	   */
+	  public String  getMyChildrenGroupUuidsBySession(HttpServletRequest request){
+		  String uuids="";
+		  List<StudentOfSession> list= this.getMyChildrenBySession(request);
+		  for (StudentOfSession stu:list){
+			  if(SystemConstants.DB_String_unrelated_Value.equals(stu.getGroupuuid())){
+				  continue;
+			  }
+			  if(uuids.indexOf(stu.getGroupuuid())==-1)
+				  uuids+=stu.getGroupuuid()+",";
+		  }
+		  return StringOperationUtil.trimSeparatorChars(uuids);
+		}
+	  
+  /**
+	 * 返回客户端用户信息放入Map.缓存redis没有该数据,根据需要按需加载
+	 * 
+	 * @param request
+	 * @return
+	 * @throws Exception
+	 */
+	public void putSession( HttpSession session,
+			SessionUserInfoInterface parent, HttpServletRequest request)
+			 {
+		List<StudentOfSession> studentOfSessionlist=getStudentOfSessionByParentuuid(parent.getUuid());
+		if(studentOfSessionlist==null)studentOfSessionlist=new ArrayList();
+		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
+		//我的孩子参加的培训班
+		String myStudentClassUuids =getPxClassuuidsByMyChild(parent.getUuid());
+		if(myStudentClassUuids==null)myStudentClassUuids="";
+		session.setAttribute(RestConstants.Session_MyStudentClassUuids,myStudentClassUuids);
+		
+		//redis 缓存sessionid
+		SessionUserRedisCache.set(session.getId(), (UserOfSession)parent);
+	}
+	
+	/**
+	   *  获取我的孩子列表..缓存redis没有该数据,根据需要按需加载
+	   * @param request
+	   * @return
+	   */
+	public List<StudentOfSession>  getMyChildrenBySession(HttpServletRequest request){
+		  	HttpSession session =SessionListener.getSession(request);
+		  	 List<StudentOfSession>  list= (List<StudentOfSession> )session.getAttribute(RestConstants.Session_StudentslistOfParent);
+		  	 if(list==null){
+		  		putSession(session,SessionListener.getUserInfoBySession(request),request);
+		  	 }
+		  	list= (List<StudentOfSession> )session.getAttribute(RestConstants.Session_StudentslistOfParent);
+		  	 return list;
+		  }
+	  
+	  
 	/**
 	 * 重要的操作记录到 日志.
 	 * 

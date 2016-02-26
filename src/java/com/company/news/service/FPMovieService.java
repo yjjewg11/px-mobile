@@ -202,7 +202,7 @@ public class FPMovieService extends AbstractService {
 	
 	private void warpMap(Map o, SessionUserInfoInterface user) {
 		try {
-			o.put("herald", PxStringUtil.imgMiddleUrlByRelativePath_sub((String)o.get("herald")));
+			o.put("herald", PxStringUtil.imgFPPhotoUrlByRelativePath_sub((String)o.get("herald")));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
