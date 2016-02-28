@@ -56,11 +56,10 @@ public class PushMsgDeviceService extends AbstractService {
 		//有则判断是否状态更新
 		if(list.size()>0){
 			PushMsgDevice message =list.get(0);
-			if(!jsonform.getStatus().equals(message.getStatus())){
-				message.setStatus(jsonform.getStatus());
-				this.nSimpleHibernateDao.getHibernateTemplate().save(message);
-				return true;
-			}
+			message.setUser_uuid(user.getUuid());
+			message.setStatus(jsonform.getStatus());
+			this.nSimpleHibernateDao.getHibernateTemplate().save(message);
+			return true;
 		}
 		
 		//删除多余无效的.

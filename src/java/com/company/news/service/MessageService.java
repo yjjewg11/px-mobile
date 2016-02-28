@@ -1,28 +1,36 @@
 package com.company.news.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.mq.JobDetails;
+import com.company.mq.MQUtils;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
+import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
-import com.company.news.entity.ClassNews;
 import com.company.news.entity.Group;
 import com.company.news.entity.Message;
 import com.company.news.entity.User;
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.MessageJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.right.RightConstants;
 import com.company.news.vo.ResponseMessage;
+import com.company.web.listener.SessionListener;
 
 /**
  * 
@@ -35,8 +43,10 @@ public class MessageService extends AbstractService {
 	public static final int announcements_isread_no = 0;// 未读
 	public static final int announcements_isdelete_yes = 1;// 已读
 	public static final int announcements_isdelete_no = 0;// 未读
+
 	@Autowired
 	public PushMsgIservice pushMsgIservice;
+
 	/**
 	 * 增加
 	 * 
@@ -46,7 +56,8 @@ public class MessageService extends AbstractService {
 	 * @return
 	 */
 	public boolean add(MessageJsonform messageJsonform,
-			ResponseMessage responseMessage) throws Exception {
+			ResponseMessage responseMessage,HttpServletRequest request) throws Exception {
+	
 		if (StringUtils.isBlank(messageJsonform.getMessage())) {
 			responseMessage.setMessage("内容不能为空!");
 			return false;
@@ -65,12 +76,14 @@ public class MessageService extends AbstractService {
 			}
 			messageJsonform.setRevice_user(user.getBrand_name()+"园长");
 		}else{
-			User user = (User) CommonsCache.get(messageJsonform.getRevice_useruuid(),User.class);
+			
+			UserCache user=UserRedisCache.getUserCache(messageJsonform.getRevice_useruuid());
+//			User user = (User) CommonsCache.get(messageJsonform.getRevice_useruuid(),User.class);
 			if (user == null) {
 				responseMessage.setMessage("无效数据老师不存在！Revice_useruuid="+messageJsonform.getRevice_useruuid());
 				return false;
 			}
-			messageJsonform.setRevice_user(user.getName());
+			messageJsonform.setRevice_user(user.getN());
 		}
 		Message message = new Message();
 		BeanUtils.copyProperties(message, messageJsonform);
@@ -78,10 +91,23 @@ public class MessageService extends AbstractService {
 		message.setIsread(announcements_isread_no);
 		message.setIsdelete(announcements_isdelete_no);
 
+		
+		
+		SessionUserInfoInterface user=SessionListener.getUserInfoBySession(request);
+		String msg=user.getName()+"说:"+message.getMessage();
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(message);
 		if(!SystemConstants.Message_type_2.equals(messageJsonform.getType())){
-			pushMsgIservice.pushMsg_to_teacher(SystemConstants.common_type_messageTeaher, message.getSend_useruuid(), message.getRevice_useruuid(), message.getSend_user());
+			pushMsgIservice.pushMsg_to_teacher(SystemConstants.common_type_messageTeaher, message.getSend_useruuid(), message.getRevice_useruuid(),msg);
+		}else{
+			Map map=new HashMap();
+	    	map.put("uuid", message.getUuid());
+	    	map.put("groupuuid",messageJsonform.getRevice_useruuid());
+	    	map.put("title",msg);
+			
+	    	JobDetails job=new JobDetails("doJobMqIservice","sendPushMessageKD",map);
+			MQUtils.publish(job);
+			
 		}
 		return true;
 	}
@@ -230,8 +256,16 @@ public class MessageService extends AbstractService {
 				UserRedisCache.warpListMapByUserCache(list, "revice_useruuid", "revice_user", null);
 			}
 		}
-		
+		for(Map o:list){
+			warpMap(o);
+		}
 		return list;
+	}
+	
+	
+	private void warpMap(Map o) {
+		o.put("send_userimg", PxStringUtil.imgSmallUrlByUuid((String)o.get("send_userimg")));
+		
 	}
 	/**
 	 * vo输出转换

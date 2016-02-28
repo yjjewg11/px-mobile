@@ -70,7 +70,7 @@ public class MessageController extends AbstractRESTController {
 		
 		try {
 			boolean flag;
-			    flag = messageService.add(messageJsonform, responseMessage);
+			    flag = messageService.add(messageJsonform, responseMessage,request);
 
 			if (!flag)// 请求服务返回失败标示
 				return "";
@@ -124,7 +124,7 @@ public class MessageController extends AbstractRESTController {
 		
 		try {
 			boolean flag;
-			    flag = messageService.add(messageJsonform, responseMessage);
+			    flag = messageService.add(messageJsonform, responseMessage,request);
 
 			if (!flag)// 请求服务返回失败标示
 				return "";
@@ -270,7 +270,7 @@ public class MessageController extends AbstractRESTController {
 		
 		try {
 			boolean flag;
-			    flag = messageService.add(messageJsonform, responseMessage);
+			    flag = messageService.add(messageJsonform, responseMessage,request);
 
 			if (!flag)// 请求服务返回失败标示
 				return "";
