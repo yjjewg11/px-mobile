@@ -1,5 +1,7 @@
 package com.company.news.rest;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +74,8 @@ public class FPMovieController extends AbstractRESTController {
 				return "";
 			
 			model.addAttribute(RestConstants.Return_G_entity_id,flag.getUuid());
+			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getFPMovieByUuid(flag.getUuid()));
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -114,7 +118,34 @@ public class FPMovieController extends AbstractRESTController {
 		return "";
 	}
 
-	
+	/**
+	 * 
+	 * 查询所有动态相册.
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/query", method = RequestMethod.GET)
+	public String query(ModelMap model, HttpServletRequest request,PaginationData pData) {
+		model.clear();
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		//设置当前用户
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
+		
+		try {
+			PageQueryResult pageQueryResult= fPMovieService.query(user,pData,model);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
 
 	/**
 	 * 班级删除
@@ -151,18 +182,13 @@ public class FPMovieController extends AbstractRESTController {
 		responseMessage.setMessage("操作成功");
 		return "";
 	}
-	
-	
-
-	
-	
 
 	
 	@RequestMapping(value = "/get", method = RequestMethod.GET)
 	public String get(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		FPMovie m;
+		Map m;
 		try {
 			String uuid=request.getParameter("uuid");
 			//防止sql注入.
@@ -178,12 +204,13 @@ public class FPMovieController extends AbstractRESTController {
 			if(user!=null){
 				user_uuid=user.getUuid();
 			}
-			Boolean isReadOnly=true;
-			if(m.getCreate_useruuid().equals(user_uuid)){
-				isReadOnly=false;
-			}
-			model.addAttribute(RestConstants.Return_ISREADONLY,isReadOnly);
 			
+//			Boolean isReadOnly=true;
+//			if(m.get("create_useruuid").equals(user_uuid)){
+//				isReadOnly=false;
+//			}
+//			model.addAttribute(RestConstants.Return_ISREADONLY,isReadOnly);
+//			
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPMovieService.isFavorites( user_uuid,uuid));
 			model.put(RestConstants.Return_ResponseMessage_dianZan,baseDianzanService.query(uuid, SystemConstants.common_type_FPMovie, user_uuid));
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getFPMovieByUuid(uuid));

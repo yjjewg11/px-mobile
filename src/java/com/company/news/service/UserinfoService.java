@@ -440,8 +440,7 @@ public class UserinfoService extends AbstractService {
 	 * @return
 	 */
 	public List<Student> getStudentByParentuuid(String uuid) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
+		Session s = this.nSimpleHibernateDao.getSession();
 		String sql = "";
 		Query q = s
 				.createSQLQuery(
@@ -463,10 +462,8 @@ public class UserinfoService extends AbstractService {
 	 * @return
 	 */
 	public String getPxStudentuuidsByMy(String parentuuid) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql = "";
-		Query q = s
+		Query q = this.nSimpleHibernateDao
 				.createSQLQuery(
 						"select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
 								+ DbUtils.safeToWhereString(parentuuid) + "'");
@@ -690,7 +687,6 @@ public class UserinfoService extends AbstractService {
 	 */
 	public List getAllClassAndPxClass(SessionUserInfoInterface user) {
 		
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		//查询幼儿园班级
 		String sql="SELECT t1.uuid,t1.name,t1.groupuuid from px_class t1"
 				+" inner join px_student t2 on t2.classuuid=t1.uuid  " 
@@ -707,7 +703,7 @@ public class UserinfoService extends AbstractService {
 				+ DbUtils.safeToWhereString(user.getUuid()) + "' ) "
 				+" and t1.isdisable ="+SystemConstants.Class_isdisable_0;
 	    
-		Query  query =session.createSQLQuery(sql+" UNION "+sqlpxclass);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(sql+" UNION "+sqlpxclass);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		return query.list();
 		

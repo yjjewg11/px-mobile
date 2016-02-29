@@ -119,6 +119,110 @@ public class FPPhotoItemController extends AbstractRESTController {
 		}
 		return "";
 	}
+
+	/**
+	 * 
+	 * 查询我关联的所有家庭的相片.
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryMyFavorites", method = RequestMethod.GET)
+	public String queryMyFavorites(ModelMap model, HttpServletRequest request,PaginationData pData) {
+		model.clear();
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		//设置当前用户
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
+		pData.setPageSize(50);
+		try {
+			
+			PageQueryResult pageQueryResult= fPPhotoItemService.queryMyFavorites(user,pData);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+
+	
+
+	/**
+	 * 添加收藏
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/addFavorites", method = RequestMethod.POST)
+	public String addFavorites(ModelMap model, HttpServletRequest request) {
+		// 返回消息体
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			
+			String uuid=request.getParameter("uuid");
+				if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			SessionUserInfoInterface user=this.getUserInfoBySession(request);
+			
+			boolean flag = fPPhotoItemService.addFavorites(user,uuid
+					,responseMessage);
+			if (!flag)
+				return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("操作成功");
+		return "";
+	}
+	
+
+	/**
+	 * 删除收藏
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/deleteFavorites", method = RequestMethod.POST)
+	public String deleteFavorites(ModelMap model, HttpServletRequest request) {
+		// 返回消息体
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			
+			String uuid=request.getParameter("uuid");
+			//	String photo_time=request.getParameter("photo_time");
+				if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			SessionUserInfoInterface user=this.getUserInfoBySession(request);
+			
+			boolean flag = fPPhotoItemService.deleteFavorites(user,uuid
+					,responseMessage);
+			if (!flag)
+				return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("操作成功");
+		return "";
+	}
 	
 	
 	/**

@@ -187,7 +187,6 @@ public class StudentBindService extends AbstractService {
 	 * @return
 	 */
 	public List<Object[]> query(String classuuid, String groupuuid,String uuid) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		
 		String sql = "select b2.studentuuid,b2.cardid,b2.userid,s1.name ";
 		sql+=" from px_student s1  left join px_studentbind b2 on  s1.uuid=b2.studentuuid  ";
@@ -202,7 +201,7 @@ public class StudentBindService extends AbstractService {
 		sql += "order by s1.classuuid,CONVERT( s1.name USING gbk)";
 		
 		//student_uuid,cardid,userid,student_name
-		List<Object[]> list = s.createSQLQuery(sql).list();
+		List<Object[]> list = this.nSimpleHibernateDao.createSQLQuery(sql).list();
 		
 		return list;
 	}

@@ -30,6 +30,7 @@ import com.company.news.entity.FPPhotoItem;
 import com.company.news.entity.FPPhotoItemOfUpdate;
 import com.company.news.form.FPPhotoItemForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.jsonform.BaseDianzanJsonform;
 import com.company.news.jsonform.FPPhotoItemJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -69,13 +70,12 @@ public class FPPhotoItemService extends AbstractService {
 	 * @return
 	 */
 	public boolean  queryOfNewDataCount(String family_uuid,PaginationData pData,ModelMap model) {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		
 		//获取MaxTime 时间后的新数据总数量
 		String countNewDataSql="select count(*)  FROM fp_photo_item t1 ";
 		countNewDataSql += " where   t1.status<2 and   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
 			 countNewDataSql += " and   t1.create_time >"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
-		Object  countNewData=session.createSQLQuery(countNewDataSql).uniqueResult();
+		Object  countNewData=this.nSimpleHibernateDao.createSQLQuery(countNewDataSql).uniqueResult();
 		
 //		//获取MinTime 和MaxTime 时间直接变化的数据
 //		String countUpdateDataSql="select count(*)  FROM fp_photo_item t1 ";
@@ -102,7 +102,6 @@ public class FPPhotoItemService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult queryOfUpdate(SessionUserInfoInterface user ,String family_uuid, String updateTime,PaginationData pData,ModelMap model) {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String selectsql=" SELECT t1.uuid as u,t1.status as s ";
 		String sqlFrom=" FROM fp_photo_item t1 ";
 		sqlFrom += " where   t1.family_uuid ='"+DBUtil.safeToWhereString(family_uuid)+"'";
@@ -118,7 +117,7 @@ public class FPPhotoItemService extends AbstractService {
 		}
 		sql += " order by t1.create_time desc";
 		 
-		Query  query =session.createSQLQuery(sql);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 		String countsql="select count(*) "+sql;
@@ -135,7 +134,6 @@ public class FPPhotoItemService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult queryOfIncrement(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData,ModelMap model) {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		pData.setPageSize(50);
 		String selectsql=Selectsql;
 		String sqlFrom=SqlFrom;
@@ -157,7 +155,7 @@ public class FPPhotoItemService extends AbstractService {
 			  sql += " order by t1.create_time desc";
 		}
 		 
-		Query  query =session.createSQLQuery(selectsql+sql);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		String countsql="select count(*) "+sql;
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
@@ -179,7 +177,7 @@ public class FPPhotoItemService extends AbstractService {
 						tmpSql += " and   t1.uuid !='"+lastuuid+"'";
 						tmpSql += " and   t1.create_time >="+DBUtil.stringToDateByDBType(TimeUtils.getDateTimeString(lastTime));
 						tmpSql += " and   t1.create_time <"+DBUtil.stringToDateByDBType(TimeUtils.getDateTimeString(nextSecond.getTime()));
-						  query =session.createSQLQuery(tmpSql);
+						  query = this.nSimpleHibernateDao.createSQLQuery(tmpSql);
 						  query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 						  List tmpList=query.list();
 						  list.addAll(tmpList);
@@ -206,7 +204,6 @@ public class FPPhotoItemService extends AbstractService {
 	 */
 	public PageQueryResult queryAlreadyUploaded(String phone_uuid,PaginationData pData) {
 		pData.setPageSize(100);
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String selectsql="SELECT t1.md5,t1.create_useruuid ";
 		String sql=SqlFrom;
 		
@@ -217,7 +214,7 @@ public class FPPhotoItemService extends AbstractService {
 		 
 		  sql += " order by t1.create_time asc";
 		
-		Query  query =session.createSQLQuery(selectsql+sql);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
 		List<Map> list=pageQueryResult.getData();
@@ -230,7 +227,6 @@ public class FPPhotoItemService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult query(SessionUserInfoInterface user ,String family_uuid, String user_uuid,PaginationData pData) {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String selectsql=Selectsql;
 		String sql=SqlFrom;
 		
@@ -254,7 +250,7 @@ public class FPPhotoItemService extends AbstractService {
 		}else{//默认查询,当前时间倒叙
 			  sql += " order by t1.create_time desc";
 		}
-		Query  query =session.createSQLQuery(selectsql+sql);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
 		List<Map> list=pageQueryResult.getData();
@@ -262,7 +258,93 @@ public class FPPhotoItemService extends AbstractService {
 		return pageQueryResult;
 	}
 	
-	
+
+	/**
+	 * 查询收藏的
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryMyFavorites(SessionUserInfoInterface user,PaginationData pData) {
+		String selectsql=Selectsql;
+		String sql=" FROM fp_photo_item t1  left join fp_photo_favorite f2 on  t1.uuid=f2.rel_uuid";
+		sql += " where   f2.create_useruuid ='"+user.getUuid()+"'";
+		 sql += " order by t1.create_time desc";
+		Query  query =this.nSimpleHibernateDao.createSqlQuery(selectsql+sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
+		List<Map> list=pageQueryResult.getData();
+		this.warpMapList(list, user);
+		return pageQueryResult;
+	}
+
+	/**
+	 * 增加
+	 * 
+	 * @param entityStr
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	public boolean addFavorites(SessionUserInfoInterface user,String uuid,
+			ResponseMessage responseMessage) throws Exception {
+		
+		if (StringUtils.isBlank(uuid)) {
+			responseMessage.setMessage("uuid必填");
+			return false;
+		}
+		
+		
+		String insertsql="insert into fp_photo_favorite(rel_uuid,create_useruuid,create_time) values('"+uuid+"','"+user.getUuid()+"',now())";
+		try {
+			this.nSimpleHibernateDao.createSQLQuery(insertsql).executeUpdate();
+		} catch (org.hibernate.exception.ConstraintViolationException e) {
+			responseMessage.setMessage("你已收藏!");
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 是否可以收藏
+	 * 
+	 * @param loginname
+	 * @return
+	 */
+	public boolean isFavorites(String user_uuid,String reluuid) {
+		if(StringUtils.isBlank(reluuid)||StringUtils.isBlank(user_uuid))return false;
+		List list = nSimpleHibernateDao.createSQLQuery("select rel_uuid from fp_photo_favorite where rel_uuid='"+reluuid+"' and create_useruuid='"+user_uuid+"'").list();
+
+		if (list != null&&list.size()>0)// 已被占用
+			return false;
+		else
+			return true;
+
+	}
+	/**
+	 * 删除 支持多个，用逗号分隔
+	 * 
+	 * @param uuid
+	 */
+	public boolean deleteFavorites(SessionUserInfoInterface parent,String rel_uuid, ResponseMessage responseMessage) {
+		if (StringUtils.isBlank(rel_uuid)) {
+
+			responseMessage.setMessage("ID不能为空！");
+			return false;
+		}
+		
+		//rel_uuid,create_useruuid
+		String insertsql="delete from fp_photo_favorite where rel_uuid='"+rel_uuid+"' and create_useruuid='"+parent.getUuid()+"'";
+		int count=this.nSimpleHibernateDao.createSqlQuery(insertsql).executeUpdate();
+		
+		
+		
+		if(count>0)
+			return true;
+		responseMessage.setMessage("无数据");
+		return false;
+	}
+
 	
 	private void warpMap(Map o, SessionUserInfoInterface user) {
 		try {
@@ -441,7 +523,6 @@ public class FPPhotoItemService extends AbstractService {
 	public PageQueryResult queryForMoviePhoto_uuids(String photo_uuids,PaginationData pData,ModelMap model) {
 		
 		
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		
 		String selectsql=" SELECT t1.path,t1.address,t1.note ";
 		
@@ -457,7 +538,7 @@ public class FPPhotoItemService extends AbstractService {
 		}
 		 sql += " order by t1.create_time asc";
 		 
-		Query  query =session.createSQLQuery(selectsql+sql);
+		Query  query =this.nSimpleHibernateDao.createSqlQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		String countsql="select count(*) "+sql;
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
@@ -479,7 +560,6 @@ public class FPPhotoItemService extends AbstractService {
 	 * @return
 	 */
 	public PageQueryResult queryForMovie(String family_uuid,PaginationData pData,ModelMap model) {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		
 		String selectsql=" SELECT t1.path,t1.address,t1.note ";
 		
@@ -495,7 +575,7 @@ public class FPPhotoItemService extends AbstractService {
 		}
 		 sql += " order by t1.create_time asc";
 		 
-		Query  query =session.createSQLQuery(selectsql+sql);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		String countsql="select count(*) "+sql;
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);

@@ -182,7 +182,6 @@ public class Mp3Service extends AbstractService {
 	 */
 	public PageQueryResult query(
 			PaginationData pData, ModelMap model) {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String selectsql=Selectsql;
 		String sqlFrom=SqlFrom;
 		String sql=sqlFrom;
@@ -190,7 +189,7 @@ public class Mp3Service extends AbstractService {
 		
 		  sql += " order by CONVERT( t1.title USING gbk)";
 		 
-		Query  query =session.createSQLQuery(selectsql+sql);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		String countsql="select count(*) "+sql;
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);

@@ -137,12 +137,10 @@ public class ClassNewsDianzanService extends AbstractService {
 		String useruuid="";
 		
 		if(user!=null)useruuid=user.getUuid();
-		Session s = nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql="select group_concat( t1.create_user) as user_names,count(1) as allcount,sum(case t1.create_useruuid when '"+DbUtils.safeToWhereString(useruuid)+"' then 1 else 0 end) as curuser_sum  from px_classnewsdianzan  t1 ";
 		sql+=" where t1.newsuuid in("+DBUtil.stringsToWhereInValue(newsuuid)+")";
 		sql+=" GROUP BY t1.newsuuid  ";
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		List<Map> list=q.list();
 	

@@ -269,8 +269,6 @@ public class GroupService extends AbstractService {
 	public PageQueryResult pxlistByPage(String type,String sort, PaginationData pData,String point) {
 		
 		
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql=" SELECT DISTINCT t1.uuid,t1.brand_name,t1.img,t1.ct_stars,t1.ct_study_students,t1.link_tel,t1.map_point,t1.address,t1.summary";
 		sql+=" FROM px_group t1 ";
 		
@@ -302,7 +300,7 @@ public class GroupService extends AbstractService {
 			sql+=" order by t1.ct_study_students desc";
 		}
 		
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
@@ -341,8 +339,6 @@ public class GroupService extends AbstractService {
 	public PageQueryResult kdlistByPage(String sort, PaginationData pData,String point) {
 		
 		
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql=" SELECT DISTINCT t1.uuid,t1.brand_name,t1.img,t1.ct_stars,t1.link_tel,t1.map_point,t1.address,t1.summary,t1.ct_study_students";
 		sql+=" FROM px_group t1 where   t1.type=1 and t1.status=9 ";
 		
@@ -369,7 +365,7 @@ public class GroupService extends AbstractService {
 			sql+=" order by t1.ct_stars desc";
 		}
 //		
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);

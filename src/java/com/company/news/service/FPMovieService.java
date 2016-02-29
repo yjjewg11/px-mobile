@@ -13,6 +13,8 @@ import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
+import com.company.news.SystemConstants;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.FPMovie;
@@ -155,11 +157,19 @@ public class FPMovieService extends AbstractService {
 	 * @return
 	 * @throws Exception
 	 */
-	public FPMovie get(String uuid) throws Exception {
-		FPMovie favorites = (FPMovie) this.nSimpleHibernateDao.getObjectById(
-				FPMovie.class, uuid);
+	public Map get(String uuid) throws Exception {
 		
-		return favorites;
+		String sql= " SELECT t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status,t1.photo_uuids  FROM fp_movie t1   where   t1.uuid ='"+uuid+"'";
+		
+		Query  query =this.nSimpleHibernateDao.createSqlQuery(sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		List<Map> list=query.list();
+		 if(list.isEmpty()){
+			 return null;
+		 }
+	    warpMapList(list,null);
+	   
+		return list.get(0);
 	}
 	
 	
@@ -170,9 +180,34 @@ public class FPMovieService extends AbstractService {
 		return null;
 	}
 
-	String Selectsql=" SELECT t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count ";
+	String Selectsql=" SELECT t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status ";
 	String SqlFrom=" FROM fp_movie t1 ";
 
+	/**
+	 * 查询相册
+	 * @param user
+	 * @param pData
+	 * @param model
+	 * @return
+	 */
+	public PageQueryResult query(SessionUserInfoInterface user,
+			PaginationData pData, ModelMap model) {
+		String selectsql=Selectsql;
+		String sqlFrom=SqlFrom;
+		sqlFrom += " where   t1.status ="+SystemConstants.Check_status_fabu;
+		String sql=sqlFrom;
+		pData.setPageSize(10);
+		
+		  sql += " order by t1.create_time desc";
+		 
+		Query  query =this.nSimpleHibernateDao.createSqlQuery(selectsql+sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		String countsql="select count(*) "+sql;
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
+
+	    warpMapList(pageQueryResult.getData(),null);
+		return pageQueryResult;
+	}
 	/**
 	 * 查询我创建的相册
 	 * @param user
@@ -182,7 +217,6 @@ public class FPMovieService extends AbstractService {
 	 */
 	public PageQueryResult queryMy(SessionUserInfoInterface user,
 			PaginationData pData, ModelMap model) {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String selectsql=Selectsql;
 		String sqlFrom=SqlFrom;
 		sqlFrom += " where   t1.create_useruuid ='"+user.getUuid()+"'";
@@ -191,7 +225,7 @@ public class FPMovieService extends AbstractService {
 		
 		  sql += " order by t1.create_time desc";
 		 
-		Query  query =session.createSQLQuery(selectsql+sql);
+		Query  query =this.nSimpleHibernateDao.createSqlQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		String countsql="select count(*) "+sql;
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
@@ -213,7 +247,7 @@ public class FPMovieService extends AbstractService {
 	 * @return
 	 */
 	private List warpMapList(List<Map> list,SessionUserInfoInterface user ) {
-		
+		UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_username", null);
 		for(Map o:list){
 			warpMap(o,user);
 		}

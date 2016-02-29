@@ -88,49 +88,6 @@ public  class BaseDianzanService extends AbstractService {
 	}
 
 	/**
-	 * vo输出转换
-	 * @param list
-	 * @return
-	 */
-	public List<AbstractBaseReply> warpVoList(List<AbstractBaseReply> list,String cur_user_uuid){
-//		for(ClassNewsReply o:list){
-//			warpVo(o,cur_user_uuid);
-//		}
-		
-		
-		//批量获取redis中用户
-		String[] userUuids=new String[list.size()];
-		for(int i=0,len=list.size();i<len;i++){
-			AbstractBaseReply o=list.get(i);
-			String useruuid=o.getCreate_useruuid();
-			if(StringUtils.isBlank(useruuid)){
-				useruuid="-1";
-			}
-			userUuids[i]=useruuid;
-		}
-		
-		
-		Map<String,UserCache> userMap=UserRedisCache.getUserCache(userUuids);
-		
-		for(AbstractBaseReply o:list){
-			String useruuid=o.getCreate_useruuid();
-			if(StringUtils.isBlank(useruuid)){
-				continue;
-			}
-			
-			UserCache userCahce=userMap.get(useruuid);
-			if(userCahce==null){
-				logger.error("redis userCahce is null,uuid="+useruuid);
-				continue;
-			}
-			o.setCreate_user(userCahce.getN());
-			o.setCreate_img(PxStringUtil.imgSmallUrlByUuid(userCahce.getI()));
-			
-		}
-		return list;
-	}
-
-	/**
 	 * 删除 支持多个，用逗号分隔
 	 * 
 	 * @param uuid
@@ -153,49 +110,6 @@ public  class BaseDianzanService extends AbstractService {
 		responseMessage.setMessage("无数据");
 		return false;
 	}
-//	/**
-//	 * 获取点赞列表信息
-//	 * 
-//	 * @param classNewsDianzanJsonform
-//	 * @param responseMessage
-//	 * @return
-//	 * @throws Exception
-//	 */
-//	public Map<String,DianzanListVO> getDianzanDianzanMap(String reluuids, SessionUserInfoInterface user) throws Exception {
-//		Map<String,DianzanListVO> returnmap =new HashMap();
-//		if (StringUtils.isBlank(reluuids)) {
-//			return returnmap;
-//		}
-//		String useruuid="";
-//		
-//		if(user!=null)useruuid=user.getUuid();
-//		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-//				.getSessionFactory().openSession();
-//		String sql="select t1.newsuuid  ,group_concat( t1.create_user) as user_names,count(1) as allcount,sum(case t1.create_useruuid when '"+DBUtil.safeToWhereString(useruuid)+"' then 1 else 0 end) as curuser_sum  from px_classnewsdianzan  t1 ";
-//		sql+=" where t1.newsuuid in("+DBUtil.stringsToWhereInValue(reluuids)+")";
-//		sql+=" GROUP BY t1.newsuuid  ";
-//		Query q = s.createSQLQuery(sql);
-//		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-//		List<Map> list=q.list();
-//		
-//		for(Map map:list){
-//			DianzanListVO vo = new DianzanListVO();
-//			
-//			//统计当前用户点赞数量,0表示没点赞,可以点赞.
-//			vo.setCanDianzan("0".equals(map.get("curuser_sum")+""));
-//			vo.setCount(Integer.valueOf(map.get("allcount")+""));
-//			vo.setNames(map.get("user_names")+"");
-//			
-//			returnmap.put(map.get("newsuuid")+"", vo);
-//			
-//		}
-//		return returnmap;
-//	}
-//	
-//	public ClassNewsReply get(String uuid) throws Exception {
-//		return (ClassNewsReply) this.nSimpleHibernateDao.getObjectById(
-//				ClassNewsReply.class, uuid);	
-//	}
 	
 	static private Map<Integer,String> tableNameMap=new HashMap();
 	static{

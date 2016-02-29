@@ -275,7 +275,6 @@ public class ClassNewsService extends AbstractService {
 	 */
 	@Deprecated
 	public List<Map> queryMyClassForAdd(SessionUserInfoInterface user ,String courseuuid,String groupuuid, PaginationData pData) throws Exception {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String sql="SELECT t1.uuid,t1.name from px_class t1"
 				+" inner join px_student t2 on t2.class_uuid=t1.uuid  " 
 				+" inner join px_studentcontactrealation t3 on t3.student_uuid=t2.uuid  " 
@@ -290,7 +289,7 @@ public class ClassNewsService extends AbstractService {
 				+ DbUtils.safeToWhereString(user.getUuid()) + "' )"
 				+" and t1.isdisable ="+SystemConstants.Class_isdisable_0;
 	    
-		Query  query =session.createSQLQuery(sql+" UNION "+sqlpxclass);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(sql+" UNION "+sqlpxclass);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 
@@ -307,7 +306,6 @@ public class ClassNewsService extends AbstractService {
 	public PageQueryResult queryPxClassNewsBy(SessionUserInfoInterface user ,String courseuuid,String groupuuid, PaginationData pData) throws Exception {
 		
 		
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String sql=" SELECT t1.uuid,t1.classuuid,t1.create_user,t1.create_useruuid,t1.create_img,t1.create_time,t1.title,t1.content,t1.imgs,t1.groupuuid,t1.illegal,t1.illegal_time,t1.reply_time,t1.status,t1.update_time,t1.usertype,t1.group_name,t1.class_name,t1.url";
 		sql+=" FROM px_classnews t1 ";
 		
@@ -320,7 +318,7 @@ public class ClassNewsService extends AbstractService {
 	    sql += " order by t1.create_time desc";
 	    
 	    
-		Query  query =session.createSQLQuery(sql);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
 		List<Map> list=pageQueryResult.getData();

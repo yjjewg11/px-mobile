@@ -163,11 +163,9 @@ public class PxTeachingPlanService extends AbstractService {
 	 */
 	public Map<String, Date> getMinPlandateByClassuuids(String classuuids) {
 		Map<String, Date> map=new HashMap();
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql = "SELECT MIN(plandate),classuuid FROM px_pxteachingplan"
 				+ " where classuuid in(" + classuuids + ") and plandate>=curdate() group by classuuid";
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		List<Object[]> list = q.list();
 
 		for (Object[] o : list) {
@@ -204,8 +202,6 @@ order by t1.plandate asc
 
 	 */
 	public List nextList(SessionUserInfoInterface user ) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql = " SELECT * from (";
 		sql+=" SELECT t1.classuuid,t1.uuid,t1.plandate,t1.name,t1.address,t1.readyfor,t4.headimg as student_headimg,t5.brand_name as group_name,t2.name as class_name";
 		
@@ -221,7 +217,7 @@ order by t1.plandate asc
 		sql+=" order by t1.plandate asc";
 		sql+=" ) t GROUP BY t.classuuid";
 		sql+="";
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		List<Map> list = q.list();
 		warpVoList_Map(list, user );

@@ -69,8 +69,6 @@ public class PxTeacherService extends AbstractService {
 	 */
 	public PageQueryResult queryByPage(String groupuuid,String name, PaginationData pData) {
 		
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql=" SELECT t1.uuid,t1.img,t1.name,t1.ct_stars,t1.summary,t1.course_title";
 		sql+=" FROM px_pxteacher t1 ";
 //		sql+=" LEFT JOIN  px_pxcourse t2 on t1.course_uuid=t2.uuid ";
@@ -82,7 +80,7 @@ public class PxTeacherService extends AbstractService {
 		if (StringUtils.isNotBlank(name))
 			sql += " and  t1.name  like '%" + name + "%' ";
 		sql+=" order by t1.ct_stars asc";
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);

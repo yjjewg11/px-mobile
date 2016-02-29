@@ -53,8 +53,7 @@ public abstract class AbstractService {
 	 * @return
 	 */
 	public List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
+		Session s = this.nSimpleHibernateDao.getSession();
 		String sql = "";
 		Query q = s
 				.createSQLQuery(
@@ -70,11 +69,9 @@ public abstract class AbstractService {
 	 * @return
 	 */
 	public String getPxClassuuidsByMyChild(String parentuuid) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql = "select class_uuid from px_pxstudentpxclassrelation where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
 								+DbUtils.safeToWhereString( parentuuid) + "' )";
-		Query q = s
+		Query q = this.nSimpleHibernateDao
 				.createSQLQuery(sql);
 		List list=q.list();
 		return StringUtils.join(list, ",");

@@ -27,13 +27,11 @@ public class AbstractClassService extends AbstractService {
 		this.nSimpleHibernateDao.getHibernateTemplate().evict(o);
 		try {
 			
-			Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-					.getSessionFactory().openSession();
 			String sql="select t2.type  ,group_concat( t1.name) as user_names,group_concat( t1.uuid) as user_uuids from px_user  t1 ";
 			sql+=" LEFT JOIN  px_userclassrelation t2 on t2.useruuid=t1.uuid  ";
 			sql+=" where t2.type is not null and t2.classuuid='"+o.getUuid()+"'";
 			sql+=" GROUP BY t2.type  ";
-			Query q = s.createSQLQuery(sql);
+			Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 			q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 			List<Map> list=q.list();
 			

@@ -193,9 +193,7 @@ public class PxStudentService extends AbstractStudentService {
 			String sql="select DISTINCT t1.student_uuid from px_pxstudentcontactrealation t1 LEFT JOIN px_studentcontactrealation t2";
 			sql+=" on t1.student_name=t2.student_name and t1.tel=t2.tel";
 			sql+=" where t2.student_uuid='"+student.getUuid()+"'";
-			Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-					.getSessionFactory().openSession();
-			Query q = s.createSQLQuery(sql);
+			Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 			List list =q.list();
 			if(list.size()==0){
 				return;

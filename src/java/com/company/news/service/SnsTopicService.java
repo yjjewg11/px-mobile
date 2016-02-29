@@ -29,7 +29,6 @@ public class SnsTopicService extends AbstractService {
 	private static final String model_name = "基础数据类型模块";
 	public PageQueryResult hotByPage(PaginationData pData,String section_id,
 			HttpServletRequest request) {
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 		String sql=" SELECT t1.uuid,t1.title,t1.create_time,t1.create_useruuid,t1.reply_count,t1.yes_count,t1.status,t1.no_count,t1.level,t1.summary,t1.imguuids";
 		sql+=" FROM sns_topic t1 ";
 		sql+=" where t1.status=0 ";
@@ -38,7 +37,7 @@ public class SnsTopicService extends AbstractService {
 		}
 		sql += " order by t1.create_time desc";
 
-		Query  query =session.createSQLQuery(sql);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
@@ -70,9 +69,8 @@ public class SnsTopicService extends AbstractService {
 		
 		
 		String sql=selectSql+sqlwhere;
-		Session session=this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory().openSession();
 
-		Query  query =session.createSQLQuery(sql).setMaxResults(1);
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(sql).setMaxResults(1);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		List<Map> list=query.list();
 		if(list!=null&&list.size()>0){

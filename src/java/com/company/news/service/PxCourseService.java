@@ -144,8 +144,6 @@ public class PxCourseService extends AbstractService {
 //		List<PxCourse4Q> list=pageQueryResult.getData();
 //		
 //		
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql=" SELECT t1.uuid,t1.logo,t2.img as group_img,t1.title,t1.ct_stars,t1.ct_study_students,t1.updatetime,t2.brand_name as group_name,t2.map_point,t2.address";
 		sql+=" FROM px_pxcourse t1 ";
 		sql+=" LEFT JOIN  px_group t2 on t1.groupuuid=t2.uuid ";
@@ -184,7 +182,7 @@ public class PxCourseService extends AbstractService {
 		}
 		
 		
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);

@@ -190,8 +190,7 @@ public class AnnouncementsService extends AbstractService {
 	 * @return
 	 */
 	private List<Announcements> getAnnouncementsByClassuuid(String classuuid) {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
+		Session s = this.nSimpleHibernateDao.getSession();
 		String sql = "";
 		Query q = s
 				.createSQLQuery(
@@ -233,15 +232,13 @@ public class AnnouncementsService extends AbstractService {
 	 */
 	public PageQueryResult queryMyChildGroup(String useruuid, PaginationData pData) {
 		useruuid=DbUtils.safeToWhereString(useruuid);
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String sql=" SELECT t1.uuid,t1.create_time,t1.create_user,t1.create_useruuid,t1.groupuuid,t1.title from px_announcements t1 where t1.type=0 and  t1.status="+SystemConstants.Check_status_fabu;
 		sql+=" and (t1.groupuuid IN (select DISTINCT  t2.groupuuid from px_studentcontactrealation t2 where t2.parent_uuid='"+useruuid+"')";
 		sql+=" or t1.groupuuid IN (select DISTINCT  t3.groupuuid from px_pxclass t3 inner JOIN px_pxstudentpxclassrelation t4 on t4.class_uuid=t3.uuid ";
 		sql+=" inner join px_pxstudentcontactrealation t5 on  t5.student_uuid=t4.student_uuid where t5.parent_uuid='"+useruuid+"')";
 		sql+=") ORDER BY t1.create_time desc";
 		
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
@@ -421,8 +418,6 @@ public class AnnouncementsService extends AbstractService {
      private CountService countService ;
 	public PageQueryResult pxbenefitListByPage(PaginationData pData,
 			String mappoint, String sort) throws Exception {
-		Session s = this.nSimpleHibernateDao.getHibernateTemplate()
-				.getSessionFactory().openSession();
 		String crrentTime=TimeUtils.getCurrentTime(TimeUtils.YYYY_MM_DD_FORMAT);
 		String sql=" SELECT t1.uuid,t2.img as group_img,t1.title,t2.brand_name as group_name,t2.map_point";
 		sql+=" FROM px_announcements t1 ";
@@ -436,7 +431,7 @@ public class AnnouncementsService extends AbstractService {
 //		}else{
 //			sql+=" order by t1.ct_stars desc,t1.ct_study_students desc";
 //		}
-		Query q = s.createSQLQuery(sql);
+		Query q = this.nSimpleHibernateDao.createSQLQuery(sql);
 		q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 		
 		PageQueryResult pageQueryResult =this.nSimpleHibernateDao.findByPageForSqlNoTotal(q, pData);
