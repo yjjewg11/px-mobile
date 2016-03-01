@@ -1,5 +1,8 @@
 package com.company.news.rest;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
@@ -539,10 +542,15 @@ public class FPPhotoItemController extends AbstractRESTController {
 	public String get2(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
-		Object m=null;
+		Map m=null;
 		try {
 			String uuid=request.getParameter("uuid");
-			if(DbUtils.isSqlInjection(uuid, responseMessage)){
+			if(DBUtil.isSqlInjection(uuid, responseMessage)){
+				return "";
+			}
+			
+			if(StringUtils.isBlank(uuid)){
+				responseMessage.setMessage("uuid 必填");
 				return "";
 			}
 			m = fPPhotoItemService.get(uuid);
@@ -551,6 +559,7 @@ public class FPPhotoItemController extends AbstractRESTController {
 				return "";
 			}
 			
+		  
 			SessionUserInfoInterface user = this.getUserInfoBySession(request);
 			String user_uuid=null;
 			if(user!=null){
@@ -631,6 +640,12 @@ public class FPPhotoItemController extends AbstractRESTController {
 			if(user!=null){
 				user_uuid=user.getUuid();
 			}
+			Map map=fPPhotoItemService.getStatus(uuid);
+			if(map==null){
+				responseMessage.setMessage("照片不存在!");
+				return "";
+			}
+			model.put("status",map.get("status") );
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPPhotoItemService.isFavorites( user_uuid,uuid));
 			model.put(RestConstants.Return_ResponseMessage_dianZan,baseDianzanService.query(uuid, SystemConstants.common_type_FPPhotoItem, user_uuid));
 			model.put(RestConstants.Return_ResponseMessage_reply_count,baseReplyService.queryCount(uuid, SystemConstants.common_type_FPPhotoItem));
@@ -643,6 +658,43 @@ public class FPPhotoItemController extends AbstractRESTController {
 		}
 	
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+
+	/**
+	 * 
+	 * 查询精品相册集合内的照片
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/queryForMovieUuid", method = RequestMethod.GET)
+	public String queryForMovieUuid(ModelMap model, HttpServletRequest request) {
+		model.clear();
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		//设置当前用户
+		SessionUserInfoInterface user=this.getUserInfoBySession(request);
+		
+		try {
+			String movie_uuid=request.getParameter("movie_uuid");
+		//	String photo_time=request.getParameter("photo_time");
+			if(DBUtil.isSqlInjection(movie_uuid, responseMessage))return "";
+			if(StringUtils.isBlank(movie_uuid)){
+				responseMessage.setMessage("movie_uuid 必填");
+				return "";
+			}
+			List list= fPPhotoItemService.queryForMovieUuid(user, movie_uuid,  responseMessage);
+			model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
 		return "";
 	}
 }

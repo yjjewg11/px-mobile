@@ -1,5 +1,6 @@
 package com.company.news.service;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -11,7 +12,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
-import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
@@ -26,11 +26,11 @@ import com.company.news.commons.util.UploadFileUtils;
 import com.company.news.commons.util.upload.DiskIUploadFile;
 import com.company.news.commons.util.upload.IUploadFile;
 import com.company.news.commons.util.upload.OssIUploadFile;
+import com.company.news.entity.FPMovie;
 import com.company.news.entity.FPPhotoItem;
 import com.company.news.entity.FPPhotoItemOfUpdate;
 import com.company.news.form.FPPhotoItemForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
-import com.company.news.jsonform.BaseDianzanJsonform;
 import com.company.news.jsonform.FPPhotoItemJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
@@ -408,12 +408,30 @@ public class FPPhotoItemService extends AbstractService {
 		iUploadFile.deleteFile(dbobj.getPath());
 		
 		
-		dbobj.setStatus(SystemConstants.FPPhotoItem_Status_2);
+		dbobj.setStatus(SystemConstants.FPPhotoItem_Status_delete);
 		dbobj.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		this.nSimpleHibernateDao.save(dbobj);
 		return true;
 	}
 
+	/**
+	 * 获取状态
+	 * @param uuid
+	 * @return
+	 * @throws Exception
+	 */
+	public Map getStatus(String uuid) throws Exception {
+		
+		String sqlFrom="select t1.status "+SqlFrom;
+		sqlFrom += " where   t1.uuid ='"+uuid+"'";
+		
+		List<Map>  list =nSimpleHibernateDao.queryMapBySql(sqlFrom);
+		 Map  map=null;
+		if(list.size()>0){
+			   map=list.get(0);
+		}
+		return map;
+	}
 	/**
 	 * 
 	 * @param uuid
@@ -422,14 +440,14 @@ public class FPPhotoItemService extends AbstractService {
 	 */
 	public Map get(String uuid) throws Exception {
 		
-		String selectsql=Selectsql;
-		String sqlFrom=Selectsql+SqlFrom;
+		String sqlFrom=Selectsql+" ,t1.status "+SqlFrom;
 		sqlFrom += " where   t1.uuid ='"+uuid+"'";
 		
 		List<Map>  list =nSimpleHibernateDao.queryMapBySql(sqlFrom);
 		 Map  map=null;
 		if(list.size()>0){
 			   map=list.get(0);
+			 
 			 warpMap(map, null);
 			 UserCache user=UserRedisCache.getUserCache("create_useruuid");
 			 if(user!=null)map.put("create_user", user.getN());
@@ -509,7 +527,7 @@ public class FPPhotoItemService extends AbstractService {
 		obj.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		obj.setNote(jsonform.getNote());
 		obj.setAddress(jsonform.getAddress());
-		obj.setStatus(SystemConstants.FPPhotoItem_Status_1);
+		obj.setStatus(SystemConstants.FPPhotoItem_Status_update);
 		
 		this.nSimpleHibernateDao.save(obj);
 		return true;
@@ -559,37 +577,30 @@ public class FPPhotoItemService extends AbstractService {
 	 * 
 	 * @return
 	 */
-	public PageQueryResult queryForMovie(String family_uuid,PaginationData pData,ModelMap model) {
+	public List<Map> queryForMovieUuid(SessionUserInfoInterface user,String movie_uuid,ResponseMessage responseMessage) {
 		
-		String selectsql=" SELECT t1.path,t1.address,t1.note ";
 		
+		 
+ 	   FPMovie fPMovie= (FPMovie)this.nSimpleHibernateDao.getObject(FPMovie.class, movie_uuid);
+ 	   if(fPMovie==null){
+ 		  responseMessage.setMessage("相册不存在!movie_uuid="+movie_uuid);
+ 		   return null;
+ 	   }
+ 	   
+		String selectsql=Selectsql;
 		String sqlFrom=SqlFrom;
-		sqlFrom += " where  1=1";
-		
+		//修复，增量查询是不查询已经删除了得
+		sqlFrom += " where t1.uuid in("+DBUtil.stringsToWhereInValue(fPMovie.getPhoto_uuids())+")";
 		
 		String sql=sqlFrom;
-		pData.setPageSize(10);
-		////使用创建时间做分页显示,beforeTime 取 2016-01-15 13:13 之前的数据.按照创建时间排倒序
-		 if(StringUtils.isNotBlank(pData.getMaxTime())){
-				sql += " and   t1.create_time <"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
-		}
-		 sql += " order by t1.create_time asc";
-		 
+	
+		  sql += " order by t1.photo_time asc";
 		Query  query =this.nSimpleHibernateDao.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-		String countsql="select count(*) "+sql;
-	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
-		List<Map> list=pageQueryResult.getData();
-		
-		for(Map o:list){
-			try {
-				o.put("path", PxStringUtil.imgUrlByRelativePath_sub((String)o.get("path"),"@640w"));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		//返回最后一条的数据。
-		return pageQueryResult;
+//		String countsql="select count(*) "+sql;
+		List<Map> list=query.list();
+		this.warpMapList(list, user);
+		return list;
 	}
 	
 }

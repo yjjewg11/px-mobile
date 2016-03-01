@@ -189,12 +189,14 @@ public class FPFamilyPhotoCollectionController extends AbstractRESTController {
 	
 
 	
-	@RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
-	public String get(@PathVariable String uuid,ModelMap model, HttpServletRequest request) {
+	@RequestMapping(value = "/get", method = RequestMethod.GET)
+	public String get(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
 				.addResponseMessageForModelMap(model);
 		Object m;
 		try {
+			
+			String uuid=request.getParameter("uuid");
 			//防止sql注入.
 			if(DBUtil.isSqlInjection(uuid,responseMessage))return "";
 			

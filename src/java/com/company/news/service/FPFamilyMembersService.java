@@ -12,6 +12,7 @@ import com.company.news.commons.util.DbUtils;
 import com.company.news.entity.FPFamilyMembers;
 import com.company.news.entity.FPFamilyPhotoCollection;
 import com.company.news.entity.FPFamilyPhotoCollectionOfUpdate;
+import com.company.news.entity.Parent;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPFamilyMembersJsonform;
 import com.company.news.rest.util.TimeUtils;
@@ -52,16 +53,24 @@ public class FPFamilyMembersService extends AbstractService {
 			return false;
 		}
 		
-		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		
+		
+//		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 		if(StringUtils.isBlank(jsonform.getUuid())){
 			FPFamilyMembers dbobj = new FPFamilyMembers();
 			BeanUtils.copyProperties(dbobj, jsonform);
 			dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
-			dbobj.setFamily_name(user.getName());
-			dbobj.setUser_uuid(user.getUuid());
-			dbobj.setTel(user.getLoginname());
-			dbobj.setFamily_uuid(dbobj.getUuid());
+//			dbobj.setFamily_name(user.getName());
+//			dbobj.setUser_uuid(user.getUuid());
+//			dbobj.setTel(user.getLoginname());
+//			dbobj.setFamily_uuid(dbobj.getUuid());
 			// 有事务管理，统一在Controller调用时处理异常
+
+			if(StringUtils.isNotBlank(jsonform.getTel())){
+				Parent parent = (Parent) nSimpleHibernateDao.getObjectByAttribute(
+						Parent.class, "loginname", jsonform.getTel());
+				if(parent!=null)dbobj.setUser_uuid(parent.getUuid());
+			}
 			this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
 			return dbobj;
 		}
@@ -82,6 +91,12 @@ public class FPFamilyMembersService extends AbstractService {
 		
 		//end code
 		BeanUtils.copyProperties(dbobj, jsonform);
+		dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
+		if(StringUtils.isNotBlank(jsonform.getTel())){
+			Parent parent = (Parent) nSimpleHibernateDao.getObjectByAttribute(
+					Parent.class, "loginname", jsonform.getTel());
+			if(parent!=null)dbobj.setUser_uuid(parent.getUuid());
+		}
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
 		return dbobj;
