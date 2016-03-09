@@ -33,7 +33,6 @@ import com.company.news.entity.ParentData;
 import com.company.news.entity.PxStudentContactRealation;
 import com.company.news.entity.Student;
 import com.company.news.entity.StudentContactRealation;
-import com.company.news.entity.StudentOfSession;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -47,6 +46,7 @@ import com.company.news.session.UserOfSession;
 import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
 import com.company.news.vo.TeacherPhone;
+import com.company.news.vo.UserInfoReturn;
 import com.company.plugin.security.LoginLimit;
 import com.company.web.filter.UserInfoFilter;
 import com.company.web.listener.SessionListener;
@@ -72,58 +72,23 @@ public class UserinfoService extends AbstractService {
 	private NewMsgNumberIservice newMsgNumberIservice;
 	
 	
-
 	/**
-	 * 用户注册
-	 * 
-	 * @param entityStr
-	 * @param model
-	 * @param request
+	 * 注册第2步
+	 * @param parentRegJsonform
+	 * @param responseMessage
 	 * @return
+	 * @throws Exception
 	 */
-	public boolean reg(ParentRegJsonform parentRegJsonform,
+	public Parent update_regSecond(Parent parent,
 			ResponseMessage responseMessage) throws Exception {
-
-		// TEL格式验证
-		if (!CommonsValidate.checkCellphone(parentRegJsonform.getTel())) {
-			responseMessage.setMessage("电话号码格式不正确！");
-			return false;
-		}
-
-		// 用户名是否存在
-		if (isExitSameUserByLoginName(parentRegJsonform.getTel())) {
-			responseMessage.setMessage("电话号码已被注册！");
-			return false;
-		}
-
-		if (!smsService.VerifySmsCode(responseMessage,
-				parentRegJsonform.getTel(), parentRegJsonform.getSmscode())) {
-			return false;
-		}
-
-		if (parentRegJsonform.getType() == null)
-			parentRegJsonform.setType(1);
-
-		Parent parent = new Parent();
-
-		BeanUtils.copyProperties(parent, parentRegJsonform);
-		parent.setLoginname(parentRegJsonform.getTel());
-		parent.setCreate_time(TimeUtils.getCurrentTimestamp());
-		parent.setDisable(SystemConstants.USER_disable_default);
-		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
-		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
-		parent.setCount(0l);
 		// 电话保密
-		if (StringUtils.isBlank(parent.getName())) {
-			parent.setName(StringUtils.substring(parent.getLoginname(), 0, 3)
-					+ "****" + StringUtils.substring(parent.getLoginname(), 7));
-		}
-
+				if (StringUtils.isBlank(parent.getName())) {
+					parent.setName(StringUtils.substring(parent.getLoginname(), 0, 3)
+							+ "****" + StringUtils.substring(parent.getLoginname(), 7));
+				}
+				parent.setNickname(parent.getName());
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
-
-		
-		
 		
 		/**
 		 * 培训机构
@@ -170,7 +135,54 @@ public class UserinfoService extends AbstractService {
 
 		UserRedisCache.setUserCacheByParent(parent);
 		
-		return true;
+		return parent;
+	}
+	/**
+	 * 用户注册.第一步验证
+	 * 
+	 * @param entityStr
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	public boolean reg(ParentRegJsonform parentRegJsonform,
+			ResponseMessage responseMessage) throws Exception {
+
+		// TEL格式验证
+		if (!CommonsValidate.checkCellphone(parentRegJsonform.getTel())) {
+			responseMessage.setMessage("电话号码格式不正确！");
+			return false;
+		}
+
+		// 用户名是否存在
+		if (isExitSameUserByLoginName(parentRegJsonform.getTel())) {
+			responseMessage.setMessage("电话号码已被注册！");
+			return false;
+		}
+
+		if (!smsService.VerifySmsCode(responseMessage,
+				parentRegJsonform.getTel(), parentRegJsonform.getSmscode())) {
+			return false;
+		}
+		if (parentRegJsonform.getType() == null)
+			parentRegJsonform.setType(1);
+
+		Parent parent = new Parent();
+
+		BeanUtils.copyProperties(parent, parentRegJsonform);
+		parent.setLoginname(parentRegJsonform.getTel());
+		parent.setCreate_time(TimeUtils.getCurrentTimestamp());
+		parent.setDisable(SystemConstants.USER_disable_default);
+		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
+		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
+		parent.setCount(0l);
+	
+		
+		  parent=this.update_regSecond(parent, responseMessage);
+		  
+		if(parent==null)return false;
+		 
+		 return true;
 	}
 
 	/**
@@ -365,6 +377,95 @@ public class UserinfoService extends AbstractService {
 			}
 		}
 
+		session=this.sessionCreateByParent(parent, model, request, responseMessage);
+
+		// 更新登陆日期,最近一次登陆日期
+		String sql = "update px_parent set count=count+1,last_login_time=login_time,login_time=now(),sessionid='"+session.getId()+"' where uuid='"
+				+ parent.getUuid() + "'";
+		this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory()
+				.getCurrentSession().createSQLQuery(sql).executeUpdate();
+		//
+		return true;
+	}
+	/**
+	   * 返回客户端用户信息放入Map
+	   * @param request
+	   * @return
+	   */
+	  protected void putUserInfoReturnToModel( ModelMap model,HttpServletRequest request){
+		  SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+	    // 返回用户信息
+	    UserInfoReturn userInfoReturn = new UserInfoReturn();
+	    try {
+	      BeanUtils.copyProperties(userInfoReturn, user);
+	      userInfoReturn.setImg(PxStringUtil.imgSmallUrlByUuid(userInfoReturn.getImg()));
+	    } catch (Exception e) {
+	      e.printStackTrace();
+	    }
+//	    userInfoReturn.setPassword(null);
+	    model.addAttribute(RestConstants.Return_UserInfo,userInfoReturn);
+	  }
+	/**
+	 * 获取登录用户和机构
+	 * @param model
+	 * @param request
+	 * @param responseMessage
+	 * @return
+	 */
+	public boolean getUserAndStudent(ModelMap model,
+			HttpServletRequest request,ResponseMessage responseMessage){
+		List list = new ArrayList();
+		try {
+			list = getStudentByParentuuid(SessionListener.getUserInfoBySession(
+					request).getUuid());
+			String group_uuids=getMyChildrenGroupUuidsBySession(request);
+			//String class_uuids=this.getMyChildrenClassuuidsBySession(request);
+			model.addAttribute("group_list", getGroupVObyUuids(group_uuids));
+			//model.addAttribute("class_list", userinfoService.getPClassbyUuids(class_uuids));
+			model.addAttribute("class_list", getAllClassAndPxClass(SessionListener.getUserInfoBySession(request)));
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return false;
+		}
+		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
+		
+		HttpSession session = SessionListener.getSession(request);
+		// 返回用户信息
+		this.putUserInfoReturnToModel(model, request);
+		model.put(RestConstants.Return_JSESSIONID, session.getId());
+		
+		return true;
+	}
+	/**
+	 * 根据用户创建session
+	 * @param parent
+	 * @param model
+	 * @param request
+	 * @param responseMessage
+	 * @return
+	 * @throws Exception
+	 */
+	public HttpSession sessionCreateByParent(Parent parent, ModelMap model,
+			HttpServletRequest request, ResponseMessage responseMessage)
+			throws Exception {
+		
+
+
+		// 创建session
+		HttpSession session = SessionListener
+				.getSession((HttpServletRequest) request);
+
+		if (session != null) {
+			SessionUserInfoInterface userInfo = (SessionUserInfoInterface) session
+					.getAttribute(RestConstants.Session_UserInfo);
+			if (userInfo != null && parent.getLoginname().equals(userInfo.getLoginname())) {
+				return null;
+			}
+		}
+
 		session = request.getSession(true);
 		// this.nSimpleHibernateDao.getHibernateTemplate().evict(user);
 		SessionListener.putSessionByJSESSIONID(session);
@@ -377,28 +478,13 @@ public class UserinfoService extends AbstractService {
 		}
 		session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
 
-		
-		
-		// 移到CONTROLLER调用，减少长事务执行
-		// List<StudentOfSession>
-		// studentOfSessionlist=this.getStudentOfSessionByParentuuid(parent.getUuid());
-		// session.setAttribute(RestConstants.Session_StudentslistOfParent,
-		// studentOfSessionlist);
-
-		// 返回客户端用户信息放入Map
-		// putUserInfoReturnToModel(model, request);
-
 		model.put(RestConstants.Return_JSESSIONID, session.getId());
-		// model.put(RestConstants.Return_UserInfo, userInfoReturn);
 
-		// 更新登陆日期,最近一次登陆日期
-		String sql = "update px_parent set count=count+1,last_login_time=login_time,login_time=now(),sessionid='"+session.getId()+"' where uuid='"
-				+ parent.getUuid() + "'";
-		this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory()
-				.getCurrentSession().createSQLQuery(sql).executeUpdate();
-		//
-		return true;
+		return session;
 	}
+	
+	
+	
 
 	/**
 	 * 是否用户名已被占用

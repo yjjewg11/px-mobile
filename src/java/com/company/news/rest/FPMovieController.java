@@ -4,6 +4,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -164,8 +165,10 @@ public class FPMovieController extends AbstractRESTController {
 			if(DBUtil.isSqlInjection(uuid, responseMessage)){
 				return "";
 			}
-			SessionUserInfoInterface user=this.getUserInfoBySession(request);
-			
+			if(StringUtils.isBlank(uuid)){
+				responseMessage.setMessage("uuid 不能为空!");
+				return "";
+			}
 			boolean flag = fPMovieService.delete(request,uuid
 					,responseMessage);
 			if (!flag)
@@ -213,6 +216,10 @@ public class FPMovieController extends AbstractRESTController {
 //			
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPMovieService.isFavorites( user_uuid,uuid));
 			model.put(RestConstants.Return_ResponseMessage_dianZan,baseDianzanService.query(uuid, SystemConstants.common_type_FPMovie, user_uuid));
+			PaginationData pData=new PaginationData();
+//			pData.setPageSize(50);
+//			model.put(RestConstants.Return_ResponseMessage_dianZanNameList,baseDianzanService.queryNameByPage(uuid, SystemConstants.common_type_FPPhotoItem, user_uuid, pData));
+//			
 			model.put(RestConstants.Return_ResponseMessage_share_url,PxStringUtil.getFPMovieByUuid(uuid));
 			model.put(RestConstants.Return_ResponseMessage_reply_count,baseReplyService.queryCount(uuid, SystemConstants.common_type_FPMovie));
 			

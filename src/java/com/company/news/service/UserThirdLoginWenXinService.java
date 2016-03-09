@@ -1,0 +1,237 @@
+package com.company.news.service;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.ui.ModelMap;
+import org.weixin4j.OAuth2;
+import org.weixin4j.OAuth2User;
+import org.weixin4j.WeixinException;
+import org.weixin4j.http.OAuth2Token;
+
+import com.company.news.ProjectProperties;
+import com.company.news.SystemConstants;
+import com.company.news.commons.util.PxStringUtil;
+import com.company.news.entity.Parent;
+import com.company.news.entity.UserThirdLoginWenXin;
+import com.company.news.interfaces.SessionUserInfoInterface;
+import com.company.news.rest.RestConstants;
+import com.company.news.rest.util.TimeUtils;
+import com.company.news.validate.CommonsValidate;
+import com.company.news.vo.ResponseMessage;
+import com.company.web.listener.SessionListener;
+
+/**
+ * 
+ * @author Administrator
+ * 
+ */
+@Service
+public  class UserThirdLoginWenXinService extends AbstractService {
+	static public String WeixinAppSecret= ProjectProperties.getProperty(
+				"WeixinAppSecret", "639c78a45d012434370f4c1afc57acd1");
+	@Autowired
+	private SmsService smsService;
+	
+	@Autowired
+	private UserinfoService userinfoService;
+	/**
+	 * 1.根据app 获取到的code,获取Access_token
+	 * 
+	 * @return
+	 * @throws WeixinException 
+	 */
+	public boolean access_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String appid,String code) throws WeixinException,Exception {
+		
+//		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
+		OAuth2 oAuth2=new OAuth2();
+		OAuth2Token token=oAuth2.login(appid, WeixinAppSecret, code);
+		//获取用户信息
+		OAuth2User oAuth2User=oAuth2.getUserInfo();
+		
+		
+		UserThirdLoginWenXin userdb=(UserThirdLoginWenXin)this.nSimpleHibernateDao.getObjectByAttribute(UserThirdLoginWenXin.class, "openid", oAuth2User.getOpenid());
+		
+		if(userdb==null){//创建
+			userdb=new UserThirdLoginWenXin();
+			BeanUtils.copyProperties(userdb, oAuth2User);
+			userdb.setAppid(appid);
+			userdb.setOpenid(token.getOpenid());
+		}
+		//更新
+		userdb.setAccess_token(token.getAccess_token());
+		
+		nSimpleHibernateDao.save(userdb);
+		
+		String isBindParent=SystemConstants.UserThirdLogin_needBindTel_1;
+		// 用户名是否存在
+		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
+			List list=nSimpleHibernateDao.createSqlQuery("select uuid from px_parent where uuid='"+userdb.getRel_useruuid()+"'").list();
+			if(!list.isEmpty()){//// 用户名是否存在,则绑定
+				isBindParent=SystemConstants.UserThirdLogin_needBindTel_0;
+			}
+		}
+		
+		model.put(RestConstants.Return_UserThirdLogin_needBindTel, isBindParent);
+		model.put(RestConstants.Return_UserThirdLogin_access_token, token.getAccess_token());
+		
+		
+		return true;
+	}
+
+	
+	/**
+	 * 2.根据微信票据绑定用户,不存在则自动注册.
+	 * @param model
+	 * @param request
+	 * @param responseMessage
+	 * @param access_token
+	 * @param tel
+	 * @param smsCode
+	 * @return
+	 * @throws WeixinException
+	 * @throws Exception
+	 */
+	public boolean update_bindTel(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token,String tel,String smsCode) throws WeixinException,Exception {
+		
+//		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
+		
+		UserThirdLoginWenXin userdb=(UserThirdLoginWenXin)this.nSimpleHibernateDao.getObjectByAttribute(UserThirdLoginWenXin.class, "access_token", access_token);
+		
+		if(userdb==null){//创建用户
+			responseMessage.setMessage("无效票据,请重新授权.access_token="+access_token);
+			return false;
+		}
+		
+		Parent parent=null;
+		
+		// TEL格式验证
+		if (!CommonsValidate.checkCellphone(tel)) {
+			responseMessage.setMessage("电话号码格式不正确！");
+			return false;
+		}
+
+		//验证码判断
+		if (!smsService.VerifySmsCode(responseMessage,
+				tel, smsCode)) {
+			return false;
+		}
+		// 用户名是否存在
+		List list=nSimpleHibernateDao.createSqlQuery("select uuid from px_parent where tel='"+tel+"'").list();
+		
+		if(!list.isEmpty()){//// 用户名是否存在,则绑定
+			userdb.setRel_useruuid((String)list.get(0));
+			nSimpleHibernateDao.save(userdb);
+			return true;
+		}
+		
+		 parent = new Parent();
+
+		parent.setLoginname(tel);
+		parent.setTel(tel);
+		parent.setName(PxStringUtil.getSubString(userdb.getNickname(), 45));
+		parent.setImg(PxStringUtil.getSubString(userdb.getHeadimgurl(), 256));
+		
+		parent.setCreate_time(TimeUtils.getCurrentTimestamp());
+		parent.setDisable(SystemConstants.USER_disable_default);
+		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
+		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
+		parent.setCount(0l);
+		
+		
+		parent=userinfoService.update_regSecond(parent, responseMessage);
+		
+		
+		userdb.setRel_useruuid(parent.getUuid());
+		nSimpleHibernateDao.save(userdb);
+		return true;
+				
+	}
+	
+	
+	/**
+	 * 根据app 获取到的code,获取Access_token
+	 * 
+	 * @return
+	 * @throws WeixinException 
+	 */
+	public boolean loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
+		
+//		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
+		
+		UserThirdLoginWenXin userdb=(UserThirdLoginWenXin)this.nSimpleHibernateDao.getObjectByAttribute(UserThirdLoginWenXin.class, "access_token", access_token);
+		
+		if(userdb==null){//创建用户
+			responseMessage.setMessage("无效票据,请重新授权.access_token="+access_token);
+			return false;
+		}
+		
+		Parent parent=null;
+		if(StringUtils.isBlank(userdb.getRel_useruuid())){
+			responseMessage.setMessage("没有关联用户手机号码请关联.access_token="+access_token);
+			return false;
+			
+			
+		}
+		parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
+		
+		if(parent==null){//初始化用户成功!
+			responseMessage.setMessage("没有关联用户信息.access_token="+access_token);
+			return false;
+		}
+		HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
+		// 将关联系学生信息放入
+		
+		userinfoService.putSession(session, parent, request);
+		boolean flag = userinfoService.getUserAndStudent(model, request, responseMessage);
+		
+		return true;
+				
+	}
+	
+
+	
+	/**
+	 * 根据app 获取到的code,获取Access_token
+	 * 
+	 * @return
+	 * @throws WeixinException 
+	 */
+	public boolean update_logoutByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
+		
+//		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
+		
+		SessionUserInfoInterface user=SessionListener.getUserInfoBySession(request);
+		UserThirdLoginWenXin userdb=(UserThirdLoginWenXin)this.nSimpleHibernateDao.getObjectByAttribute(UserThirdLoginWenXin.class, "access_token", access_token);
+		
+		if(userdb==null){//创建用户
+			responseMessage.setMessage("无效票据,请重新授权.access_token="+access_token);
+			return false;
+		}
+		
+		if(user.getUuid().equals(userdb.getRel_useruuid())){
+			userdb.setAccess_token(null);
+			this.nSimpleHibernateDao.save(userdb);
+			return true;
+		}
+		
+		return false;
+				
+	}
+	
+	@Override
+	public Class getEntityClass() {
+		
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+
+
+}

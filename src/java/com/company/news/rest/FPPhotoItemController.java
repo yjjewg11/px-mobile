@@ -648,6 +648,10 @@ public class FPPhotoItemController extends AbstractRESTController {
 			model.put("status",map.get("status") );
 			model.put(RestConstants.Return_ResponseMessage_isFavorites,fPPhotoItemService.isFavorites( user_uuid,uuid));
 			model.put(RestConstants.Return_ResponseMessage_dianZan,baseDianzanService.query(uuid, SystemConstants.common_type_FPPhotoItem, user_uuid));
+			
+			PaginationData pData=new PaginationData();
+			pData.setPageSize(50);
+			model.put(RestConstants.Return_ResponseMessage_dianZanNameList,baseDianzanService.queryNameByPage(uuid, SystemConstants.common_type_FPPhotoItem, user_uuid, pData));
 			model.put(RestConstants.Return_ResponseMessage_reply_count,baseReplyService.queryCount(uuid, SystemConstants.common_type_FPPhotoItem));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

@@ -1,5 +1,6 @@
 package com.company.news.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,8 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
-import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
@@ -22,7 +23,7 @@ import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPMovieJsonform;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
-import com.company.news.rest.util.DBUtil;
+import com.company.news.rest.RestConstants;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
@@ -133,11 +134,13 @@ public class FPMovieService extends AbstractService {
 		
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 		//防止sql注入.
-		if(DBUtil.isSqlInjection(uuid,responseMessage))return false;
 		
 		FPMovie dbobj = (FPMovie) this.nSimpleHibernateDao.getObjectById(
 				FPMovie.class, uuid);
-		
+		if(dbobj==null){
+			responseMessage.setMessage("相册不存在!");
+			return false;
+		}
 		if(!user.getUuid().equals(dbobj.getCreate_useruuid())){
 			responseMessage.setMessage("只有创建人,才能删除");
 			return false;
@@ -241,6 +244,12 @@ public class FPMovieService extends AbstractService {
 			e.printStackTrace();
 		}
 	}
+	
+	@Autowired
+	private BaseDianzanService baseDianzanService;
+	@Autowired
+	private BaseReplyService baseReplyService;
+	
 	/**
 	 * vo输出转换
 	 * @param list
@@ -248,7 +257,40 @@ public class FPMovieService extends AbstractService {
 	 */
 	private List warpMapList(List<Map> list,SessionUserInfoInterface user ) {
 		UserRedisCache.warpListMapByUserCache(list, "create_useruuid", "create_username", null);
+		
+		String uuids=PxStringUtil.getMapVaules(list, "uuid");
+		String user_uuid=null;
+		if(user!=null){
+			user_uuid=user.getUuid();
+		}
+		 Map<String,Map>  dianZanListMap=baseDianzanService.queryByRel_uuids(uuids, SystemConstants.common_type_FPMovie, user_uuid);
+		 
+		 Map<String,Map>  baseReplyListMap=baseReplyService.queryCountByRel_uuids(uuids, SystemConstants.common_type_FPMovie);
+			
+		 
 		for(Map o:list){
+			//添加点赞对象
+			Map dianzanMap=dianZanListMap.get(o.get("uuid"));
+			if(dianzanMap==null){
+				dianzanMap=new HashMap();
+				dianzanMap.put("dianzan_count", 0);
+				dianzanMap.put("yidianzan", 0);
+			}
+			if(dianzanMap.get("yidianzan")==null){
+				dianzanMap.put("yidianzan", 0);
+			}
+			o.put(RestConstants.Return_ResponseMessage_dianZan, dianzanMap);
+			
+			
+			Map baseReplyMap=baseReplyListMap.get(o.get("uuid"));
+			Object reply_count=0;
+			if(baseReplyMap!=null){
+				reply_count=baseReplyMap.get("reply_count");
+			}
+			o.put(RestConstants.Return_ResponseMessage_reply_count, reply_count);
+			
+			//点击评论
+			
 			warpMap(o,user);
 		}
 		

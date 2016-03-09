@@ -6,23 +6,17 @@ import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.weixin4j.Weixin;
 
 import com.company.news.SystemConstants;
-import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.MyUbbUtils;
-import com.company.news.commons.util.PxStringUtil;
-import com.company.news.core.iservice.PushMsgIservice;
 import com.company.news.entity.AbstractBaseReply;
 import com.company.news.entity.BaseReply21;
 import com.company.news.entity.BaseReply22;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.BaseReplyJsonform;
-import com.company.news.query.PageQueryResult;
-import com.company.news.query.PaginationData;
-import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
@@ -32,11 +26,9 @@ import com.company.news.vo.ResponseMessage;
  * 
  */
 @Service
-public  class BaseReplyService extends AbstractService {
+public  class UserThirdLoginQQService extends AbstractService {
 	public static final int USER_type_default = 1;// 0:老师
 	
-	@Autowired
-	public PushMsgIservice pushMsgIservice;
 	
 	/**
 	 * 增加班级
@@ -90,19 +82,10 @@ public  class BaseReplyService extends AbstractService {
 	 * 
 	 * @return
 	 */
-	public PageQueryResult query(String rel_uuid,Integer type, PaginationData pData,String cur_user_uuid) {
-		String tableName="px_base_reply_"+type;
-		String hql=selectSql+"from "+tableName+" where ( create_useruuid='"+cur_user_uuid+"' or status ="+SystemConstants.Check_status_fabu+")" ;	
-			hql+=" and  rel_uuid='"+rel_uuid+"'";
-		 if(StringUtils.isNotBlank(pData.getMaxTime())){
-			 hql += " and   create_time <"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
-		 }
-		pData.setOrderFiled("create_time");
-		pData.setOrderType("desc");
-		
-		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findMapByPageForSqlNoTotal(hql, pData);
-		
-		return pageQueryResult;
+	public Map access_token(String appid,String code,String grant_type) {
+		Weixin  weixin = new Weixin();
+//		weixin.login(arg0, arg1, arg2)
+		return null;
 				
 	}
 	
@@ -118,25 +101,6 @@ public  class BaseReplyService extends AbstractService {
 		sql+=" and  rel_uuid='"+rel_uuid+"'";
 		
 		return this.nSimpleHibernateDao.createSqlQuery(sql).uniqueResult();
-				
-	}
-	
-
-	/**
-	 * 查询总数
-	 * @param rel_uuid
-	 * @param type
-	 * @return
-	 */
-	public Map<String,Map>  queryCountByRel_uuids(String rel_uuids,Integer type) {
-		String tableName="px_base_reply_"+type;
-		String sql="select rel_uuid,count(1) as reply_count from "+tableName+" where  status ="+SystemConstants.Check_status_fabu ;
-		sql+=" and rel_uuid in ("+DBUtil.stringsToWhereInValue(rel_uuids)+")";
-		sql+="group by rel_uuid";
-
-		List<Map> list=this.nSimpleHibernateDao.queryMapBySql(sql);
-		
-		return PxStringUtil.listMapToMapMap(list, "rel_uuid");
 				
 	}
 

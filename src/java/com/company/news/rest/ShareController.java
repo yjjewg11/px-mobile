@@ -29,6 +29,8 @@ import com.company.news.ResponseMessageConstants;
 import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.cache.PxConfigCache;
+import com.company.news.cache.redis.FPPhotoRedisCache;
+import com.company.news.commons.util.FPPhotoUtil;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.dao.NSimpleHibernateDao;
 import com.company.news.entity.Announcements;
@@ -866,7 +868,6 @@ public class ShareController extends AbstractRESTController {
 	   				.addResponseMessageForModelMap(model);
 	    	   
 	    	  // String jsonpCallback = request.getParameter("jsonpCallback");//客户端请求参数  
-	    	   String family_uuid = request.getParameter("family_uuid");//客户端请求参数  
 	    	   String movie_uuid = request.getParameter("movie_uuid");//客户端请求参数  
 		    	  
 	    	   
@@ -882,14 +883,8 @@ public class ShareController extends AbstractRESTController {
 	    	   pData.setPageSize(20);
 	    	   PageQueryResult pageQueryResult=  fPPhotoItemService.queryForMoviePhoto_uuids(fPMovie.getPhoto_uuids(), pData, model);
 	    	   fPMovie.setPhoto_uuids(null);
-	    	   
+	    	   fPMovie.setHerald(FPPhotoUtil.imgUrlByUuid_sub(fPMovie.getHerald()));
 	    	   model.addAttribute(RestConstants.Return_ResponseMessage_list, pageQueryResult);
-	    	//   FPMovieOfPlay fPMovie=new FPMovieOfPlay();
-//	    	   fPMovie.setUuid(movie_uuid);
-//	    	   fPMovie.setMp3("http://img.wenjienet.com/mp3/致爱丽丝.mp3");
-//	    	   fPMovie.setTitle("动态照片");
-//	    	   fPMovie.setTemplate_key("fp_movie1");
-//	    	   fPMovie.setPhoto_count(pageQueryResult.getTotalCount());
 	    	   model.addAttribute(RestConstants.Return_G_entity,fPMovie);
 	    	   
 	    	   

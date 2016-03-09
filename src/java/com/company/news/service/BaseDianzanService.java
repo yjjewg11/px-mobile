@@ -9,20 +9,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.news.SystemConstants;
-import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.PushMsgIservice;
-import com.company.news.entity.AbstractBaseReply;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.BaseDianzanJsonform;
+import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.vo.ResponseMessage;
 
 /**
  * 
  * @author Administrator
  * 
+ * 
+ * CREATE TABLE `px_base_dianzan_22` (
+`rel_uuid`  varchar(45) NULL ,
+`create_useruuid`  varchar(45) NULL ,
+  `create_time` datetime DEFAULT NULL,
+PRIMARY KEY (`rel_uuid`, `create_useruuid`)
+)
+;
  */
 @Service
 public  class BaseDianzanService extends AbstractService {
@@ -84,6 +92,42 @@ public  class BaseDianzanService extends AbstractService {
 		map.put("dianzan_count", 0);
 		map.put("yidianzan", 0);
 		return map;
+				
+	}
+	
+
+	/**
+	 * 查询
+	 * 
+	 * @return
+	 */
+	public Map<String,Map>  queryByRel_uuids(String rel_uuids,Integer type,String cur_user_uuid) {
+		if(StringUtils.isBlank(rel_uuids))return new HashMap();
+		if(cur_user_uuid==null)cur_user_uuid="0";
+		//String sql="select count(1),sum(case when create_useruuid ='1' then 1 else 0 end)  from px_base_dianzan_21 where rel_uuid='1'";
+		String sql="select rel_uuid,  count(1) as dianzan_count,sum(case when create_useruuid ='"+cur_user_uuid+"' then 1 else 0 end)  as yidianzan   from "+this.getTableNameByType(type);
+		sql+=" where rel_uuid in ("+DBUtil.stringsToWhereInValue(rel_uuids)+")";
+		sql+="group by rel_uuid";
+		
+		List<Map> list=this.nSimpleHibernateDao.queryMapBySql(sql);
+		
+		return PxStringUtil.listMapToMapMap(list, "rel_uuid");
+				
+	}
+	
+	/**
+	 * 查询 点赞人姓名.
+	 * 
+	 * @return
+	 */
+	public PageQueryResult queryNameByPage(String rel_uuid,Integer type,String cur_user_uuid, PaginationData pData) {
+		if(cur_user_uuid==null)cur_user_uuid="0";
+		//String sql="select count(1),sum(case when create_useruuid ='1' then 1 else 0 end)  from px_base_dianzan_21 where rel_uuid='1'";
+		String sql="select useruuid   from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"' order by create_time asc";
+		PageQueryResult list=this.nSimpleHibernateDao.findMapByPageForSqlNoTotal(sql, pData);
+		UserRedisCache.warpListMapByUserCache(list.getData(), "useruuid", "username", null);
+		
+		return list;
 				
 	}
 

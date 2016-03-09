@@ -204,7 +204,7 @@ public class FPPhotoItemService extends AbstractService {
 	 */
 	public PageQueryResult queryAlreadyUploaded(String phone_uuid,PaginationData pData) {
 		pData.setPageSize(100);
-		String selectsql="SELECT t1.md5,t1.create_useruuid ";
+		String selectsql="SELECT t1.md5 ";
 		String sql=SqlFrom;
 		
 		//过滤删除掉的.

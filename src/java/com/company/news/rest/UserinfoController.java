@@ -81,7 +81,7 @@ public class UserinfoController extends AbstractRESTController {
 //		//我的孩子参加的培训班
 //		session.setAttribute(RestConstants.Session_MyStudentClassUuids, userinfoService.getPxClassuuidsByMyChild(parent.getUuid()));
 //		
-		flag = this.getUserAndStudent(model, request, responseMessage);
+		flag = userinfoService.getUserAndStudent(model, request, responseMessage);
 
 		if (!flag)// 请求服务返回失败标示
 			return "";
@@ -234,7 +234,7 @@ public class UserinfoController extends AbstractRESTController {
 		try {
 			String md5=request.getParameter(RestConstants.Return_ResponseMessage_md5);
 			
-			boolean flag = this.getUserAndStudent(model, request, responseMessage);
+			boolean flag = userinfoService.getUserAndStudent(model, request, responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";
 			
@@ -338,40 +338,6 @@ public class UserinfoController extends AbstractRESTController {
 	}
 	
 	
-	/**
-	 * 获取登录用户和机构
-	 * @param model
-	 * @param request
-	 * @param responseMessage
-	 * @return
-	 */
-	private boolean getUserAndStudent(ModelMap model,
-			HttpServletRequest request,ResponseMessage responseMessage){
-		List list = new ArrayList();
-		try {
-			list = userinfoService.getStudentByParentuuid(this.getUserInfoBySession(
-					request).getUuid());
-			String group_uuids=userinfoService.getMyChildrenGroupUuidsBySession(request);
-			//String class_uuids=this.getMyChildrenClassuuidsBySession(request);
-			model.addAttribute("group_list", userinfoService.getGroupVObyUuids(group_uuids));
-			//model.addAttribute("class_list", userinfoService.getPClassbyUuids(class_uuids));
-			model.addAttribute("class_list", userinfoService.getAllClassAndPxClass(this.getUserInfoBySession(request)));
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			responseMessage.setMessage("服务器异常:"+e.getMessage());
-			return false;
-		}
-		model.addAttribute(RestConstants.Return_ResponseMessage_list, list);
-		
-		HttpSession session = SessionListener.getSession(request);
-		// 返回用户信息
-		this.putUserInfoReturnToModel(model, request);
-		model.put(RestConstants.Return_JSESSIONID, session.getId());
-		
-		return true;
-	}
 	
 	/**
 	 * 修改

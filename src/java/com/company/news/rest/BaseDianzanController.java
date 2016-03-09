@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.BaseDianzanJsonform;
+import com.company.news.query.PageQueryResult;
+import com.company.news.query.PaginationData;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.BaseDianzanService;
+import com.company.news.vo.DianzanListVO;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -151,5 +154,46 @@ public class BaseDianzanController extends AbstractRESTController {
 		return "";
 	}
 	
+	
+	@RequestMapping(value = "/queryNameByPage", method = RequestMethod.GET)
+	public String queryNameByPage(ModelMap model,
+			HttpServletRequest request,PaginationData pData) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String rel_uuid = request.getParameter("rel_uuid");
+		String type = request.getParameter("type");
+
+		if(DBUtil.isSqlInjection(rel_uuid,responseMessage))return "";
+		if(DBUtil.isSqlInjection(type,responseMessage))return "";
+		
+		
+		
+		if (StringUtils.isBlank(type)) {
+			responseMessage.setMessage("type不能为空！");
+			return "";
+		}
+
+		if (StringUtils.isBlank(rel_uuid)) {
+			responseMessage.setMessage("rel_uuid不能为空！");
+			return "";
+		}
+		SessionUserInfoInterface user = this.getUserInfoBySession(request);
+		String user_uuid=null;
+		if(user!=null){
+			user_uuid=user.getUuid();
+		}
+
+		try {
+			
+			PageQueryResult list=this.baseDianzanService.queryNameByPage(rel_uuid, Integer.valueOf(type), user_uuid, pData);
+			model.addAttribute(RestConstants.Return_ResponseMessage_dianZanNameList,list);
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
 
 }

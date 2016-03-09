@@ -16,6 +16,7 @@ import com.company.news.entity.Parent;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPFamilyMembersJsonform;
 import com.company.news.rest.util.TimeUtils;
+import com.company.news.validate.CommonsValidate;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
 
@@ -36,21 +37,27 @@ public class FPFamilyMembersService extends AbstractService {
 	 * @param request
 	 * @return
 	 */
-	public Object add(FPFamilyMembersJsonform jsonform,
+	public FPFamilyMembers add(FPFamilyMembersJsonform jsonform,
 			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
 		if (validateRequireAndLengthByRegJsonform(jsonform.getFamily_name(), 20, "家庭称呼", responseMessage)) {
-			return false;
+			return null;
 		}
 		if (validateRequireByRegJsonform(jsonform.getFamily_uuid(), "关联家庭相册号", responseMessage)) {
-			return false;
+			return null;
 		}
+		
+		// TEL格式验证
+			if (!CommonsValidate.checkCellphone(jsonform.getTel())) {
+				responseMessage.setMessage("电话号码格式不正确！");
+				return null;
+			}
 		
 		FPFamilyPhotoCollectionOfUpdate fPFamilyPhoto = (FPFamilyPhotoCollectionOfUpdate) this.nSimpleHibernateDao.getObjectById(
 				FPFamilyPhotoCollectionOfUpdate.class, jsonform.getFamily_uuid());
 			
 		if(fPFamilyPhoto==null){
 			responseMessage.setMessage("关联家庭相册不存在!");
-			return false;
+			return null;
 		}
 		
 		
