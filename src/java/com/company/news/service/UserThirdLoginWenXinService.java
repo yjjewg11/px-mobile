@@ -3,7 +3,6 @@ package com.company.news.service;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -47,7 +46,7 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 	 * @return
 	 * @throws WeixinException 
 	 */
-	public boolean access_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String appid,String code) throws WeixinException,Exception {
+	public boolean update_access_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String appid,String code) throws WeixinException,Exception {
 		
 //		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
 		OAuth2 oAuth2=new OAuth2();
@@ -109,8 +108,6 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 			return false;
 		}
 		
-		Parent parent=null;
-		
 		// TEL格式验证
 		if (!CommonsValidate.checkCellphone(tel)) {
 			responseMessage.setMessage("电话号码格式不正确！");
@@ -122,6 +119,29 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 				tel, smsCode)) {
 			return false;
 		}
+		
+		// 用户名是否存在
+		//parent ,Loginname=Loginname 表示没有绑定过手机,否则已经绑定了手机号码
+		Parent parent=null;
+		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
+			parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
+			if(parent!=null){
+				if(!parent.getLoginname().equals(userdb.getRel_useruuid())){
+					this.logger.warn("用户已绑定过手机.access_token="+access_token);
+					responseMessage.setMessage("用户已绑定过手机.access_token="+access_token);
+					return false;
+				}
+				//已经登录而没有绑定手机号码的则绑定手机号码即可.
+				parent.setLoginname(tel);
+				parent.setTel(tel);
+				 userinfoService.update_regSecond(parent, responseMessage);
+				return true;
+				
+				
+			}
+		}
+		
+		
 		// 用户名是否存在
 		List list=nSimpleHibernateDao.createSqlQuery("select uuid from px_parent where tel='"+tel+"'").list();
 		
@@ -143,7 +163,7 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 		parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 		parent.setTel_verify(SystemConstants.USER_tel_verify_default);
 		parent.setCount(0l);
-		
+		nSimpleHibernateDao.save(parent);//
 		
 		parent=userinfoService.update_regSecond(parent, responseMessage);
 		
@@ -154,14 +174,19 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 				
 	}
 	
-	
 	/**
-	 * 根据app 获取到的code,获取Access_token
-	 * 
+	 * 2.根据微信票据绑定注册用户
+	 * @param model
+	 * @param request
+	 * @param responseMessage
+	 * @param access_token
+	 * @param tel
+	 * @param smsCode
 	 * @return
-	 * @throws WeixinException 
+	 * @throws WeixinException
+	 * @throws Exception
 	 */
-	public boolean loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
+	public boolean update_bindAccount(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token,SessionUserInfoInterface parent) throws WeixinException,Exception {
 		
 //		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
 		
@@ -171,27 +196,82 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 			responseMessage.setMessage("无效票据,请重新授权.access_token="+access_token);
 			return false;
 		}
+		if(parent==null){//创建用户
+			responseMessage.setMessage("用户不存在,access_token="+access_token);
+			return false;
+		}
+		
+		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
+			this.logger.warn("用户已绑定过帐号.access_token="+access_token);
+			responseMessage.setMessage("用户已绑定过帐号.access_token="+access_token);
+			return false;
+		}
+
+		userdb.setRel_useruuid(parent.getUuid());
+		nSimpleHibernateDao.save(userdb);
+		return true;
+				
+	}
+	
+	/**
+	 * 根据app 获取到的code,获取Access_token
+	 * 
+	 * @return
+	 * @throws WeixinException 
+	 */
+	public Parent loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
+		
+//		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
+		
+		UserThirdLoginWenXin userdb=(UserThirdLoginWenXin)this.nSimpleHibernateDao.getObjectByAttribute(UserThirdLoginWenXin.class, "access_token", access_token);
+		
+		if(userdb==null){//创建用户
+			responseMessage.setMessage("无效票据,请重新授权.access_token="+access_token);
+			return null;
+		}
 		
 		Parent parent=null;
 		if(StringUtils.isBlank(userdb.getRel_useruuid())){
 			responseMessage.setMessage("没有关联用户手机号码请关联.access_token="+access_token);
-			return false;
+			return null;
 			
 			
 		}
 		parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
 		
 		if(parent==null){//初始化用户成功!
-			responseMessage.setMessage("没有关联用户信息.access_token="+access_token);
-			return false;
+			parent = new Parent();
+
+				parent.setLoginname(userdb.getUuid());//不能为空,和必须唯一.临时填写,后面变更为parent uuid
+//				parent.setTel();
+				parent.setName(PxStringUtil.getSubString(userdb.getNickname(), 45));
+				parent.setImg(PxStringUtil.getSubString(userdb.getHeadimgurl(), 256));
+				
+				parent.setCreate_time(TimeUtils.getCurrentTimestamp());
+				parent.setDisable(SystemConstants.USER_disable_default);
+				parent.setLogin_time(TimeUtils.getCurrentTimestamp());
+				parent.setTel_verify(SystemConstants.USER_tel_verify_default);
+				parent.setCount(0l);
+				nSimpleHibernateDao.save(parent);//生成主键uuid
+				
+//				parent=userinfoService.update_regSecond(parent, responseMessage);
+				
+				//设置关联关心
+				userdb.setRel_useruuid(parent.getUuid());
+				nSimpleHibernateDao.save(userdb);
+				
+				//不能为空,和必须唯一.临时填写,后面变更为parent uuid
+				parent.setLoginname(parent.getUuid());
+				nSimpleHibernateDao.save(parent);//
+				
 		}
-		HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
-		// 将关联系学生信息放入
-		
-		userinfoService.putSession(session, parent, request);
-		boolean flag = userinfoService.getUserAndStudent(model, request, responseMessage);
-		
-		return true;
+//		HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
+//		// 将关联系学生信息放入
+//		
+//		userinfoService.putSession(session, parent, request);
+//		boolean flag = userinfoService.getUserAndStudent(model, request, responseMessage);
+//		
+		return parent;
 				
 	}
 	

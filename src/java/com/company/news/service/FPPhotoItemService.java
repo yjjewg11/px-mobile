@@ -205,7 +205,7 @@ public class FPPhotoItemService extends AbstractService {
 	public PageQueryResult queryAlreadyUploaded(String phone_uuid,PaginationData pData) {
 		pData.setPageSize(100);
 		String selectsql="SELECT t1.md5 ";
-		String sql=SqlFrom;
+		String sql=" FROM fp_photo_item t1 ";
 		
 		//过滤删除掉的.
 		 if (StringUtils.isNotBlank(phone_uuid)) {//根据家庭uuid查询
@@ -216,7 +216,9 @@ public class FPPhotoItemService extends AbstractService {
 		
 		Query  query =this.nSimpleHibernateDao.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
+		
+		String countsql="select count(*) "+sql;
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
 		List<Map> list=pageQueryResult.getData();
 		return pageQueryResult;
 	}
@@ -252,7 +254,9 @@ public class FPPhotoItemService extends AbstractService {
 		}
 		Query  query =this.nSimpleHibernateDao.createSQLQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
-	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
+		
+		String countsql="select count(*) "+sql;
+	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,countsql, pData);
 		List<Map> list=pageQueryResult.getData();
 		this.warpMapList(list, user);
 		return pageQueryResult;
@@ -271,6 +275,7 @@ public class FPPhotoItemService extends AbstractService {
 		 sql += " order by t1.create_time desc";
 		Query  query =this.nSimpleHibernateDao.createSqlQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		String countsql="select count(*) "+sql;
 	    PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForQueryTotal(query,sql, pData);
 		List<Map> list=pageQueryResult.getData();
 		this.warpMapList(list, user);

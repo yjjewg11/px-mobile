@@ -58,6 +58,7 @@ public class SmsService extends AbstractService {
 		}
 		// 2种情况,注册或找回密码使用.
 		// 2:表示重置密码
+		//Sms_type_4 绑定手机
 		if (SystemConstants.Sms_type_2.equals(type)) {
 			if (!userinfoService.isExitSameUserByLoginName(tel)) {
 				responseMessage

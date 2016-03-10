@@ -114,7 +114,9 @@
 				/userinfo/login.json,/userinfo/logout.json,/userinfo/reg.json,/userinfo/updatePasswordBySms.json,
 				/uploadFile/getImgFile,/uploadFile/getImgFile.json,/sms/sendCode.json,
 				/group/reg.json,/group/list.json,/basedatalist/getAllList.json,
-				/doorrecord/insert.json,/doorrecord/autobind.json,/uploadFile/getImgFile
+				/doorrecord/insert.json,/doorrecord/autobind.json,/uploadFile/getImgFile,
+				/userinfo/thirdLogin.json,/userinfo/bindTel.json,/userinfo/bindAccount.json,
+				/userThirdLoginQQ/access_token.json,/userThirdLoginWenXin/access_token.json
 			</param-value>
 		</init-param>
 	</filter>

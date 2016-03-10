@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
-import com.company.news.service.UserThirdLoginWenXinService;
+import com.company.news.service.UserThirdLoginQQService;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -20,33 +20,13 @@ import com.company.news.vo.ResponseMessage;
  *
  */
 @Controller
-@RequestMapping(value = "/userThirdLoginWenXin")
-public class UserThirdLoginWenXinController extends AbstractRESTController {
+@RequestMapping(value = "/userThirdLoginQQ")
+public class UserThirdLoginQQController extends AbstractRESTController {
 	@Autowired
-	private UserThirdLoginWenXinService userThirdLoginWenXinService;
+	private UserThirdLoginQQService userThirdLoginQQService;
 
 
 	/**
-	 https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
-参数说明
-参数	是否必须	说明
-appid	是	应用唯一标识，在微信开放平台提交应用审核通过后获得
-secret	是	应用密钥AppSecret，在微信开放平台提交应用审核通过后获得
-code	是	填写第一步获取的code参数
-grant_type	是	填authorization_code
-
-
-
-return:
-{ 
-"access_token":"ACCESS_TOKEN", 
-"expires_in":7200, 
-"refresh_token":"REFRESH_TOKEN",
-"openid":"OPENID", 
-"scope":"SCOPE",
-"unionid":"o6_bmasdasdsad6_2sgVt7hMZOPfL"
-}
-	 * 
 	 * @param model
 	 * @param request
 	 * @return
@@ -63,15 +43,25 @@ return:
 			}
 			if(DBUtil.isSqlInjection(appid, responseMessage))return "";
 			
-			String code=request.getParameter("code");
-			if(DBUtil.isSqlInjection(code, responseMessage))return "";
-			if (StringUtils.isBlank(code)) {
-				responseMessage.setMessage("参数:code不能为空！");
+//			String code=request.getParameter("code");
+//			if(DBUtil.isSqlInjection(code, responseMessage))return "";
+//			if (StringUtils.isBlank(code)) {
+//				responseMessage.setMessage("参数:code不能为空！");
+//				return"";
+//			}
+			String access_token=request.getParameter("access_token");
+			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
+			if (StringUtils.isBlank(access_token)) {
+				responseMessage.setMessage("参数:access_token不能为空！");
 				return"";
 			}
-
-			
-			boolean flag= userThirdLoginWenXinService.update_access_token(model,request,responseMessage,appid, code);
+			String openid=request.getParameter("openid");
+			if(DBUtil.isSqlInjection(openid, responseMessage))return "";
+			if (StringUtils.isBlank(openid)) {
+				responseMessage.setMessage("参数:openid不能为空！");
+				return"";
+			}
+			boolean flag= userThirdLoginQQService.update_access_token(model, request, responseMessage, appid, access_token, openid);
 			if(!flag){
 				return "";
 			}
@@ -116,7 +106,7 @@ return:
 				return"";
 			}
 			
-			boolean flag= userThirdLoginWenXinService.update_bindTel(model, request, responseMessage, access_token, tel, smsCode);
+			boolean flag= userThirdLoginQQService.update_bindTel(model, request, responseMessage, access_token, tel, smsCode);
 			if(!flag){
 				return "";
 			}

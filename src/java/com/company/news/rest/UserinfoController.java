@@ -1,6 +1,5 @@
 package com.company.news.rest;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,15 +8,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.SystemConstants;
 import com.company.news.cache.CommonsCache;
 import com.company.news.cache.redis.SessionUserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
@@ -29,9 +26,12 @@ import com.company.news.json.JSONUtils;
 import com.company.news.jsonform.ParentDataJsonform;
 import com.company.news.jsonform.ParentRegJsonform;
 import com.company.news.jsonform.UserRegJsonform;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.MD5Until;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.SnsTopicService;
+import com.company.news.service.UserThirdLoginQQService;
+import com.company.news.service.UserThirdLoginWenXinService;
 import com.company.news.service.UserinfoService;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
@@ -659,4 +659,260 @@ public class UserinfoController extends AbstractRESTController {
 		}
 		
 	}
+	
+	
+	@Autowired
+	private UserThirdLoginQQService userThirdLoginQQService;
+	@Autowired
+	private UserThirdLoginWenXinService userThirdLoginWenXinService;
+	/**
+	 * 微信票据登录
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/thirdLogin", method = RequestMethod.POST)
+	public String thirdLogin(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			String access_token=request.getParameter("access_token");
+			if (StringUtils.isBlank(access_token)) {
+				responseMessage.setMessage("参数:access_token不能为空！");
+				return "";
+			}
+			String type=request.getParameter("type");
+			if (StringUtils.isBlank(type)) {
+				responseMessage.setMessage("参数:type不能为空！");
+				return "";
+			}
+			
+			
+			Parent parent=null;
+			
+			//验证用户,获取用户
+			if(SystemConstants.UserThirdLogin_QQ.equals(type)){
+				parent= userThirdLoginQQService.loginByaccess_token(model, request, responseMessage, access_token);
+				if(parent==null){
+					return "";
+				}
+			}else if(SystemConstants.UserThirdLogin_WeiXin.equals(type)){
+				parent= userThirdLoginWenXinService.loginByaccess_token(model, request, responseMessage, access_token);
+				if(parent==null){
+					return "";
+				}
+			}else{
+				responseMessage.setMessage("参数:type值无效");
+				return "";
+			}
+			
+			//验证通过,创建session返回数据.
+			if(parent==null){//初始化用户成功!
+				responseMessage.setMessage("没有关联用户信息.access_token="+access_token);
+				return "";
+			}
+			HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
+			// 将关联系学生信息放入
+			
+			userinfoService.putSession(session, parent, request);
+			boolean flag = userinfoService.getUserAndStudent(model, request, responseMessage);
+
+			if (!flag)// 请求服务返回失败标示
+				return "";
+		
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("操作成功");
+		return "";
+	}
+
+	/**
+	 * 第三分注销
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/thirdLogout", method = RequestMethod.POST)
+	public String thirdLogout(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			
+			
+			String access_token=request.getParameter("access_token");
+			if (StringUtils.isBlank(access_token)) {
+				responseMessage.setMessage("参数:access_token不能为空！");
+				return "";
+			}
+			String type=request.getParameter("type");
+			if (StringUtils.isBlank(type)) {
+				responseMessage.setMessage("参数:type不能为空！");
+				return "";
+			}
+			
+			//验证用户,获取用户
+			if(SystemConstants.UserThirdLogin_QQ.equals(type)){
+				boolean flag= userThirdLoginQQService.update_logoutByaccess_token(model, request, responseMessage, access_token);
+				if(!flag){
+					return "";
+				}
+			}else if(SystemConstants.UserThirdLogin_WeiXin.equals(type)){
+				boolean flag= userThirdLoginWenXinService.update_logoutByaccess_token(model, request, responseMessage, access_token);
+				if(!flag){
+					return "";
+				}
+			}else{
+				responseMessage.setMessage("参数:type值无效");
+				return "";
+			}
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("操作成功");
+		return "";
+	}
+	
+	
+
+	/**
+	 * 绑定电话.
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/bindTel", method = RequestMethod.POST)
+	public String bindTel(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			String access_token=request.getParameter("access_token");
+			if (StringUtils.isBlank(access_token)) {
+				responseMessage.setMessage("参数:access_token不能为空！");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
+			
+			String tel=request.getParameter("tel");
+			if(DBUtil.isSqlInjection(tel, responseMessage))return "";
+			if (StringUtils.isBlank(tel)) {
+				responseMessage.setMessage("参数:电话号码不能为空！");
+				return"";
+			}
+			
+			String smsCode=request.getParameter("smsCode");
+			if(DBUtil.isSqlInjection(smsCode, responseMessage))return "";
+			if (StringUtils.isBlank(smsCode)) {
+				responseMessage.setMessage("参数:验证码不能为空！");
+				return"";
+			}
+			
+			String type=request.getParameter("type");
+			if (StringUtils.isBlank(type)) {
+				responseMessage.setMessage("参数:type不能为空！");
+				return "";
+			}
+			
+			//验证用户,获取用户
+			if(SystemConstants.UserThirdLogin_QQ.equals(type)){
+				boolean flag= userThirdLoginQQService.update_bindTel(model, request, responseMessage, access_token, tel, smsCode);
+				if(!flag){
+					return "";
+				}
+			}else if(SystemConstants.UserThirdLogin_WeiXin.equals(type)){
+				boolean flag= userThirdLoginWenXinService.update_bindTel(model, request, responseMessage, access_token, tel, smsCode);
+				if(!flag){
+					return "";
+				}
+			}else{
+				responseMessage.setMessage("参数:type值无效");
+				return "";
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("操作成功");
+		return "";
+	}
+
+	/**
+	 * 绑定帐号,输入登录名,和密码.
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/bindAccount", method = RequestMethod.POST)
+	public String bindAccount(ModelMap model, HttpServletRequest request,UserLoginForm userLoginForm) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			String access_token=request.getParameter("access_token");
+			if (StringUtils.isBlank(access_token)) {
+				responseMessage.setMessage("参数:access_token不能为空！");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
+			
+			if(DBUtil.isSqlInjection(userLoginForm.getLoginname(), responseMessage))return "";
+
+			Parent parent=this.userinfoService.getParentByLoginForm(userLoginForm, model, request, responseMessage);
+			if(parent==null){
+				return "";
+			}
+			
+			String type=request.getParameter("type");
+			if (StringUtils.isBlank(type)) {
+				responseMessage.setMessage("参数:type不能为空！");
+				return "";
+			}
+			
+			//验证用户,获取用户
+			if(SystemConstants.UserThirdLogin_QQ.equals(type)){
+				boolean flag= userThirdLoginQQService.update_bindAccount(model, request, responseMessage, access_token, parent);
+				if(!flag){
+					return "";
+				}
+			}else if(SystemConstants.UserThirdLogin_WeiXin.equals(type)){
+				boolean flag= userThirdLoginWenXinService.update_bindAccount(model, request, responseMessage, access_token,parent);
+				if(!flag){
+					return "";
+				}
+			}else{
+				responseMessage.setMessage("参数:type值无效");
+				return "";
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("操作成功");
+		return "";
+	}
+	
+	
+	
 }

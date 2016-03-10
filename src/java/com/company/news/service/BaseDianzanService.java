@@ -123,7 +123,7 @@ public  class BaseDianzanService extends AbstractService {
 	public PageQueryResult queryNameByPage(String rel_uuid,Integer type,String cur_user_uuid, PaginationData pData) {
 		if(cur_user_uuid==null)cur_user_uuid="0";
 		//String sql="select count(1),sum(case when create_useruuid ='1' then 1 else 0 end)  from px_base_dianzan_21 where rel_uuid='1'";
-		String sql="select useruuid   from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"' order by create_time asc";
+		String sql="select create_useruuid as useruuid   from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"' order by create_time asc";
 		PageQueryResult list=this.nSimpleHibernateDao.findMapByPageForSqlNoTotal(sql, pData);
 		UserRedisCache.warpListMapByUserCache(list.getData(), "useruuid", "username", null);
 		

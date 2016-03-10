@@ -302,7 +302,7 @@ public class UserinfoService extends AbstractService {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean login(UserLoginForm userLoginForm, ModelMap model,
+	public Parent getParentByLoginForm(UserLoginForm userLoginForm, ModelMap model,
 			HttpServletRequest request, ResponseMessage responseMessage)
 			throws Exception {
 		String loginname = userLoginForm.getLoginname();
@@ -310,11 +310,11 @@ public class UserinfoService extends AbstractService {
 
 		if (StringUtils.isBlank(loginname)) {
 			responseMessage.setMessage("用户登录名不能为空!");
-			return false;
+			return null;
 		}
 		if (StringUtils.isBlank(password)) {
 			responseMessage.setMessage("登陆密码不能为空!");
-			return false;
+			return null;
 		}
 
 		String attribute = "loginname";
@@ -324,13 +324,13 @@ public class UserinfoService extends AbstractService {
 
 		if (parent == null) {
 			responseMessage.setMessage("用户名:" + loginname + ",不存在!");
-			return false;
+			return null;
 		}
 		if (parent.getDisable() != null
 				&& SystemConstants.USER_disable_true == parent.getDisable()
 						.intValue()) {
 			responseMessage.setMessage("帐号被禁用,请联系互动家园");
-			return false;
+			return null;
 		}
 		boolean pwdIsTrue = false;
 		{
@@ -349,22 +349,39 @@ public class UserinfoService extends AbstractService {
 			if ("true".equals(project_loginLimit)) {
 				if (!LoginLimit.verifyCount(loginname, pwdIsTrue,
 						responseMessage)) {// 密码错误次数验证
-					return false;
+					return null;
 				}
 				if (!pwdIsTrue) {
 					responseMessage.setMessage("用户登录名或者密码错误，请重试!");
-					return false;
+					return null;
 				}
 
 			} else {
 				if (!pwdIsTrue) {
 					responseMessage.setMessage("用户登录名或者密码错误，请重试!");
-					return false;
+					return null;
 				}
 			}
 
 		}
-
+		
+		return parent;
+	}
+	/**
+	 * 
+	 * @param loginName
+	 * @param password
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean login(UserLoginForm userLoginForm, ModelMap model,
+			HttpServletRequest request, ResponseMessage responseMessage)
+			throws Exception {
+		
+		Parent parent=this.getParentByLoginForm(userLoginForm, model, request, responseMessage);
+		if(parent==null){
+			return false;
+		}
 		// 创建session
 		HttpSession session = SessionListener
 				.getSession((HttpServletRequest) request);
@@ -372,7 +389,7 @@ public class UserinfoService extends AbstractService {
 		if (session != null) {
 			SessionUserInfoInterface userInfo = (SessionUserInfoInterface) session
 					.getAttribute(RestConstants.Session_UserInfo);
-			if (userInfo != null && loginname.equals(userInfo.getLoginname())) {
+			if (userInfo != null && userLoginForm.getLoginname().equals(userInfo.getLoginname())) {
 				return true;
 			}
 		}
@@ -380,10 +397,9 @@ public class UserinfoService extends AbstractService {
 		session=this.sessionCreateByParent(parent, model, request, responseMessage);
 
 		// 更新登陆日期,最近一次登陆日期
-		String sql = "update px_parent set count=count+1,last_login_time=login_time,login_time=now(),sessionid='"+session.getId()+"' where uuid='"
+		String sql = "update px_parent set count=count+1,last_login_time=login_time,login_time=now() where uuid='"
 				+ parent.getUuid() + "'";
-		this.nSimpleHibernateDao.getHibernateTemplate().getSessionFactory()
-				.getCurrentSession().createSQLQuery(sql).executeUpdate();
+		this.nSimpleHibernateDao.createSQLQuery(sql).executeUpdate();
 		//
 		return true;
 	}
