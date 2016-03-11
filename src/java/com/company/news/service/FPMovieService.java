@@ -183,7 +183,7 @@ public class FPMovieService extends AbstractService {
 		return null;
 	}
 
-	String Selectsql=" SELECT t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status ";
+	String Selectsql=" SELECT t1.uuid, date_format(t1.create_time,'%Y-%m-%d') as create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status ";
 	String SqlFrom=" FROM fp_movie t1 ";
 
 	/**
