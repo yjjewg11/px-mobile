@@ -60,7 +60,7 @@ public class FPMovieService extends AbstractService {
 			FPMovie dbobj = new FPMovie();
 			BeanUtils.copyProperties(dbobj, jsonform);
 			dbobj.setCreate_useruuid(user.getUuid());
-			dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
+			//修复修改保存时,没有保存图片数量.
 			dbobj.setPhoto_count(Long.valueOf(StringUtils.countMatches(jsonform.getPhoto_uuids(), ",")));
 			
 			// 有事务管理，统一在Controller调用时处理异常
@@ -85,6 +85,9 @@ public class FPMovieService extends AbstractService {
 		//need_code
 		//end code
 		BeanUtils.copyProperties(dbobj, jsonform);
+		
+		dbobj.setPhoto_count(Long.valueOf(StringUtils.countMatches(jsonform.getPhoto_uuids(), ",")));
+		dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
 		return dbobj;

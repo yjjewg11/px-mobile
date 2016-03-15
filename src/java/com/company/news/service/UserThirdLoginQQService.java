@@ -128,7 +128,7 @@ public  class UserThirdLoginQQService extends AbstractService {
 		String isBindParent=SystemConstants.UserThirdLogin_needBindTel_1;
 		// 用户名是否存在
 		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
-			List list=nSimpleHibernateDao.createSqlQuery("select uuid from px_parent where uuid='"+userdb.getRel_useruuid()+"'").list();
+			List list=nSimpleHibernateDao.createSqlQuery("select uuid,loginname from px_parent where uuid='"+userdb.getRel_useruuid()+"'").list();
 			if(!list.isEmpty()){//// 用户名是否存在,则绑定
 				isBindParent=SystemConstants.UserThirdLogin_needBindTel_0;
 			}

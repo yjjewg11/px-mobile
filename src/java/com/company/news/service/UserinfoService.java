@@ -418,6 +418,13 @@ public class UserinfoService extends AbstractService {
 	    } catch (Exception e) {
 	      e.printStackTrace();
 	    }
+	    String isBindParent=SystemConstants.UserThirdLogin_needBindTel_0;
+	    if(user.getUuid().equals(user.getLoginname())){//表明未绑定手机号码.
+	    	isBindParent=SystemConstants.UserThirdLogin_needBindTel_1;
+	    }
+	    
+	    model.put(RestConstants.Return_UserThirdLogin_needBindTel, isBindParent);
+	    
 //	    userInfoReturn.setPassword(null);
 	    model.addAttribute(RestConstants.Return_UserInfo,userInfoReturn);
 	  }
