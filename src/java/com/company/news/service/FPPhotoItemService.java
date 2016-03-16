@@ -3,6 +3,7 @@ package com.company.news.service;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import com.company.mq.JobDetails;
+import com.company.mq.MQUtils;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.UserCache;
@@ -204,7 +207,7 @@ public class FPPhotoItemService extends AbstractService {
 	 */
 	public PageQueryResult queryAlreadyUploaded(String phone_uuid,PaginationData pData) {
 		pData.setPageSize(100);
-		String selectsql="SELECT t1.md5 ";
+		String selectsql="SELECT t1.md5,t1.family_uuid ";
 		String sql=" FROM fp_photo_item t1 ";
 		
 		//过滤删除掉的.
@@ -508,9 +511,24 @@ public class FPPhotoItemService extends AbstractService {
 
 		// 上传文件
 		if (iUploadFile.uploadFile(file.getInputStream(), filePath, null)) {
+			
+			
+			
+
+			Map map=new HashMap();
+	    	map.put("uuid", uploadFile.getFamily_uuid());
+//	    	map.put("create_useruuid",user.getUuid());
+	    	map.put("title",user.getName()+"上传了新照片");
+			
+	    	JobDetails job=new JobDetails("doJobMqIservice","sendFPFamilyPhotoCollection",map);
+			MQUtils.publish(job);
+			
+			
 			return uploadFile;
 		} else {
+			
 			responseMessage.setMessage("上传文件失败");
+			this.nSimpleHibernateDao.getHibernateTemplate().delete(uploadFile);
 			return null;
 		}
 	}
@@ -521,7 +539,7 @@ public class FPPhotoItemService extends AbstractService {
 			responseMessage.setMessage("uuid 不能为空!");
 			return false;
 		}
-
+		SessionUserInfoInterface user=SessionListener.getUserInfoBySession(request);
 		FPPhotoItemOfUpdate obj = (FPPhotoItemOfUpdate) nSimpleHibernateDao.getObject(FPPhotoItemOfUpdate.class,
 				jsonform.getUuid());
 		
@@ -535,6 +553,15 @@ public class FPPhotoItemService extends AbstractService {
 		obj.setStatus(SystemConstants.FPPhotoItem_Status_update);
 		
 		this.nSimpleHibernateDao.save(obj);
+		
+
+		Map map=new HashMap();
+    	map.put("uuid", obj.getFamily_uuid());
+//    	map.put("create_useruuid",user.getUuid());
+    	map.put("title",user.getName()+"修改了照片备注");
+		
+    	JobDetails job=new JobDetails("doJobMqIservice","PushMessage",map);
+		MQUtils.publish(job);
 		return true;
 	}
 	

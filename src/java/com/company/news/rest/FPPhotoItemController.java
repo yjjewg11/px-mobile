@@ -72,9 +72,11 @@ public class FPPhotoItemController extends AbstractRESTController {
 			if (uploadFile == null)
 				return "";
 
-			model.addAttribute(RestConstants.Return_G_entity, uploadFile);
-			model.addAttribute(RestConstants.Return_G_imgUrl,
-					PxStringUtil.imgUrlByUuid(uploadFile.getUuid()));
+			
+			model.addAttribute(RestConstants.Return_G_entity_id,uploadFile.getUuid());
+//			model.addAttribute(RestConstants.Return_G_entity, uploadFile);
+//			model.addAttribute(RestConstants.Return_G_imgUrl,
+//					PxStringUtil.imgUrlByUuid(uploadFile.getUuid()));
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

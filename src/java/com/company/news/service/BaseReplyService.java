@@ -9,6 +9,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.mq.JobDetails;
+import com.company.mq.MQUtils;
 import com.company.news.SystemConstants;
 import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
@@ -71,6 +73,16 @@ public  class BaseReplyService extends AbstractService {
         cn.setCreate_useruuid(user.getUuid());
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(cn);
+		
+		
+		Map map=new HashMap();
+    	map.put("uuid", baseReplyJsonform.getRel_uuid());
+    	map.put("type", baseReplyJsonform.getType());
+    	map.put("title",user.getName()+":"+cn.getContent());
+		
+    	JobDetails job=new JobDetails("doJobMqIservice","sendBaseReply",map);
+		MQUtils.publish(job);
+		
 //
 //		
 //		if(cn.getType()!=null){

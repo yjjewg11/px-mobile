@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
+import com.company.mq.JobDetails;
+import com.company.mq.MQUtils;
 import com.company.news.SystemConstants;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
@@ -90,6 +92,18 @@ public class FPMovieService extends AbstractService {
 		dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
+		
+		
+		if(SystemConstants.Check_status_fabu.equals(dbobj.getStatus())){
+			Map map=new HashMap();
+	    	map.put("uuid", dbobj.getUuid());
+//	    	map.put("create_useruuid",user.getUuid());
+	    	map.put("title",user.getName()+"发布:"+dbobj.getTitle());
+	    	JobDetails job=new JobDetails("doJobMqIservice","sendFPMovie",map);
+			MQUtils.publish(job);
+		}
+	
+		
 		return dbobj;
 	}
 
