@@ -14,6 +14,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.transform.Transformers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
@@ -22,6 +23,7 @@ import com.company.mq.JobDetails;
 import com.company.mq.MQUtils;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
+import com.company.news.cache.PxRedisCache;
 import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
@@ -61,11 +63,19 @@ public class FPPhotoItemService extends AbstractService {
 		else
 			iUploadFile = new DiskIUploadFile();
 	}
-
+	@Autowired
+	FPFamilyPhotoCollectionService fPFamilyPhotoCollectionService;
+	@Autowired
+	BaseDianzanService baseDianzanService;
 	
+	@Autowired
+	BaseReplyService baseReplyService;
 	String Selectsql=" SELECT t1.uuid,t1.family_uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.phone_type,t1.create_time";
 	String SqlFrom=" FROM fp_photo_item t1 ";
 
+	
+	
+	
 
 	/**
 	 * 查询根据时间范围查询，新数据总数和变化数据总数。
@@ -419,6 +429,20 @@ public class FPPhotoItemService extends AbstractService {
 		dbobj.setStatus(SystemConstants.FPPhotoItem_Status_delete);
 		dbobj.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		this.nSimpleHibernateDao.save(dbobj);
+		
+		//删除相关点赞,评论,收藏.
+		String sql="select * from fp_photo_favorite where rel_uuid='"+uuid+"'";
+		this.nSimpleHibernateDao.createSQLQuery(sql).executeUpdate();
+		try {
+		baseDianzanService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
+		baseReplyService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
+		
+			PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().getReduceCountByExt_uuid(dbobj.getFamily_uuid());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return true;
 	}
 
@@ -522,6 +546,18 @@ public class FPPhotoItemService extends AbstractService {
 			
 	    	JobDetails job=new JobDetails("doJobMqIservice","sendFPFamilyPhotoCollection",map);
 			MQUtils.publish(job);
+			Long cacheCount=null;
+			try {
+				cacheCount = PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().getIncrCountByExt_uuid(uploadFile.getFamily_uuid());
+				if(cacheCount==null||cacheCount<=1){
+					 cacheCount=fPFamilyPhotoCollectionService.getfamilyPhotoCount(uploadFile.getFamily_uuid());
+					PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().setCountByExt_uuid(uploadFile.getFamily_uuid(), cacheCount);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			
 			
 			return uploadFile;
@@ -560,7 +596,7 @@ public class FPPhotoItemService extends AbstractService {
 //    	map.put("create_useruuid",user.getUuid());
     	map.put("title",user.getName()+"修改了照片备注");
 		
-    	JobDetails job=new JobDetails("doJobMqIservice","PushMessage",map);
+    	JobDetails job=new JobDetails("doJobMqIservice","sendFPPhotoItem",map);
 		MQUtils.publish(job);
 		return true;
 	}

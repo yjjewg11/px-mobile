@@ -77,7 +77,7 @@ public  class BaseReplyService extends AbstractService {
 		
 		Map map=new HashMap();
     	map.put("uuid", baseReplyJsonform.getRel_uuid());
-    	map.put("type", baseReplyJsonform.getType());
+    	map.put("type", baseReplyJsonform.getType()+"");
     	map.put("title",user.getName()+":"+cn.getContent());
 		
     	JobDetails job=new JobDetails("doJobMqIservice","sendBaseReply",map);
@@ -165,6 +165,25 @@ public  class BaseReplyService extends AbstractService {
 		UserRedisCache.warpListMapByUserCache(list, "to_useruuid", "to_user", null);
 		return list;
 	}
+
+	/**
+	 * 删除关联对象时,需要调用该方法删除无用数据.
+	 * 
+	 * @param uuid
+	 */
+	public boolean update_deleteForRel_uuid(String rel_uuid,Integer type, ResponseMessage responseMessage) {
+		if (StringUtils.isBlank(rel_uuid)) {
+
+			responseMessage.setMessage("ID不能为空！");
+			return false;
+		}
+		String tableName="px_base_reply_"+type;
+		String sql=" delete from "+tableName+" where rel_uuid='"+rel_uuid+"'";
+		this.nSimpleHibernateDao.createSQLQuery(sql).executeUpdate();
+		return true;
+	}
+	
+	
 
 	/**
 	 * 删除 支持多个，用逗号分隔

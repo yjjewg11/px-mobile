@@ -9,7 +9,11 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
+import com.company.news.cache.PxRedisCache;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.FPFamilyMembers;
 import com.company.news.entity.FPFamilyPhotoCollection;
 import com.company.news.entity.FPFamilyPhotoCollectionOfUpdate;
@@ -149,9 +153,55 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 		String sql = "select uuid,title,herald,photo_count,status from fp_family_photo_collection where uuid in (select family_uuid from fp_family_members where user_uuid='"+DbUtils.safeToWhereString(user_uuid)+"')";
 		
 		List list = this.nSimpleHibernateDao.queryMapBySql(sql);
-		
+		warpMapList(list,null);
 		return list;
 	}
+	
+	/**
+	 * 查询我相关的(可以修改)
+	 * 
+	 * @return
+	 */
+	public Long getfamilyPhotoCount(String uuid) {
+		//
+		String sql = "select count(*) from fp_photo_item where status <"+SystemConstants.FPPhotoItem_Status_delete+" and family_uuid ='"+uuid+"'";
+		
+		Object list = this.nSimpleHibernateDao.createSQLQuery(sql).uniqueResult();
+		
+		return Long.valueOf(list+"");
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List warpMapList(List<Map> list,SessionUserInfoInterface user ) {
+		if(list.size()==0)return list;
+		for(Map o:list){
+			warpMap(o);
+		}
+		return list;
+	}
+	private void warpMap(Map o) {
+			String uuid=(String)o.get("uuid");
+
+		Long cacheCount=null;
+		try {
+			cacheCount = PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().getCountByExt_uuid(uuid);
+			if(cacheCount==null){
+				 cacheCount=getfamilyPhotoCount(uuid);
+				PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().setCountByExt_uuid(uuid, cacheCount);
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		o.put("photo_count", cacheCount);
+		
+	}
+	
 //	/**
 //	 * 查询所有通知
 //	 * 
@@ -209,7 +259,23 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 	public FPFamilyPhotoCollection get(String uuid) throws Exception {
 		FPFamilyPhotoCollection favorites = (FPFamilyPhotoCollection) this.nSimpleHibernateDao.getObjectById(
 				FPFamilyPhotoCollection.class, uuid);
+		if(favorites==null)return null;
 		
+		Long cacheCount=null;
+		try {
+			cacheCount = PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().getCountByExt_uuid(uuid);
+			if(cacheCount==null){
+				 cacheCount=getfamilyPhotoCount(uuid);
+				PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().setCountByExt_uuid(uuid, cacheCount);
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(favorites);
+		favorites.setPhoto_count(cacheCount);
 		return favorites;
 	}
 	

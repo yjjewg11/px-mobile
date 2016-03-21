@@ -56,7 +56,11 @@ public class FPMovieService extends AbstractService {
 			return null;
 		}
 		;
-		
+		if (StringUtils.isBlank(jsonform.getTemplate_key())) {
+			responseMessage.setMessage("请选择模版");
+			return null;
+		}
+		;
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 		if(StringUtils.isBlank(jsonform.getUuid())){
 			FPMovie dbobj = new FPMovie();
@@ -97,7 +101,7 @@ public class FPMovieService extends AbstractService {
 		if(SystemConstants.Check_status_fabu.equals(dbobj.getStatus())){
 			Map map=new HashMap();
 	    	map.put("uuid", dbobj.getUuid());
-//	    	map.put("create_useruuid",user.getUuid());
+	    	map.put("create_useruuid",user.getUuid());
 	    	map.put("title",user.getName()+"发布:"+dbobj.getTitle());
 	    	JobDetails job=new JobDetails("doJobMqIservice","sendFPMovie",map);
 			MQUtils.publish(job);
@@ -166,6 +170,9 @@ public class FPMovieService extends AbstractService {
 		//需要删除相关表. 
 		//need_code
 		
+		baseDianzanService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
+		baseReplyService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
+		
 		
 		this.nSimpleHibernateDao.delete(dbobj);
 		return true;
@@ -179,7 +186,7 @@ public class FPMovieService extends AbstractService {
 	 */
 	public Map get(String uuid) throws Exception {
 		
-		String sql= " SELECT t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status,t1.photo_uuids  FROM fp_movie t1   where   t1.uuid ='"+uuid+"'";
+		String sql= " SELECT t1.template_key,t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status,t1.photo_uuids  FROM fp_movie t1   where   t1.uuid ='"+uuid+"'";
 		
 		Query  query =this.nSimpleHibernateDao.createSqlQuery(sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);

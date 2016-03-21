@@ -73,7 +73,7 @@ public  class BaseDianzanService extends AbstractService {
 		
 		Map map=new HashMap();
     	map.put("uuid", baseReplyJsonform.getRel_uuid());
-    	map.put("type", baseReplyJsonform.getType());
+    	map.put("type", baseReplyJsonform.getType()+"");
     	map.put("title",user.getName()+"给你点赞");
 		
     	JobDetails job=new JobDetails("doJobMqIservice","sendBaseDianzan",map);
@@ -106,6 +106,24 @@ public  class BaseDianzanService extends AbstractService {
 		map.put("yidianzan", 0);
 		return map;
 				
+	}
+	
+	
+
+	/**
+	 * 删除关联对象时,需要调用该方法删除无用数据.
+	 * 
+	 * @param uuid
+	 */
+	public boolean update_deleteForRel_uuid(String rel_uuid,Integer type, ResponseMessage responseMessage) {
+		if (StringUtils.isBlank(rel_uuid)) {
+
+			responseMessage.setMessage("ID不能为空！");
+			return false;
+		}
+		String sql=" delete from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"'";
+		this.nSimpleHibernateDao.createSQLQuery(sql).executeUpdate();
+		return true;
 	}
 	
 
