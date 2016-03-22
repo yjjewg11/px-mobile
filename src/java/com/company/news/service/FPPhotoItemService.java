@@ -423,7 +423,12 @@ public class FPPhotoItemService extends AbstractService {
 		
 		//需要删除相关表. 
 		//need_code
-		iUploadFile.deleteFile(dbobj.getPath());
+		try {
+			iUploadFile.deleteFile(dbobj.getPath());
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		
 		dbobj.setStatus(SystemConstants.FPPhotoItem_Status_delete);
@@ -431,7 +436,7 @@ public class FPPhotoItemService extends AbstractService {
 		this.nSimpleHibernateDao.save(dbobj);
 		
 		//删除相关点赞,评论,收藏.
-		String sql="select * from fp_photo_favorite where rel_uuid='"+uuid+"'";
+		String sql="delete from fp_photo_favorite where rel_uuid='"+uuid+"'";
 		this.nSimpleHibernateDao.createSQLQuery(sql).executeUpdate();
 		try {
 		baseDianzanService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
