@@ -35,22 +35,69 @@ import com.company.web.listener.SessionListener;
 public  class UserThirdLoginWenXinService extends AbstractService {
 	static public String WeixinAppSecret= ProjectProperties.getProperty(
 				"WeixinAppSecret", "639c78a45d012434370f4c1afc57acd1");
+	
+	static public String WeixinAppappId= ProjectProperties.getProperty(
+			"WeixinApp_appId", "wx6699cf8b21e12618");
 	@Autowired
 	private SmsService smsService;
 	
 	@Autowired
 	private UserinfoService userinfoService;
+	
+	
+	public boolean update_access_tokenByAccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String appid,String access_token,String openid,String refresh_token) throws WeixinException,Exception {
+		OAuth2 oAuth2=new OAuth2();
+		oAuth2.init(access_token, WeixinAppappId, WeixinAppSecret, "snsapi_userinfo", refresh_token, openid, "", 7200);
+		
+		//获取用户信息
+				OAuth2User oAuth2User=oAuth2.getUserInfo();
+				
+				UserThirdLoginWenXin userdb=(UserThirdLoginWenXin)this.nSimpleHibernateDao.getObjectByAttribute(UserThirdLoginWenXin.class, "openid", oAuth2User.getOpenid());
+				
+				if(userdb==null){//创建
+					userdb=new UserThirdLoginWenXin();
+					BeanUtils.copyProperties(userdb, oAuth2User);
+					userdb.setAppid(appid);
+					userdb.setOpenid(oAuth2User.getOpenid()); 
+				}
+				//更新
+				userdb.setAccess_token(access_token);
+				
+				nSimpleHibernateDao.save(userdb);
+				
+				String isBindParent=SystemConstants.UserThirdLogin_needBindTel_1;
+				// 用户名是否存在
+				if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
+					List list=nSimpleHibernateDao.createSqlQuery("select uuid from px_parent where uuid='"+userdb.getRel_useruuid()+"'").list();
+					if(!list.isEmpty()){//// 用户名是否存在,则绑定
+						isBindParent=SystemConstants.UserThirdLogin_needBindTel_0;
+					}
+				}
+				
+				model.put(RestConstants.Return_UserThirdLogin_needBindTel, isBindParent);
+				model.put(RestConstants.Return_UserThirdLogin_access_token, access_token);
+				
+				
+				return true;
+	}
 	/**
 	 * 1.根据app 获取到的code,获取Access_token
 	 * 
+	 * 暂时不启用
 	 * @return
 	 * @throws WeixinException 
 	 */
+	@Deprecated
 	public boolean update_access_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String appid,String code) throws WeixinException,Exception {
 		
 //		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
 		OAuth2 oAuth2=new OAuth2();
+		
+//		WeixinAppSecret="639c78a45d012434370f4c1afc57acd1";
 		OAuth2Token token=oAuth2.login(appid, WeixinAppSecret, code);
+		OAuth2Token dd=new OAuth2Token();
+		dd.setAccess_token(code);
+		dd.setOpenid(appid);
 		//获取用户信息
 		OAuth2User oAuth2User=oAuth2.getUserInfo();
 		
@@ -219,7 +266,7 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 	 * @return
 	 * @throws WeixinException 
 	 */
-	public Parent loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
+	public Parent update_loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
 		
 //		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
 		
@@ -231,14 +278,13 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 		}
 		
 		Parent parent=null;
-		if(StringUtils.isBlank(userdb.getRel_useruuid())){
-			responseMessage.setMessage("没有关联用户手机号码请关联.access_token="+access_token);
-			return null;
+		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
+			parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
+			
 			
 			
 		}
-		parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
-		
+	
 		if(parent==null){//初始化用户成功!
 			parent = new Parent();
 
@@ -252,6 +298,7 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 				parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 				parent.setTel_verify(SystemConstants.USER_tel_verify_default);
 				parent.setCount(0l);
+				parent.setType(11);
 				nSimpleHibernateDao.save(parent);//生成主键uuid
 				
 //				parent=userinfoService.update_regSecond(parent, responseMessage);

@@ -485,7 +485,7 @@ public class UserinfoService extends AbstractService {
 			SessionUserInfoInterface userInfo = (SessionUserInfoInterface) session
 					.getAttribute(RestConstants.Session_UserInfo);
 			if (userInfo != null && parent.getLoginname().equals(userInfo.getLoginname())) {
-				return null;
+				return session;
 			}
 		}
 

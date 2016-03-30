@@ -692,12 +692,12 @@ public class UserinfoController extends AbstractRESTController {
 			
 			//验证用户,获取用户
 			if(SystemConstants.UserThirdLogin_QQ.equals(type)){
-				parent= userThirdLoginQQService.loginByaccess_token(model, request, responseMessage, access_token);
+				parent= userThirdLoginQQService. update_loginByaccess_token(model, request, responseMessage, access_token);
 				if(parent==null){
 					return "";
 				}
 			}else if(SystemConstants.UserThirdLogin_WeiXin.equals(type)){
-				parent= userThirdLoginWenXinService.loginByaccess_token(model, request, responseMessage, access_token);
+				parent= userThirdLoginWenXinService. update_loginByaccess_token(model, request, responseMessage, access_token);
 				if(parent==null){
 					return "";
 				}
@@ -713,8 +713,8 @@ public class UserinfoController extends AbstractRESTController {
 			}
 			HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
 			// 将关联系学生信息放入
-			
-			userinfoService.putSession(session, parent, request);
+			 SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+			userinfoService.putSession(session, user, request);
 			boolean flag = userinfoService.getUserAndStudent(model, request, responseMessage);
 
 			if (!flag)// 请求服务返回失败标示

@@ -66,6 +66,10 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 					fPFamilyMembers.setUser_uuid((String)o.get("parent_uuid"));
 					fPFamilyMembers.setTel((String)o.get("tel"));
 					fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
+					
+					if(fPFamilyMembers.getTel()!=null&&fPFamilyMembers.getTel().length()>11){
+						fPFamilyMembers.setTel(null);
+					}
 					this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 				}
 				
@@ -76,6 +80,10 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 				fPFamilyMembers.setFamily_name(user.getName());
 				fPFamilyMembers.setUser_uuid(user.getUuid());
 				fPFamilyMembers.setTel(user.getLoginname());
+				
+				if(fPFamilyMembers.getTel()!=null&&fPFamilyMembers.getTel().length()>11){
+					fPFamilyMembers.setTel(null);
+				}
 				fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 			}
@@ -114,6 +122,10 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 			fPFamilyMembers.setFamily_name(user.getName());
 			fPFamilyMembers.setUser_uuid(user.getUuid());
 			fPFamilyMembers.setTel(user.getLoginname());
+			
+			if(fPFamilyMembers.getTel()!=null&&fPFamilyMembers.getTel().length()>11){
+				fPFamilyMembers.setTel(null);
+			}
 			fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
 			this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 			return dbobj;

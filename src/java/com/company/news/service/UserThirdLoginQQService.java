@@ -281,7 +281,7 @@ public  class UserThirdLoginQQService extends AbstractService {
 	 * @return
 	 * @throws WeixinException 
 	 */
-	public Parent loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
+	public Parent  update_loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
 		
 //		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
 		
@@ -293,14 +293,9 @@ public  class UserThirdLoginQQService extends AbstractService {
 		}
 		
 		Parent parent=null;
-		if(StringUtils.isBlank(userdb.getRel_useruuid())){
-			responseMessage.setMessage("没有关联用户手机号码请关联.access_token="+access_token);
-			return null;
-			
-			
+		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
+			parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
 		}
-		parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
-		
 		if(parent==null){//初始化用户成功!
 //			responseMessage.setMessage("没有关联用户信息.access_token="+access_token);
 //			return null;
@@ -319,6 +314,7 @@ public  class UserThirdLoginQQService extends AbstractService {
 			parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 			parent.setTel_verify(SystemConstants.USER_tel_verify_default);
 			parent.setCount(0l);
+			parent.setType(12);
 			nSimpleHibernateDao.save(parent);//生成主键uuid
 			
 //			parent=userinfoService.update_regSecond(parent, responseMessage);
