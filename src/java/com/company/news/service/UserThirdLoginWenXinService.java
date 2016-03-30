@@ -34,7 +34,7 @@ import com.company.web.listener.SessionListener;
 @Service
 public  class UserThirdLoginWenXinService extends AbstractService {
 	static public String WeixinAppSecret= ProjectProperties.getProperty(
-				"WeixinAppSecret", "639c78a45d012434370f4c1afc57acd1");
+				"WeixinAppSecret", "123123123123");
 	
 	static public String WeixinAppappId= ProjectProperties.getProperty(
 			"WeixinApp_appId", "wx6699cf8b21e12618");
@@ -93,7 +93,6 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 //		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
 		OAuth2 oAuth2=new OAuth2();
 		
-//		WeixinAppSecret="639c78a45d012434370f4c1afc57acd1";
 		OAuth2Token token=oAuth2.login(appid, WeixinAppSecret, code);
 		OAuth2Token dd=new OAuth2Token();
 		dd.setAccess_token(code);
