@@ -140,9 +140,16 @@ public class BaseReplyController extends AbstractRESTController {
 		try {
 			String uuid=request.getParameter("uuid");
 			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
-			
+			if (StringUtils.isBlank(uuid)) {
+				responseMessage.setMessage("参数:uuid不能为空！");
+				return "";
+			}
 			String type=request.getParameter("type");
 			if(DBUtil.isSqlInjection(type, responseMessage))return "";
+			if (StringUtils.isBlank(type)) {
+				responseMessage.setMessage("参数:type不能为空！");
+				return"";
+			}
 			
 			SessionUserInfoInterface parent=this.getUserInfoBySession(request);
 			

@@ -69,12 +69,18 @@ public class MessageService extends AbstractService {
 		}
 
 		if(SystemConstants.Message_type_2.equals(messageJsonform.getType())){
-			Group user = (Group) CommonsCache.get(messageJsonform.getRevice_useruuid(),Group.class);
-			if (user == null) {
-				responseMessage.setMessage("无效数据幼儿园不存在！Revice_useruuid="+messageJsonform.getRevice_useruuid());
-				return false;
+			
+			if(SystemConstants.Group_uuid_wjd.equals(messageJsonform.getRevice_useruuid())){
+				messageJsonform.setRevice_user("问界科技");
+			}else{
+				Group user = (Group) CommonsCache.get(messageJsonform.getRevice_useruuid(),Group.class);
+				if (user == null) {
+					responseMessage.setMessage("无效数据幼儿园不存在！Revice_useruuid="+messageJsonform.getRevice_useruuid());
+					return false;
+				}
+				messageJsonform.setRevice_user(user.getBrand_name()+"园长");
 			}
-			messageJsonform.setRevice_user(user.getBrand_name()+"园长");
+			
 		}else{
 			
 			UserCache user=UserRedisCache.getUserCache(messageJsonform.getRevice_useruuid());

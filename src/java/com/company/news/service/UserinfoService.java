@@ -702,6 +702,17 @@ public class UserinfoService extends AbstractService {
 	 */
 	public List getKDTeacherPhoneList(String group_uuids) {
 		List list = new ArrayList();
+	
+		{
+			TeacherPhone teacherPhone = new TeacherPhone();
+			teacherPhone.setType(SystemConstants.TeacherPhone_type_0);
+			teacherPhone.setTeacher_uuid(SystemConstants.Group_uuid_wjd);
+			teacherPhone.setName("问界科技问题反馈");
+			teacherPhone.setTel("");
+			teacherPhone.setImg("http://img.wenjienet.com/i/logo.png");
+			list.add(teacherPhone);
+		
+		}
 		if (StringUtils.isNotBlank(group_uuids)) {
 			String[] uuid = group_uuids.split(",");
 			for (String s : uuid) {
