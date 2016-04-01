@@ -54,6 +54,47 @@ public class FPPhotoItemController extends AbstractRESTController {
 	 * @param request
 	 * @return
 	 */
+	@RequestMapping(value = "/uploadBase64", method = RequestMethod.POST)
+	public String upload(@RequestParam("base64") String base64,
+			FPPhotoItemForm form,ModelMap model,
+			HttpServletRequest request) {
+		// 返回消息体
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			
+//			String md5=request.getParameter("md5");
+//			String photo_time=request.getParameter("photo_time");
+//			String address=request.getParameter("address");
+//			String note=request.getParameter("note");
+			FPPhotoItem uploadFile = fPPhotoItemService.uploadImg(form, file,
+					responseMessage, request);
+			if (uploadFile == null)
+				return "";
+
+			model.addAttribute(RestConstants.Return_G_entity, uploadFile);
+			model.addAttribute(RestConstants.Return_G_imgUrl,
+					PxStringUtil.imgUrlByUuid(uploadFile.getUuid()));
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage
+					.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage(e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("上传成功");
+		return "";
+	}
+	/**
+	 * 上传我的头像
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
 	public String upload(@RequestParam("file") CommonsMultipartFile file,
 			 FPPhotoItemForm form,ModelMap model,

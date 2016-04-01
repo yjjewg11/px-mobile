@@ -1,5 +1,7 @@
 package com.company.news.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,11 +19,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import sun.misc.BASE64Decoder;
+
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.commons.util.UUIDGenerator;
 import com.company.news.commons.util.UploadFileUtils;
 import com.company.news.commons.util.upload.DiskIUploadFile;
 import com.company.news.commons.util.upload.IUploadFile;
@@ -29,6 +34,7 @@ import com.company.news.commons.util.upload.OssIUploadFile;
 import com.company.news.entity.FPMovie;
 import com.company.news.entity.FPPhotoItem;
 import com.company.news.entity.FPPhotoItemOfUpdate;
+import com.company.news.entity.UploadFile;
 import com.company.news.form.FPPhotoItemForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPPhotoItemJsonform;
@@ -467,7 +473,76 @@ public class FPPhotoItemService extends AbstractService {
 		return null;
 	}
 
+	public FPPhotoItem uploadImg(String base64, FPPhotoItemForm form,
+			ResponseMessage responseMessage, HttpServletRequest request,
+			SessionUserInfoInterface user) throws Exception {
+		String contentType = null;
+		if (StringUtils.isEmpty(base64)) {
+			responseMessage.setMessage("上传内容是空的！");
+			return null;
+		}
+		
+		byte[] b = null;
+		if (base64 != null) {
+			try {
+				String tmpbase64 = base64.substring(base64.indexOf(";base64,")
+						+ ";base64,".length());
+				contentType = base64.substring("data:".length(),
+						base64.indexOf(";base64,"));
+				// extension=contentType.substring("image/".length());
+	
+				BASE64Decoder decoder = new BASE64Decoder();
+				
+				b = decoder.decodeBuffer(tmpbase64);
+			} catch (Exception e) {
+				e.printStackTrace();
+				responseMessage.setMessage("解析错误：" + e.getMessage());
+				return null;
+			}
+		}
 
+		// 过滤文件大小等
+		if (!UploadFileUtils.fileFilter(responseMessage, b.length)) {
+			return null;
+		}
+
+		
+		FPPhotoItem uploadFile = new FPPhotoItem();
+
+		
+		BeanUtils.copyProperties(uploadFile, form);
+		
+		uploadFile.setFile_size(Long.valueOf(b.length));
+		uploadFile.setCreate_useruuid(user.getUuid());
+		uploadFile.setCreate_time(TimeUtils.getCurrentTimestamp());
+		uploadFile.setUpdate_time(TimeUtils.getCurrentTimestamp());
+		uploadFile.setPhoto_time(TimeUtils.string2Timestamp(TimeUtils.DEFAULTFORMAT, form.getPhoto_time()));
+//		uploadFile.setAddress(form.getAddress());
+//		uploadFile.setNote(form.getNote());
+//		uploadFile.setFamily_uuid(form.getFamily_uuid());
+//		uploadFile.setMd5(form.getMd5());
+			
+		if(uploadFile.getPhoto_time()==null){//如果上传拍照时间,不正确或为null,则设置为拍照时间.
+			uploadFile.setPhoto_time(uploadFile.getCreate_time());
+		}
+		this.nSimpleHibernateDao.getHibernateTemplate().save(uploadFile);
+		
+		//2016/uuid.png
+		String extension="png";
+		String filePath ="fp/"+TimeUtils.getCurrentTime("yyyy")+"/"+uploadFile.getUuid()+"."+extension;
+		
+		uploadFile.setPath(filePath);
+		InputStream  imgInputStream=new ByteArrayInputStream(b);
+		// 上传文件
+		if (iUploadFile.uploadFile(imgInputStream, filePath, null)) {
+			return uploadFile;
+		} else {
+			responseMessage.setMessage("上传文件失败");
+			return null;
+		}
+		
+		
+	}
 	public FPPhotoItem uploadImg(FPPhotoItemForm form, CommonsMultipartFile file,
 			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
 		SessionUserInfoInterface user=SessionListener.getUserInfoBySession(request);
