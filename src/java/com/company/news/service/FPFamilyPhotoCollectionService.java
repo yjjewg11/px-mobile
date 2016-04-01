@@ -45,7 +45,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 	
 			FPFamilyPhotoCollection dbobj = new FPFamilyPhotoCollection();
-			dbobj.setTitle("我家相册");
+			dbobj.setTitle(user.getName()+"家相册");
 			dbobj.setCreate_useruuid(user.getUuid());
 			dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
 			// 有事务管理，统一在Controller调用时处理异常
@@ -54,12 +54,14 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 			//parent_uuid,student_name,typename,tel 
 			//211ee9bf-1645-4797-a122-60e75462dfdc	周星星1	妈妈	13628037996
 			//
-			String sql="select DISTINCT parent_uuid,typename,tel from px_studentcontactrealation where student_uuid in ";
+			String sql="select DISTINCT parent_uuid,typename,tel,student_name from px_studentcontactrealation where student_uuid in ";
 			sql+=" (select student_uuid from px_studentcontactrealation where parent_uuid='"+user.getUuid()+"')";
 			List<Map> list=this.nSimpleHibernateDao.queryMapBySql(sql);
 			//有宝贝的,添加关联家庭成员
 			if(list.size()>0){
 				for(Map o:list){
+					
+					dbobj.setTitle(o.get("student_name")+"家相册");
 					FPFamilyMembers  fPFamilyMembers=new FPFamilyMembers();
 					fPFamilyMembers.setCreate_time(TimeUtils.getCurrentTimestamp());
 					fPFamilyMembers.setFamily_name((String)o.get("typename"));
@@ -72,7 +74,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 					}
 					this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 				}
-				
+				this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
 			}else{
 				//否则,只添加自己家庭成员表.
 				FPFamilyMembers  fPFamilyMembers=new FPFamilyMembers();
@@ -162,7 +164,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 	 */
 	public List queryMy(String user_uuid) {
 
-		String sql = "select uuid,title,herald,photo_count,status from fp_family_photo_collection where uuid in (select family_uuid from fp_family_members where user_uuid='"+DbUtils.safeToWhereString(user_uuid)+"')";
+		String sql = "select uuid,title,herald,photo_count,status,create_time from fp_family_photo_collection where uuid in (select family_uuid from fp_family_members where user_uuid='"+DbUtils.safeToWhereString(user_uuid)+"')";
 		
 		List list = this.nSimpleHibernateDao.queryMapBySql(sql);
 		warpMapList(list,null);

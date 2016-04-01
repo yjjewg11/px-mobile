@@ -16,6 +16,8 @@ import org.weixin4j.http.OAuth2Token;
 
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
+import com.company.news.cache.UserCache;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
 import com.company.news.entity.UserThirdLoginWenXin;
@@ -308,9 +310,12 @@ public  class UserThirdLoginWenXinService extends AbstractService {
 				
 				//不能为空,和必须唯一.临时填写,后面变更为parent uuid
 				parent.setLoginname(parent.getUuid());
+				
+				
 				nSimpleHibernateDao.save(parent);//
 				
 		}
+		UserRedisCache.setUserCacheByParent(parent);
 //		HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
 //		// 将关联系学生信息放入
 //		

@@ -3,7 +3,6 @@ package com.company.news.service;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import net.sf.json.JSONObject;
 
@@ -16,9 +15,9 @@ import org.weixin4j.WeixinException;
 import com.company.common.HttpRequestUtils;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
-import com.company.news.entity.UserThirdLoginQQ;
 import com.company.news.entity.UserThirdLoginQQ;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.rest.RestConstants;
@@ -327,8 +326,10 @@ public  class UserThirdLoginQQService extends AbstractService {
 			parent.setLoginname(parent.getUuid());
 			nSimpleHibernateDao.save(parent);//
 			
-			
+		
 		}
+		
+		UserRedisCache.setUserCacheByParent(parent);
 //		HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
 //		// 将关联系学生信息放入
 //		

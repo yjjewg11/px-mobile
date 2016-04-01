@@ -193,6 +193,14 @@ public class FPFamilyMembersService extends AbstractService {
 		
 		
 		if(!isRight(request, dbobj.getFamily_uuid(), responseMessage))return false;
+		
+		
+		String sql="select 1 from fp_family_members where family_uuid='"+ dbobj.getFamily_uuid()+"'";
+		List list=this.nSimpleHibernateDao.createSqlQuery(sql).list();
+		if(list.size()<=1){
+			responseMessage.setMessage("必须保留一个家庭成员!");
+			return false;
+		}
 		this.nSimpleHibernateDao.delete(dbobj);
 		return true;
 	}
