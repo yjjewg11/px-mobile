@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
+import com.company.mq.JobDetails;
+import com.company.mq.MQUtils;
 import com.company.news.SystemConstants;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
@@ -54,13 +56,17 @@ public class FPMovieService extends AbstractService {
 			return null;
 		}
 		;
-		
+		if (StringUtils.isBlank(jsonform.getTemplate_key())) {
+			responseMessage.setMessage("请选择模版");
+			return null;
+		}
+		;
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 		if(StringUtils.isBlank(jsonform.getUuid())){
 			FPMovie dbobj = new FPMovie();
 			BeanUtils.copyProperties(dbobj, jsonform);
 			dbobj.setCreate_useruuid(user.getUuid());
-			dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
+			//修复修改保存时,没有保存图片数量.
 			dbobj.setPhoto_count(Long.valueOf(StringUtils.countMatches(jsonform.getPhoto_uuids(), ",")));
 			
 			// 有事务管理，统一在Controller调用时处理异常
@@ -85,8 +91,23 @@ public class FPMovieService extends AbstractService {
 		//need_code
 		//end code
 		BeanUtils.copyProperties(dbobj, jsonform);
+		
+		dbobj.setPhoto_count(Long.valueOf(StringUtils.countMatches(jsonform.getPhoto_uuids(), ",")));
+		dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
+		
+		
+		if(SystemConstants.Check_status_fabu.equals(dbobj.getStatus())){
+			Map map=new HashMap();
+	    	map.put("uuid", dbobj.getUuid());
+	    	map.put("create_useruuid",user.getUuid());
+	    	map.put("title",user.getName()+"发布:"+dbobj.getTitle());
+	    	JobDetails job=new JobDetails("doJobMqIservice","sendFPMovie",map);
+			MQUtils.publish(job);
+		}
+	
+		
 		return dbobj;
 	}
 
@@ -149,6 +170,9 @@ public class FPMovieService extends AbstractService {
 		//需要删除相关表. 
 		//need_code
 		
+		baseDianzanService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
+		baseReplyService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
+		
 		
 		this.nSimpleHibernateDao.delete(dbobj);
 		return true;
@@ -162,7 +186,7 @@ public class FPMovieService extends AbstractService {
 	 */
 	public Map get(String uuid) throws Exception {
 		
-		String sql= " SELECT t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status,t1.photo_uuids  FROM fp_movie t1   where   t1.uuid ='"+uuid+"'";
+		String sql= " SELECT t1.template_key,t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status,t1.photo_uuids  FROM fp_movie t1   where   t1.uuid ='"+uuid+"'";
 		
 		Query  query =this.nSimpleHibernateDao.createSqlQuery(sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
@@ -183,7 +207,7 @@ public class FPMovieService extends AbstractService {
 		return null;
 	}
 
-	String Selectsql=" SELECT t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status ";
+	String Selectsql=" SELECT t1.uuid, date_format(t1.create_time,'%Y-%m-%d') as create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status ";
 	String SqlFrom=" FROM fp_movie t1 ";
 
 	/**

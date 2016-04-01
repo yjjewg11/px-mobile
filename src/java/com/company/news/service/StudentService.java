@@ -244,7 +244,18 @@ public class StudentService extends AbstractService {
 	private StudentContactRealation updateStudentContactRealation(Student student,Integer type,String tel,SessionUserInfoInterface user)  throws Exception {
 		//修复清空电话时,删除掉孩子关联关系.
 		String student_uuid=student.getUuid();
-		StudentContactRealation studentContactRealation= this.getStudentContactRealationBy(student_uuid, type);
+		List<StudentContactRealation> list=this.getStudentContactRealationListBy(student_uuid, type);
+		
+		StudentContactRealation studentContactRealation=null;
+		if(list.size()>0){
+			studentContactRealation=(StudentContactRealation)list.get(0);
+			
+			//删除多余关联关心
+			for(int i=1;i<list.size();i++){
+				nSimpleHibernateDao.delete(list.get(i));
+			}
+		}
+//		StudentContactRealation studentContactRealation= this.getStudentContactRealationBy(student_uuid, type);
 		if(studentContactRealation==null){//不存在,则新建.
 			if(!CommonsValidate.checkCellphone(tel))return null;
 			studentContactRealation=new StudentContactRealation();
@@ -256,6 +267,7 @@ public class StudentService extends AbstractService {
 			}
 			//一样则表示不变,直接返回.
 			if(tel.equals(studentContactRealation.getTel())
+					&&student.getClassuuid().equals(studentContactRealation.getClass_uuid())
 					&&student.getName().equals(studentContactRealation.getStudent_name())
 					&&student.getHeadimg()!=null&&student.getHeadimg().equals(studentContactRealation.getStudent_img())){
 				return studentContactRealation;
@@ -359,6 +371,19 @@ public class StudentService extends AbstractService {
 			return (StudentContactRealation)list.get(0);
 		}
 		return null;
+	}
+	
+	/**
+	 * 获取
+	 * @param tel
+	 * @param type
+	 * @return
+	 */
+	public List<StudentContactRealation> getStudentContactRealationListBy(String student_uuid,Integer type) {
+		List<StudentContactRealation> list=(List<StudentContactRealation>) this.nSimpleHibernateDao.getHibernateTemplate().
+				find("from StudentContactRealation where student_uuid=? and type=?", student_uuid,type);
+		
+		return list;
 	}
 	
 	@Override

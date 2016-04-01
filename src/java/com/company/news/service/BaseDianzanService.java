@@ -8,6 +8,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.company.mq.JobDetails;
+import com.company.mq.MQUtils;
 import com.company.news.SystemConstants;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
@@ -67,6 +69,17 @@ public  class BaseDianzanService extends AbstractService {
 			responseMessage.setMessage("你已点赞!");
 			return false;
 		}
+		
+		
+		Map map=new HashMap();
+    	map.put("uuid", baseReplyJsonform.getRel_uuid());
+    	map.put("type", baseReplyJsonform.getType()+"");
+    	map.put("title",user.getName()+"给你点赞");
+		
+    	JobDetails job=new JobDetails("doJobMqIservice","sendBaseDianzan",map);
+		MQUtils.publish(job);
+		
+		
 		return true;
 	}
 
@@ -93,6 +106,24 @@ public  class BaseDianzanService extends AbstractService {
 		map.put("yidianzan", 0);
 		return map;
 				
+	}
+	
+	
+
+	/**
+	 * 删除关联对象时,需要调用该方法删除无用数据.
+	 * 
+	 * @param uuid
+	 */
+	public boolean update_deleteForRel_uuid(String rel_uuid,Integer type, ResponseMessage responseMessage) {
+		if (StringUtils.isBlank(rel_uuid)) {
+
+			responseMessage.setMessage("ID不能为空！");
+			return false;
+		}
+		String sql=" delete from "+this.getTableNameByType(type)+" where rel_uuid='"+rel_uuid+"'";
+		this.nSimpleHibernateDao.createSQLQuery(sql).executeUpdate();
+		return true;
 	}
 	
 

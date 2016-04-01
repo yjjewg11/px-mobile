@@ -418,6 +418,13 @@ public class UserinfoService extends AbstractService {
 	    } catch (Exception e) {
 	      e.printStackTrace();
 	    }
+	    String isBindParent=SystemConstants.UserThirdLogin_needBindTel_0;
+	    if(user.getUuid().equals(user.getLoginname())){//表明未绑定手机号码.
+	    	isBindParent=SystemConstants.UserThirdLogin_needBindTel_1;
+	    }
+	    
+	    model.put(RestConstants.Return_UserThirdLogin_needBindTel, isBindParent);
+	    
 //	    userInfoReturn.setPassword(null);
 	    model.addAttribute(RestConstants.Return_UserInfo,userInfoReturn);
 	  }
@@ -478,7 +485,7 @@ public class UserinfoService extends AbstractService {
 			SessionUserInfoInterface userInfo = (SessionUserInfoInterface) session
 					.getAttribute(RestConstants.Session_UserInfo);
 			if (userInfo != null && parent.getLoginname().equals(userInfo.getLoginname())) {
-				return null;
+				return session;
 			}
 		}
 
@@ -695,6 +702,17 @@ public class UserinfoService extends AbstractService {
 	 */
 	public List getKDTeacherPhoneList(String group_uuids) {
 		List list = new ArrayList();
+	
+		{
+			TeacherPhone teacherPhone = new TeacherPhone();
+			teacherPhone.setType(SystemConstants.TeacherPhone_type_0);
+			teacherPhone.setTeacher_uuid(SystemConstants.Group_uuid_wjd);
+			teacherPhone.setName("问界科技问题反馈");
+			teacherPhone.setTel("");
+			teacherPhone.setImg("http://img.wenjienet.com/i/logo.png");
+			list.add(teacherPhone);
+		
+		}
 		if (StringUtils.isNotBlank(group_uuids)) {
 			String[] uuid = group_uuids.split(",");
 			for (String s : uuid) {

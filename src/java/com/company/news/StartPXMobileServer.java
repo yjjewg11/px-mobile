@@ -18,8 +18,12 @@ public class StartPXMobileServer {
 	
 	
 	public static  void init(){
-		//启动发布与订阅
-		MQUtils.initPubClient(MQConstants.QueueName_PxTask);
+		
+		
+			//启动发布与订阅
+				String queueName=ProjectProperties.getProperty("mq.queueName", MQConstants.QueueName_PxTask);
+				//初始化发布队列
+				MQUtils.initPubClient(queueName);
 		
 //		String enable=ProjectProperties.getProperty("mq.subscribe", "true");
 //		if(enable.equals("true")){

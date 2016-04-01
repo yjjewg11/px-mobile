@@ -63,6 +63,82 @@ return:
 			}
 			if(DBUtil.isSqlInjection(appid, responseMessage))return "";
 			
+			String access_token=request.getParameter("access_token");
+			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
+			if (StringUtils.isBlank(access_token)) {
+				responseMessage.setMessage("参数:access_token不能为空！");
+				return"";
+			}
+			
+			String refresh_token=request.getParameter("refresh_token");
+//			if(DBUtil.isSqlInjection(refresh_token, responseMessage))return "";
+//			if (StringUtils.isBlank(refresh_token)) {
+//				responseMessage.setMessage("参数:refresh_token不能为空！");
+//				return"";
+//			}
+
+			String openid=request.getParameter("openid");
+			if(DBUtil.isSqlInjection(openid, responseMessage))return "";
+			if (StringUtils.isBlank(openid)) {
+				responseMessage.setMessage("参数:openid不能为空！");
+				return"";
+			}
+
+			
+			boolean flag= userThirdLoginWenXinService.update_access_tokenByAccess_token(model, request, responseMessage, appid, access_token, openid, refresh_token);
+			if(!flag){
+				return "";
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("操作成功");
+		return "";
+		
+	
+	}
+	/**
+	 https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
+参数说明
+参数	是否必须	说明
+appid	是	应用唯一标识，在微信开放平台提交应用审核通过后获得
+secret	是	应用密钥AppSecret，在微信开放平台提交应用审核通过后获得
+code	是	填写第一步获取的code参数
+grant_type	是	填authorization_code
+
+
+
+return:
+{ 
+"access_token":"ACCESS_TOKEN", 
+"expires_in":7200, 
+"refresh_token":"REFRESH_TOKEN",
+"openid":"OPENID", 
+"scope":"SCOPE",
+"unionid":"o6_bmasdasdsad6_2sgVt7hMZOPfL"
+}
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/access_tokenByCode", method = RequestMethod.GET)
+	public String access_tokenByCode(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			String appid=request.getParameter("appid");
+			if (StringUtils.isBlank(appid)) {
+				responseMessage.setMessage("参数:appid不能为空！");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(appid, responseMessage))return "";
+			
 			String code=request.getParameter("code");
 			if(DBUtil.isSqlInjection(code, responseMessage))return "";
 			if (StringUtils.isBlank(code)) {
@@ -88,7 +164,6 @@ return:
 		
 	
 	}
-	
 	
 	@RequestMapping(value = "/bindTel", method = RequestMethod.GET)
 	public String bindTel(ModelMap model, HttpServletRequest request) {

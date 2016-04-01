@@ -1,10 +1,9 @@
 package com.company.news.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,18 +14,19 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.transform.Transformers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import sun.misc.BASE64Decoder;
-
+import com.company.mq.JobDetails;
+import com.company.mq.MQUtils;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
+import com.company.news.cache.PxRedisCache;
 import com.company.news.cache.UserCache;
 import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
-import com.company.news.commons.util.UUIDGenerator;
 import com.company.news.commons.util.UploadFileUtils;
 import com.company.news.commons.util.upload.DiskIUploadFile;
 import com.company.news.commons.util.upload.IUploadFile;
@@ -34,7 +34,6 @@ import com.company.news.commons.util.upload.OssIUploadFile;
 import com.company.news.entity.FPMovie;
 import com.company.news.entity.FPPhotoItem;
 import com.company.news.entity.FPPhotoItemOfUpdate;
-import com.company.news.entity.UploadFile;
 import com.company.news.form.FPPhotoItemForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.FPPhotoItemJsonform;
@@ -64,11 +63,19 @@ public class FPPhotoItemService extends AbstractService {
 		else
 			iUploadFile = new DiskIUploadFile();
 	}
-
+	@Autowired
+	FPFamilyPhotoCollectionService fPFamilyPhotoCollectionService;
+	@Autowired
+	BaseDianzanService baseDianzanService;
 	
+	@Autowired
+	BaseReplyService baseReplyService;
 	String Selectsql=" SELECT t1.uuid,t1.family_uuid,t1.photo_time,t1.create_useruuid,t1.path,t1.address,t1.note,t1.phone_type,t1.create_time";
 	String SqlFrom=" FROM fp_photo_item t1 ";
 
+	
+	
+	
 
 	/**
 	 * 查询根据时间范围查询，新数据总数和变化数据总数。
@@ -210,7 +217,7 @@ public class FPPhotoItemService extends AbstractService {
 	 */
 	public PageQueryResult queryAlreadyUploaded(String phone_uuid,PaginationData pData) {
 		pData.setPageSize(100);
-		String selectsql="SELECT t1.md5 ";
+		String selectsql="SELECT t1.md5,t1.family_uuid ";
 		String sql=" FROM fp_photo_item t1 ";
 		
 		//过滤删除掉的.
@@ -416,12 +423,31 @@ public class FPPhotoItemService extends AbstractService {
 		
 		//需要删除相关表. 
 		//need_code
-		iUploadFile.deleteFile(dbobj.getPath());
+		try {
+			iUploadFile.deleteFile(dbobj.getPath());
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		
 		dbobj.setStatus(SystemConstants.FPPhotoItem_Status_delete);
 		dbobj.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		this.nSimpleHibernateDao.save(dbobj);
+		
+		//删除相关点赞,评论,收藏.
+		String sql="delete from fp_photo_favorite where rel_uuid='"+uuid+"'";
+		this.nSimpleHibernateDao.createSQLQuery(sql).executeUpdate();
+		try {
+		baseDianzanService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
+		baseReplyService.update_deleteForRel_uuid(uuid, SystemConstants.common_type_FPPhotoItem, responseMessage);
+		
+			PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().getReduceCountByExt_uuid(dbobj.getFamily_uuid());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return true;
 	}
 
@@ -473,76 +499,7 @@ public class FPPhotoItemService extends AbstractService {
 		return null;
 	}
 
-	public FPPhotoItem uploadImg(String base64, FPPhotoItemForm form,
-			ResponseMessage responseMessage, HttpServletRequest request,
-			SessionUserInfoInterface user) throws Exception {
-		String contentType = null;
-		if (StringUtils.isEmpty(base64)) {
-			responseMessage.setMessage("上传内容是空的！");
-			return null;
-		}
-		
-		byte[] b = null;
-		if (base64 != null) {
-			try {
-				String tmpbase64 = base64.substring(base64.indexOf(";base64,")
-						+ ";base64,".length());
-				contentType = base64.substring("data:".length(),
-						base64.indexOf(";base64,"));
-				// extension=contentType.substring("image/".length());
-	
-				BASE64Decoder decoder = new BASE64Decoder();
-				
-				b = decoder.decodeBuffer(tmpbase64);
-			} catch (Exception e) {
-				e.printStackTrace();
-				responseMessage.setMessage("解析错误：" + e.getMessage());
-				return null;
-			}
-		}
 
-		// 过滤文件大小等
-		if (!UploadFileUtils.fileFilter(responseMessage, b.length)) {
-			return null;
-		}
-
-		
-		FPPhotoItem uploadFile = new FPPhotoItem();
-
-		
-		BeanUtils.copyProperties(uploadFile, form);
-		
-		uploadFile.setFile_size(Long.valueOf(b.length));
-		uploadFile.setCreate_useruuid(user.getUuid());
-		uploadFile.setCreate_time(TimeUtils.getCurrentTimestamp());
-		uploadFile.setUpdate_time(TimeUtils.getCurrentTimestamp());
-		uploadFile.setPhoto_time(TimeUtils.string2Timestamp(TimeUtils.DEFAULTFORMAT, form.getPhoto_time()));
-//		uploadFile.setAddress(form.getAddress());
-//		uploadFile.setNote(form.getNote());
-//		uploadFile.setFamily_uuid(form.getFamily_uuid());
-//		uploadFile.setMd5(form.getMd5());
-			
-		if(uploadFile.getPhoto_time()==null){//如果上传拍照时间,不正确或为null,则设置为拍照时间.
-			uploadFile.setPhoto_time(uploadFile.getCreate_time());
-		}
-		this.nSimpleHibernateDao.getHibernateTemplate().save(uploadFile);
-		
-		//2016/uuid.png
-		String extension="png";
-		String filePath ="fp/"+TimeUtils.getCurrentTime("yyyy")+"/"+uploadFile.getUuid()+"."+extension;
-		
-		uploadFile.setPath(filePath);
-		InputStream  imgInputStream=new ByteArrayInputStream(b);
-		// 上传文件
-		if (iUploadFile.uploadFile(imgInputStream, filePath, null)) {
-			return uploadFile;
-		} else {
-			responseMessage.setMessage("上传文件失败");
-			return null;
-		}
-		
-		
-	}
 	public FPPhotoItem uploadImg(FPPhotoItemForm form, CommonsMultipartFile file,
 			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
 		SessionUserInfoInterface user=SessionListener.getUserInfoBySession(request);
@@ -583,9 +540,36 @@ public class FPPhotoItemService extends AbstractService {
 
 		// 上传文件
 		if (iUploadFile.uploadFile(file.getInputStream(), filePath, null)) {
+			
+			
+			
+
+			Map map=new HashMap();
+	    	map.put("uuid", uploadFile.getFamily_uuid());
+//	    	map.put("create_useruuid",user.getUuid());
+	    	map.put("title",user.getName()+"上传了新照片");
+			
+	    	JobDetails job=new JobDetails("doJobMqIservice","sendFPFamilyPhotoCollection",map);
+			MQUtils.publish(job);
+			Long cacheCount=null;
+			try {
+				cacheCount = PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().getIncrCountByExt_uuid(uploadFile.getFamily_uuid());
+				if(cacheCount==null||cacheCount<=1){
+					 cacheCount=fPFamilyPhotoCollectionService.getfamilyPhotoCount(uploadFile.getFamily_uuid());
+					PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().setCountByExt_uuid(uploadFile.getFamily_uuid(), cacheCount);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+			
 			return uploadFile;
 		} else {
+			
 			responseMessage.setMessage("上传文件失败");
+			this.nSimpleHibernateDao.getHibernateTemplate().delete(uploadFile);
 			return null;
 		}
 	}
@@ -596,7 +580,7 @@ public class FPPhotoItemService extends AbstractService {
 			responseMessage.setMessage("uuid 不能为空!");
 			return false;
 		}
-
+		SessionUserInfoInterface user=SessionListener.getUserInfoBySession(request);
 		FPPhotoItemOfUpdate obj = (FPPhotoItemOfUpdate) nSimpleHibernateDao.getObject(FPPhotoItemOfUpdate.class,
 				jsonform.getUuid());
 		
@@ -610,6 +594,15 @@ public class FPPhotoItemService extends AbstractService {
 		obj.setStatus(SystemConstants.FPPhotoItem_Status_update);
 		
 		this.nSimpleHibernateDao.save(obj);
+		
+
+		Map map=new HashMap();
+    	map.put("uuid", obj.getFamily_uuid());
+//    	map.put("create_useruuid",user.getUuid());
+    	map.put("title",user.getName()+"修改了照片备注");
+		
+    	JobDetails job=new JobDetails("doJobMqIservice","sendFPPhotoItem",map);
+		MQUtils.publish(job);
 		return true;
 	}
 	

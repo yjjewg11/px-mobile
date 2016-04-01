@@ -9,7 +9,11 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.company.news.SystemConstants;
+import com.company.news.cache.PxRedisCache;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.DbUtils;
+import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.FPFamilyMembers;
 import com.company.news.entity.FPFamilyPhotoCollection;
 import com.company.news.entity.FPFamilyPhotoCollectionOfUpdate;
@@ -41,7 +45,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 	
 			FPFamilyPhotoCollection dbobj = new FPFamilyPhotoCollection();
-			dbobj.setTitle("我家相册");
+			dbobj.setTitle(user.getName()+"家相册");
 			dbobj.setCreate_useruuid(user.getUuid());
 			dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
 			// 有事务管理，统一在Controller调用时处理异常
@@ -50,21 +54,27 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 			//parent_uuid,student_name,typename,tel 
 			//211ee9bf-1645-4797-a122-60e75462dfdc	周星星1	妈妈	13628037996
 			//
-			String sql="select DISTINCT parent_uuid,typename,tel from px_studentcontactrealation where student_uuid in ";
+			String sql="select DISTINCT parent_uuid,typename,tel,student_name from px_studentcontactrealation where student_uuid in ";
 			sql+=" (select student_uuid from px_studentcontactrealation where parent_uuid='"+user.getUuid()+"')";
 			List<Map> list=this.nSimpleHibernateDao.queryMapBySql(sql);
 			//有宝贝的,添加关联家庭成员
 			if(list.size()>0){
 				for(Map o:list){
+					
+					dbobj.setTitle(o.get("student_name")+"家相册");
 					FPFamilyMembers  fPFamilyMembers=new FPFamilyMembers();
 					fPFamilyMembers.setCreate_time(TimeUtils.getCurrentTimestamp());
 					fPFamilyMembers.setFamily_name((String)o.get("typename"));
 					fPFamilyMembers.setUser_uuid((String)o.get("parent_uuid"));
 					fPFamilyMembers.setTel((String)o.get("tel"));
 					fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
+					
+					if(fPFamilyMembers.getTel()!=null&&fPFamilyMembers.getTel().length()>11){
+						fPFamilyMembers.setTel(null);
+					}
 					this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 				}
-				
+				this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
 			}else{
 				//否则,只添加自己家庭成员表.
 				FPFamilyMembers  fPFamilyMembers=new FPFamilyMembers();
@@ -72,6 +82,10 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 				fPFamilyMembers.setFamily_name(user.getName());
 				fPFamilyMembers.setUser_uuid(user.getUuid());
 				fPFamilyMembers.setTel(user.getLoginname());
+				
+				if(fPFamilyMembers.getTel()!=null&&fPFamilyMembers.getTel().length()>11){
+					fPFamilyMembers.setTel(null);
+				}
 				fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 			}
@@ -110,6 +124,10 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 			fPFamilyMembers.setFamily_name(user.getName());
 			fPFamilyMembers.setUser_uuid(user.getUuid());
 			fPFamilyMembers.setTel(user.getLoginname());
+			
+			if(fPFamilyMembers.getTel()!=null&&fPFamilyMembers.getTel().length()>11){
+				fPFamilyMembers.setTel(null);
+			}
 			fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
 			this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
 			return dbobj;
@@ -146,12 +164,58 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 	 */
 	public List queryMy(String user_uuid) {
 
-		String sql = "select uuid,title,herald,photo_count,status from fp_family_photo_collection where uuid in (select family_uuid from fp_family_members where user_uuid='"+DbUtils.safeToWhereString(user_uuid)+"')";
+		String sql = "select uuid,title,herald,photo_count,status,create_time from fp_family_photo_collection where uuid in (select family_uuid from fp_family_members where user_uuid='"+DbUtils.safeToWhereString(user_uuid)+"')";
 		
 		List list = this.nSimpleHibernateDao.queryMapBySql(sql);
-		
+		warpMapList(list,null);
 		return list;
 	}
+	
+	/**
+	 * 查询我相关的(可以修改)
+	 * 
+	 * @return
+	 */
+	public Long getfamilyPhotoCount(String uuid) {
+		//
+		String sql = "select count(*) from fp_photo_item where status <"+SystemConstants.FPPhotoItem_Status_delete+" and family_uuid ='"+uuid+"'";
+		
+		Object list = this.nSimpleHibernateDao.createSQLQuery(sql).uniqueResult();
+		
+		return Long.valueOf(list+"");
+	}
+	/**
+	 * vo输出转换
+	 * @param list
+	 * @return
+	 */
+	private List warpMapList(List<Map> list,SessionUserInfoInterface user ) {
+		if(list.size()==0)return list;
+		for(Map o:list){
+			warpMap(o);
+		}
+		return list;
+	}
+	private void warpMap(Map o) {
+			String uuid=(String)o.get("uuid");
+
+		Long cacheCount=null;
+		try {
+			cacheCount = PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().getCountByExt_uuid(uuid);
+			if(cacheCount==null){
+				 cacheCount=getfamilyPhotoCount(uuid);
+				PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().setCountByExt_uuid(uuid, cacheCount);
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		o.put("photo_count", cacheCount);
+		
+	}
+	
 //	/**
 //	 * 查询所有通知
 //	 * 
@@ -209,7 +273,23 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 	public FPFamilyPhotoCollection get(String uuid) throws Exception {
 		FPFamilyPhotoCollection favorites = (FPFamilyPhotoCollection) this.nSimpleHibernateDao.getObjectById(
 				FPFamilyPhotoCollection.class, uuid);
+		if(favorites==null)return null;
 		
+		Long cacheCount=null;
+		try {
+			cacheCount = PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().getCountByExt_uuid(uuid);
+			if(cacheCount==null){
+				 cacheCount=getfamilyPhotoCount(uuid);
+				PxRedisCache.getPxRedisCache().getfPFamilyPhotoCollectionCounter().setCountByExt_uuid(uuid, cacheCount);
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.nSimpleHibernateDao.getHibernateTemplate().evict(favorites);
+		favorites.setPhoto_count(cacheCount);
 		return favorites;
 	}
 	

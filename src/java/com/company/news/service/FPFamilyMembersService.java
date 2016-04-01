@@ -47,10 +47,12 @@ public class FPFamilyMembersService extends AbstractService {
 		}
 		
 		// TEL格式验证
-			if (!CommonsValidate.checkCellphone(jsonform.getTel())) {
+			if (StringUtils.isNotBlank(jsonform.getTel())&&!CommonsValidate.checkCellphone(jsonform.getTel())) {
 				responseMessage.setMessage("电话号码格式不正确！");
 				return null;
 			}
+			
+			if(!isRight(request, jsonform.getFamily_uuid(), responseMessage))return null;
 		
 		FPFamilyPhotoCollectionOfUpdate fPFamilyPhoto = (FPFamilyPhotoCollectionOfUpdate) this.nSimpleHibernateDao.getObjectById(
 				FPFamilyPhotoCollectionOfUpdate.class, jsonform.getFamily_uuid());
@@ -157,6 +159,19 @@ public class FPFamilyMembersService extends AbstractService {
 //		return pageQueryResult;
 //	}
 
+	
+	public boolean isRight(HttpServletRequest request,String family_uuid, ResponseMessage responseMessage) {
+		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		
+		String sql="select 1 from fp_family_members where family_uuid='"+family_uuid+"' and ( user_uuid='"+user.getUuid()+"' or tel='"+user.getLoginname()+"')";
+		List list=this.nSimpleHibernateDao.createSqlQuery(sql).list();
+		if(list.size()>0){
+			return true;
+		}
+		responseMessage.setMessage("不是家庭成员,无权操作!");
+		
+		return false;
+	}
 	/**
 	 * 删除 支持多个，用逗号分隔
 	 * 
@@ -165,15 +180,27 @@ public class FPFamilyMembersService extends AbstractService {
 	public boolean delete(HttpServletRequest request,String uuid, ResponseMessage responseMessage) {
 		
 		
-		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
-		
+	
 		FPFamilyMembers dbobj = (FPFamilyMembers) this.nSimpleHibernateDao.getObjectById(
 				FPFamilyMembers.class, uuid);
 		
 		//需要删除相关表. 
 		//need_code
+		if(dbobj==null){
+			responseMessage.setMessage("参数错误,对象不存在");
+			return false;
+		}
 		
 		
+		if(!isRight(request, dbobj.getFamily_uuid(), responseMessage))return false;
+		
+		
+		String sql="select 1 from fp_family_members where family_uuid='"+ dbobj.getFamily_uuid()+"'";
+		List list=this.nSimpleHibernateDao.createSqlQuery(sql).list();
+		if(list.size()<=1){
+			responseMessage.setMessage("必须保留一个家庭成员!");
+			return false;
+		}
 		this.nSimpleHibernateDao.delete(dbobj);
 		return true;
 	}

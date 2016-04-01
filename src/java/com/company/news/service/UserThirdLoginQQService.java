@@ -3,7 +3,6 @@ package com.company.news.service;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import net.sf.json.JSONObject;
 
@@ -16,9 +15,9 @@ import org.weixin4j.WeixinException;
 import com.company.common.HttpRequestUtils;
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
+import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
-import com.company.news.entity.UserThirdLoginQQ;
 import com.company.news.entity.UserThirdLoginQQ;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.rest.RestConstants;
@@ -128,7 +127,7 @@ public  class UserThirdLoginQQService extends AbstractService {
 		String isBindParent=SystemConstants.UserThirdLogin_needBindTel_1;
 		// 用户名是否存在
 		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
-			List list=nSimpleHibernateDao.createSqlQuery("select uuid from px_parent where uuid='"+userdb.getRel_useruuid()+"'").list();
+			List list=nSimpleHibernateDao.createSqlQuery("select uuid,loginname from px_parent where uuid='"+userdb.getRel_useruuid()+"'").list();
 			if(!list.isEmpty()){//// 用户名是否存在,则绑定
 				isBindParent=SystemConstants.UserThirdLogin_needBindTel_0;
 			}
@@ -281,7 +280,7 @@ public  class UserThirdLoginQQService extends AbstractService {
 	 * @return
 	 * @throws WeixinException 
 	 */
-	public Parent loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
+	public Parent  update_loginByaccess_token(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token) throws WeixinException,Exception {
 		
 //		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
 		
@@ -293,14 +292,9 @@ public  class UserThirdLoginQQService extends AbstractService {
 		}
 		
 		Parent parent=null;
-		if(StringUtils.isBlank(userdb.getRel_useruuid())){
-			responseMessage.setMessage("没有关联用户手机号码请关联.access_token="+access_token);
-			return null;
-			
-			
+		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
+			parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
 		}
-		parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
-		
 		if(parent==null){//初始化用户成功!
 //			responseMessage.setMessage("没有关联用户信息.access_token="+access_token);
 //			return null;
@@ -319,6 +313,7 @@ public  class UserThirdLoginQQService extends AbstractService {
 			parent.setLogin_time(TimeUtils.getCurrentTimestamp());
 			parent.setTel_verify(SystemConstants.USER_tel_verify_default);
 			parent.setCount(0l);
+			parent.setType(12);
 			nSimpleHibernateDao.save(parent);//生成主键uuid
 			
 //			parent=userinfoService.update_regSecond(parent, responseMessage);
@@ -331,8 +326,10 @@ public  class UserThirdLoginQQService extends AbstractService {
 			parent.setLoginname(parent.getUuid());
 			nSimpleHibernateDao.save(parent);//
 			
-			
+		
 		}
+		
+		UserRedisCache.setUserCacheByParent(parent);
 //		HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
 //		// 将关联系学生信息放入
 //		
