@@ -567,11 +567,24 @@ public class FPPhotoItemService extends AbstractService {
 			
 			return uploadFile;
 		} else {
-			
+			this.logger.error("upload img faild,remove item,uuid="+uploadFile.getUuid());
 			responseMessage.setMessage("上传文件失败");
 			this.nSimpleHibernateDao.getHibernateTemplate().delete(uploadFile);
 			return null;
 		}
+	}
+	
+	public boolean isRight(HttpServletRequest request,String family_uuid, ResponseMessage responseMessage) {
+		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		
+		String sql="select 1 from fp_family_members where family_uuid='"+family_uuid+"' and ( user_uuid='"+user.getUuid()+"' or tel='"+user.getLoginname()+"')";
+		List list=this.nSimpleHibernateDao.createSqlQuery(sql).list();
+		if(list.size()>0){
+			return true;
+		}
+		responseMessage.setMessage("不是家庭成员,无权操作!");
+		
+		return false;
 	}
 
 	public boolean update(FPPhotoItemJsonform jsonform,
@@ -588,6 +601,11 @@ public class FPPhotoItemService extends AbstractService {
 			responseMessage.setMessage("数据不存在.uuid ="+jsonform.getUuid());
 			return false;
 		}
+		
+		if(!isRight(request, obj.getFamily_uuid(), responseMessage)){
+			return false;
+		}
+		
 		obj.setUpdate_time(TimeUtils.getCurrentTimestamp());
 		obj.setNote(jsonform.getNote());
 		obj.setAddress(jsonform.getAddress());

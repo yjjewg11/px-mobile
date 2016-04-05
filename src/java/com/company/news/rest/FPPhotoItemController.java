@@ -188,7 +188,7 @@ public class FPPhotoItemController extends AbstractRESTController {
 		}
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("操作成功");
+		responseMessage.setMessage("收藏成功");
 		return "";
 	}
 	
@@ -225,7 +225,7 @@ public class FPPhotoItemController extends AbstractRESTController {
 		}
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("操作成功");
+		responseMessage.setMessage("取消收藏");
 		return "";
 	}
 	

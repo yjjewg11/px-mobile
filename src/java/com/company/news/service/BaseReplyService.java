@@ -109,8 +109,8 @@ public  class BaseReplyService extends AbstractService {
 		 if(StringUtils.isNotBlank(pData.getMaxTime())){
 			 hql += " and   create_time <"+DBUtil.queryDateStringToDateByDBType(pData.getMaxTime());
 		 }
-		pData.setOrderFiled("create_time");
-		pData.setOrderType("desc");
+		 hql += " order by create_time desc";
+
 		
 		PageQueryResult pageQueryResult= this.nSimpleHibernateDao.findMapByPageForSqlNoTotal(hql, pData);
 		

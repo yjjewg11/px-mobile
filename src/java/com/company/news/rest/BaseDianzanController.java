@@ -69,7 +69,7 @@ public class BaseDianzanController extends AbstractRESTController {
 		}
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("操作成功");
+		responseMessage.setMessage("赞");
 		return "";
 	}
 
@@ -110,7 +110,7 @@ public class BaseDianzanController extends AbstractRESTController {
 		}
 
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
-		responseMessage.setMessage("删除成功");
+		responseMessage.setMessage("撤销点赞");
 		return "";
 	}
 	@RequestMapping(value = "/query", method = RequestMethod.GET)

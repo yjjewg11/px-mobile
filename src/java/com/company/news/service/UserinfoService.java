@@ -223,7 +223,7 @@ public class UserinfoService extends AbstractService {
 		user.setName(userRegJsonform.getName());
 		user.setEmail(userRegJsonform.getEmail());
 		user.setImg(userRegJsonform.getImg());
-
+		user.setRealname(userRegJsonform.getRealname());
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().update(user);
 
