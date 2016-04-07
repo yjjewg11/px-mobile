@@ -29,6 +29,7 @@ import com.company.news.commons.util.PxStringUtil;
 import com.company.news.core.iservice.NewMsgNumberIservice;
 import com.company.news.entity.Group;
 import com.company.news.entity.Parent;
+import com.company.news.entity.ParentBaseInfo;
 import com.company.news.entity.ParentData;
 import com.company.news.entity.PxStudentContactRealation;
 import com.company.news.entity.Student;
@@ -533,6 +534,8 @@ public class UserinfoService extends AbstractService {
 		return Parent.class;
 	}
 
+	
+
 	/**
 	 * 查询所有机构列表
 	 * 
@@ -993,6 +996,22 @@ public class UserinfoService extends AbstractService {
 		map.put("today_unreadPushMsg",newMsgNumberIservice.today_unreadPushMessage(SessionListener.getUserInfoBySession(request)));
 		
 		return map;
+	}
+	
+	/**
+	 * 根据手机号码获取
+	 * 
+	 * @param loginname
+	 * @return
+	 */
+	public ParentBaseInfo getParentBaseInfoByUUid(String uuid) {
+		
+		ParentBaseInfo dd= (ParentBaseInfo)nSimpleHibernateDao.getObject(ParentBaseInfo.class, uuid);
+		nSimpleHibernateDao.getHibernateTemplate().evict(dd);
+		dd.setImg(PxStringUtil.imgSmallUrlByUuid(dd.getImg()));
+		
+		return dd;
+		
 	}
 
 

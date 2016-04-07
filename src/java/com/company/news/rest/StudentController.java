@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.SystemConstants;
 import com.company.news.entity.Student;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.StudentJsonform;
@@ -187,6 +188,16 @@ public class StudentController extends AbstractRESTController {
 		}
 
 		try {
+			SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+			
+			
+			if(user.getUuid().equals(user.getLoginname())){
+				responseMessage.setMessage("请先绑定手机号码,在创建宝宝信息!");
+				
+				model.put(RestConstants.Return_UserThirdLogin_needBindTel, SystemConstants.UserThirdLogin_needBindTel_1);
+				return "";
+			}
+			
 			Student flag;
 			studentJsonform.setUuid(null);
 			flag = studentService.add(studentJsonform, responseMessage,request);
@@ -206,5 +217,41 @@ public class StudentController extends AbstractRESTController {
 		responseMessage.setMessage("增加成功");
 		return "";
 	}
+	
+	
+
+	/**
+	 * 获取用户信息
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getClassHeaderTeacher", method = RequestMethod.GET)
+	public String getClassHeaderTeacherName(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			String classuuid=request.getParameter("classuuid");
+			if(DBUtil.isSqlInjection(classuuid, responseMessage))return "";
+			
+			if (StringUtils.isBlank(classuuid)) {
+				responseMessage.setMessage("参数:classuuid不能为空！");
+				return "";
+			}
+			
+			List list = studentService.getClassHeaderTeacher(classuuid);
+		
+			model.put(RestConstants.Return_ResponseMessage_list, list);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+
 
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,6 +20,7 @@ import com.company.news.cache.CommonsCache;
 import com.company.news.cache.redis.SessionUserRedisCache;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
+import com.company.news.entity.ParentBaseInfo;
 import com.company.news.entity.User4Q;
 import com.company.news.form.UserLoginForm;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -33,6 +35,7 @@ import com.company.news.service.SnsTopicService;
 import com.company.news.service.UserThirdLoginQQService;
 import com.company.news.service.UserThirdLoginWenXinService;
 import com.company.news.service.UserinfoService;
+import com.company.news.session.UserOfSession;
 import com.company.news.vo.ResponseMessage;
 import com.company.web.listener.SessionListener;
 
@@ -221,7 +224,7 @@ public class UserinfoController extends AbstractRESTController {
 	}
 
 	/**
-	 * 获取用户信息
+	 * 获取用户信息,用于验证session超时,数据不全,不包含电话号码
 	 * 
 	 * @param model
 	 * @param request
@@ -254,6 +257,32 @@ public class UserinfoController extends AbstractRESTController {
 				return "";
 			}
 			model.put(RestConstants.Return_ResponseMessage_md5, md5_key);
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setMessage("服务器错误:"+e.getMessage());
+			return "";
+		}
+		return "";
+	}
+	
+	/**
+	 * 获取我的所有用户信息
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/getParentBaseInfo", method = RequestMethod.GET)
+	public String getParentBaseInfo(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			
+			ParentBaseInfo parent=userinfoService.getParentBaseInfoByUUid(this.getUserInfoBySession(request).getUuid());
+			
+			model.put(RestConstants.Return_G_entity, parent);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -321,8 +350,14 @@ public class UserinfoController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 
 		try {
+			
+			String disable= request.getParameter("disable");
+			if(DBUtil.isSqlInjection(disable, responseMessage))return "";
+			String useruuids= request.getParameter("useruuids");
+			if(DBUtil.isSqlInjection(useruuids, responseMessage))return "";
+			
 			boolean flag = userinfoService.updateDisable(
-					request.getParameter("disable"), request.getParameter("useruuids"),
+					disable, useruuids,
 					responseMessage);
 			if (!flag)// 请求服务返回失败标示
 				return "";
@@ -367,14 +402,23 @@ public class UserinfoController extends AbstractRESTController {
 		userRegJsonform.setUuid(this.getUserInfoBySession(request).getUuid());
 
 		try {
-			Parent user = userinfoService
+			Parent parent = userinfoService
 					.update(userRegJsonform, responseMessage);
-			if (user==null)// 请求服务返回失败标示
+			if (parent==null)// 请求服务返回失败标示
 				return "";
-			
+			   
 			//更新session中用户信息
 			HttpSession session=SessionListener.getSession(request);
-			session.setAttribute(RestConstants.Session_UserInfo, user);
+			
+			
+			UserOfSession userOfSession = new UserOfSession();
+			try {
+				BeanUtils.copyProperties(userOfSession, parent);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			session.setAttribute(RestConstants.Session_UserInfo, userOfSession);
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -546,6 +590,8 @@ public class UserinfoController extends AbstractRESTController {
 		
 		try {
 			String uuid=request.getParameter("uuid");
+			if(DBUtil.isSqlInjection(uuid, responseMessage))return "";
+			
 			if(StringUtils.isBlank(uuid)){
 				responseMessage.setMessage("uuid 不能空");
 				return "";
@@ -677,11 +723,13 @@ public class UserinfoController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			String access_token=request.getParameter("access_token");
+			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
 			if (StringUtils.isBlank(access_token)) {
 				responseMessage.setMessage("参数:access_token不能为空！");
 				return "";
 			}
 			String type=request.getParameter("type");
+			if(DBUtil.isSqlInjection(type, responseMessage))return "";
 			if (StringUtils.isBlank(type)) {
 				responseMessage.setMessage("参数:type不能为空！");
 				return "";
@@ -746,11 +794,13 @@ public class UserinfoController extends AbstractRESTController {
 			
 			
 			String access_token=request.getParameter("access_token");
+			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
 			if (StringUtils.isBlank(access_token)) {
 				responseMessage.setMessage("参数:access_token不能为空！");
 				return "";
 			}
 			String type=request.getParameter("type");
+			if(DBUtil.isSqlInjection(type, responseMessage))return "";
 			if (StringUtils.isBlank(type)) {
 				responseMessage.setMessage("参数:type不能为空！");
 				return "";
@@ -798,11 +848,12 @@ public class UserinfoController extends AbstractRESTController {
 				.addResponseMessageForModelMap(model);
 		try {
 			String access_token=request.getParameter("access_token");
+			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
+		
 			if (StringUtils.isBlank(access_token)) {
 				responseMessage.setMessage("参数:access_token不能为空！");
 				return "";
 			}
-			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
 			
 			String tel=request.getParameter("tel");
 			if(DBUtil.isSqlInjection(tel, responseMessage))return "";
@@ -879,6 +930,7 @@ public class UserinfoController extends AbstractRESTController {
 			}
 			
 			String type=request.getParameter("type");
+			if(DBUtil.isSqlInjection(type, responseMessage))return "";
 			if (StringUtils.isBlank(type)) {
 				responseMessage.setMessage("参数:type不能为空！");
 				return "";

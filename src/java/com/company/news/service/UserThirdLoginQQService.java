@@ -175,8 +175,23 @@ public  class UserThirdLoginQQService extends AbstractService {
 				tel, smsCode)) {
 			return false;
 		}
+		
+
+		//判断手机是否已经注册
+//		String attribute = "loginname";
+//
+//		Parent parent = (Parent) this.nSimpleHibernateDao.getObjectByAttribute(
+//				Parent.class, attribute, tel);
+//		
+//		if(parent!=null){
+//			userdb.setRel_useruuid(parent.getUuid());
+//			nSimpleHibernateDao.save(userdb);
+//			return true;
+//		}
+		
+		
 		// 用户名是否存在
-		//parent ,Loginname=Loginname 表示没有绑定过手机,否则已经绑定了手机号码
+		//parent ,Loginname=getRel_useruuid 表示没有绑定过手机,否则已经绑定了手机号码
 		Parent parent=null;
 		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
 			parent=(Parent)nSimpleHibernateDao.getObject(Parent.class, userdb.getRel_useruuid());
@@ -186,6 +201,17 @@ public  class UserThirdLoginQQService extends AbstractService {
 					responseMessage.setMessage("用户已绑定过手机.access_token="+access_token);
 					return false;
 				}
+				
+				//判断是否存在的用户
+				List list=nSimpleHibernateDao.createSqlQuery("select uuid from px_parent where tel='"+tel+"'").list();
+				
+				if(!list.isEmpty()){//// 用户名是否存在,则绑定
+					this.logger.warn("该手机号码已经已被注册,不能绑定到当前帐号下面."+access_token);
+					responseMessage.setMessage("该手机号码已经已被注册,不能绑定到当前帐号下面.");
+					return false;
+				}
+				
+			
 				//已经登录而没有绑定手机号码的则绑定手机号码即可.
 				parent.setLoginname(tel);
 				parent.setTel(tel);
@@ -196,8 +222,7 @@ public  class UserThirdLoginQQService extends AbstractService {
 			}
 		}
 		
-		
-		//判断是否存在的用户
+		//未绑定帐号的,绑定已有帐号,或新加.判断是否存在的用户
 		List list=nSimpleHibernateDao.createSqlQuery("select uuid from px_parent where tel='"+tel+"'").list();
 		
 		if(!list.isEmpty()){//// 用户名是否存在,则绑定
@@ -261,11 +286,11 @@ public  class UserThirdLoginQQService extends AbstractService {
 			return false;
 		}
 		
-		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
-			this.logger.warn("用户已绑定过帐号.access_token="+access_token);
-			responseMessage.setMessage("用户已绑定过帐号.access_token="+access_token);
-			return false;
-		}
+//		if(StringUtils.isNotBlank(userdb.getRel_useruuid())){
+//			this.logger.warn("用户已绑定过帐号.access_token="+access_token);
+//			responseMessage.setMessage("用户已绑定过帐号.access_token="+access_token);
+//			return false;
+//		}
 
 		userdb.setRel_useruuid(parent.getUuid());
 		nSimpleHibernateDao.save(userdb);

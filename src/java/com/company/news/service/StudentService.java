@@ -9,6 +9,9 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.transform.Transformers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +54,10 @@ public class StudentService extends AbstractService {
 	 */
 	public Student add(StudentJsonform studentJsonform,
 			ResponseMessage responseMessage, HttpServletRequest request) throws Exception {
-
+		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		
+	
+		
 		// TEL格式验证
 		if (StringUtils.isBlank(studentJsonform.getName())) {
 			responseMessage.setMessage("name不能为空！");
@@ -98,7 +104,7 @@ public class StudentService extends AbstractService {
 		}
 		boolean isFlag=false;//必须填写当前用户的电话号码.
 		
-		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		
 		if(user.getLoginname().equals(student.getBa_tel())){
 			isFlag=true;
 		}
@@ -476,6 +482,27 @@ public class StudentService extends AbstractService {
 		}
 		return list;
 	}
-
+	
+	/**
+	 * 
+	 * 
+	 * @param list
+	 * @return
+	 */
+	public List getClassHeaderTeacher(String classuuid) {
+		
+			Session s = this.nSimpleHibernateDao.getHibernateTemplate()
+					.getSessionFactory().openSession();
+			String sql="select t1.uuid,t1.name from px_user  t1 ";
+			sql+=" LEFT JOIN  px_userclassrelation t2 on t2.useruuid=t1.uuid  ";
+			sql+=" where t2.type ="+SystemConstants.class_usertype_head+" and t2.classuuid='"+DbUtils.safeToWhereString(classuuid)+"'";
+		
+			Query q = s.createSQLQuery(sql);
+			 q.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+			List<String> list=q.list();
+			return list;
+		
+	
+	}
 
 }
