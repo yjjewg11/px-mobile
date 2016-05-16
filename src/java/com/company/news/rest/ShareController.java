@@ -338,7 +338,7 @@ public class ShareController extends AbstractRESTController {
 			BeanUtils.copyProperties(vo, a);
 			announcementsService.warpNoReplyVo(vo, cur_user_uuid);
 			if(!PxStringUtil.isUrl(vo.getUrl())){
-				vo.setUrl(PxStringUtil.getArticleByUuid(uuid));
+				vo.setUrl(PxStringUtil.getAnnByUuid(uuid));
 			}else{
 				model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_gonggao));
 				
