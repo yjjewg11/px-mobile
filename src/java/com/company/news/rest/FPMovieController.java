@@ -186,6 +186,55 @@ public class FPMovieController extends AbstractRESTController {
 		return "";
 	}
 
+
+	/**
+	 * 改变状态
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/changeStatus", method = RequestMethod.POST)
+	public String changeStatus(ModelMap model, HttpServletRequest request) {
+		// 返回消息体
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			String uuid=request.getParameter("uuid");
+			if(DBUtil.isSqlInjection(uuid, responseMessage)){
+				return "";
+			}
+			if(StringUtils.isBlank(uuid)){
+				responseMessage.setMessage("uuid 不能为空!");
+				return "";
+			}
+			
+			
+			String status=request.getParameter("status");
+			if(DBUtil.isSqlInjection(status, responseMessage)){
+				return "";
+			}
+			if(!StringUtils.isNumeric(status)){
+				responseMessage.setMessage("status 只能填写数字.");
+				return "";
+			}
+			boolean flag = fPMovieService.changeStatus(request,uuid,status
+					,responseMessage);
+			if (!flag)
+				return "";
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("操作成功");
+		return "";
+	}
+
 	
 	@RequestMapping(value = "/get", method = RequestMethod.GET)
 	public String get(ModelMap model, HttpServletRequest request) {

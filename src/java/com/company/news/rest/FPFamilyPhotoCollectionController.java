@@ -133,6 +133,9 @@ public class FPFamilyPhotoCollectionController extends AbstractRESTController {
 
 			if (flag==null)// 请求服务返回失败标示
 				return "";
+			
+			model.addAttribute(RestConstants.Return_G_entity_id,flag);
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -208,6 +211,38 @@ public class FPFamilyPhotoCollectionController extends AbstractRESTController {
 			List list=fPFamilyMembersService.listByFamily_uuid(uuid);
 			//家庭成员
 			model.addAttribute("members_list",list);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,m);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+
+	@RequestMapping(value = "/getBaseInfo", method = RequestMethod.GET)
+	public String getBaseInfo(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		Object m;
+		try {
+			
+			String uuid=request.getParameter("uuid");
+			//防止sql注入.
+			if(DBUtil.isSqlInjection(uuid,responseMessage))return "";
+			
+			m = fPFamilyPhotoCollectionService.get(uuid);
+			if(m==null){
+				responseMessage.setMessage("查询对象不存在!");
+				return "";
+			}
+//			List list=fPFamilyMembersService.listByFamily_uuid(uuid);
+//			//家庭成员
+//			model.addAttribute("members_list",list);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

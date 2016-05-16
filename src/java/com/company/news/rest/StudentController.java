@@ -1,3 +1,4 @@
+
 package com.company.news.rest;
 
 import java.util.List;
@@ -190,11 +191,11 @@ public class StudentController extends AbstractRESTController {
 		try {
 			SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
 			
-			
+			//特殊标记用于跳转绑定手机页面.特殊标记:绑定手机
 			if(user.getUuid().equals(user.getLoginname())){
 				responseMessage.setMessage("请先绑定手机号码,在创建宝宝信息!");
 				
-				model.put(RestConstants.Return_UserThirdLogin_needBindTel, SystemConstants.UserThirdLogin_needBindTel_1);
+//				model.put(RestConstants.Return_UserThirdLogin_needBindTel, SystemConstants.UserThirdLogin_needBindTel_1);
 				return "";
 			}
 			

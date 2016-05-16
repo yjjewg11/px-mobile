@@ -311,6 +311,60 @@ public class ShareController extends AbstractRESTController {
 	 * @param request
 	 * @return
 	 */
+	@RequestMapping(value = "/getAnnUrlJSON", method = RequestMethod.GET)
+	public String getAnnUrlJSON(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		String uuid=request.getParameter("uuid");
+		if(StringUtils.isBlank(uuid)){
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("uuid 不能为空!");
+			return "";
+		}
+		AnnouncementsVo  vo = new AnnouncementsVo();
+		try {
+			Announcements4Q a = (Announcements4Q)nSimpleHibernateDao.getObject(Announcements4Q.class,uuid);
+			if(a==null){
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage(ResponseMessageConstants.Data_deleted);
+				return "";
+			}
+			
+			SessionUserInfoInterface user = this.getUserInfoBySession(request);
+			String cur_user_uuid=null;
+			if(user!=null){
+				cur_user_uuid=user.getUuid();
+			}
+			BeanUtils.copyProperties(vo, a);
+			announcementsService.warpNoReplyVo(vo, cur_user_uuid);
+			if(!PxStringUtil.isUrl(vo.getUrl())){
+				vo.setUrl(PxStringUtil.getArticleByUuid(uuid));
+			}else{
+				model.put(RestConstants.Return_ResponseMessage_count, countService.count(uuid, SystemConstants.common_type_gonggao));
+				
+			}
+			model.put(RestConstants.Return_ResponseMessage_share_url,vo.getUrl());
+	
+			model.put(RestConstants.Return_ResponseMessage_isFavorites,favoritesService.isFavorites( cur_user_uuid,uuid));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		model.addAttribute(RestConstants.Return_G_entity,vo);
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		return "";
+	}
+	
+	/**
+	 * 获取精品文章详细
+	 * 
+	 * @param model
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value = "/getArticle", method = RequestMethod.GET)
 	public String getArticle(ModelMap model, HttpServletRequest request) {
 		ResponseMessage responseMessage = RestUtil
@@ -363,7 +417,7 @@ public class ShareController extends AbstractRESTController {
 	/**
 	 * 全校公告
 	 * @param model
-	 * @param request
+	 * @param request 
 	 * @return
 	 */
 	@RequestMapping(value = "/getClassNews", method = RequestMethod.GET)
@@ -880,7 +934,7 @@ public class ShareController extends AbstractRESTController {
 	    	   
 	    	   
 	    	   this.nSimpleHibernateDao.getHibernateTemplate().evict(fPMovie);
-	    	   pData.setPageSize(20);
+	    	   pData.setPageSize(999);
 	    	   PageQueryResult pageQueryResult=  fPPhotoItemService.queryForMoviePhoto_uuids(fPMovie.getPhoto_uuids(), pData, model);
 	    	   fPMovie.setPhoto_uuids(null);
 	    	   fPMovie.setHerald(FPPhotoUtil.imgUrlByUuid_sub(fPMovie.getHerald()));

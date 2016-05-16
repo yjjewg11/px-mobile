@@ -66,6 +66,7 @@ public class FPMovieService extends AbstractService {
 			FPMovie dbobj = new FPMovie();
 			BeanUtils.copyProperties(dbobj, jsonform);
 			dbobj.setCreate_useruuid(user.getUuid());
+			dbobj.setCreate_time(TimeUtils.getCurrentTimestamp());
 			//修复修改保存时,没有保存图片数量.
 			dbobj.setPhoto_count(Long.valueOf(StringUtils.countMatches(jsonform.getPhoto_uuids(), ",")));
 			
@@ -145,6 +146,41 @@ public class FPMovieService extends AbstractService {
 //		return pageQueryResult;
 //	}
 
+	
+	/**
+	 * 删除 支持多个，用逗号分隔
+	 * 
+	 * @param uuid
+	 */
+	public boolean changeStatus(HttpServletRequest request,String uuid,String status, ResponseMessage responseMessage) {
+		
+		
+		SessionUserInfoInterface user = SessionListener.getUserInfoBySession(request);
+		//防止sql注入.
+		
+		FPMovie dbobj = (FPMovie) this.nSimpleHibernateDao.getObjectById(
+				FPMovie.class, uuid);
+		if(dbobj==null){
+			responseMessage.setMessage("相册不存在!");
+			return false;
+		}
+		if(!user.getUuid().equals(dbobj.getCreate_useruuid())){
+			responseMessage.setMessage("只有创建人,才能删除");
+			return false;
+		}
+		
+		if(SystemConstants.Check_status_disable.equals(dbobj.getStatus())){
+			responseMessage.setMessage("内容不合法,已被屏蔽.不允许操作");
+			return false;
+		}
+		String sql="update fp_movie set status="+status+" where uuid='"+uuid+"'";
+	
+		this.nSimpleHibernateDao.createSQLQuery(sql).executeUpdate();
+	
+		
+		return true;
+	}
+
 	/**
 	 * 删除 支持多个，用逗号分隔
 	 * 
@@ -186,7 +222,7 @@ public class FPMovieService extends AbstractService {
 	 */
 	public Map get(String uuid) throws Exception {
 		
-		String sql= " SELECT t1.template_key,t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status,t1.photo_uuids  FROM fp_movie t1   where   t1.uuid ='"+uuid+"'";
+		String sql= " SELECT t1.template_key,t1.mp3,t1.uuid,t1.create_time,t1.title,t1.herald,t1.photo_count,t1.create_useruuid,t1.status,t1.photo_uuids  FROM fp_movie t1   where   t1.uuid ='"+uuid+"'";
 		
 		Query  query =this.nSimpleHibernateDao.createSqlQuery(sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);

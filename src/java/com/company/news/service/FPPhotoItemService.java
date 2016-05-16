@@ -533,7 +533,7 @@ public class FPPhotoItemService extends AbstractService {
 		this.nSimpleHibernateDao.getHibernateTemplate().save(uploadFile);
 		
 		//2016/uuid.png
-		
+		if(StringUtils.isBlank(extension))extension="jpg";
 		String filePath ="fp/"+TimeUtils.getCurrentTime("yyyy")+"/"+uploadFile.getUuid()+"."+extension;
 		
 		uploadFile.setPath(filePath);
@@ -655,7 +655,7 @@ public class FPPhotoItemService extends AbstractService {
 		
 		for(Map o:list){
 			try {
-				o.put("path", PxStringUtil.imgUrlByRelativePath_sub((String)o.get("path"),"@640w"));
+				o.put("path", PxStringUtil.imgUrlByRelativePath_sub((String)o.get("path"),"640w"));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

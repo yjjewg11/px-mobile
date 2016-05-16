@@ -130,7 +130,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 			}
 			fPFamilyMembers.setFamily_uuid(dbobj.getUuid());
 			this.nSimpleHibernateDao.getHibernateTemplate().save(fPFamilyMembers);
-			return dbobj;
+			return dbobj.getUuid();
 		}//end 新建
 		
 		//修改
@@ -153,7 +153,7 @@ public class FPFamilyPhotoCollectionService extends AbstractService {
 		BeanUtils.copyProperties(dbobj, jsonform);
 		// 有事务管理，统一在Controller调用时处理异常
 		this.nSimpleHibernateDao.getHibernateTemplate().save(dbobj);
-		return dbobj;
+		return dbobj.getUuid();
 	}
 
 
