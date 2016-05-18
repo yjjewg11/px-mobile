@@ -17,6 +17,7 @@ import com.company.news.commons.util.PxStringUtil;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.query.PageQueryResult;
 import com.company.news.query.PaginationData;
+import com.company.news.rest.RestConstants;
 import com.company.news.vo.ResponseMessage;
 
 /**
@@ -45,7 +46,38 @@ public class SnsTopicService extends AbstractService {
 		this.warpMapList(pageQueryResult.getData(), null);
 		return pageQueryResult;
 	}
+	public PageQueryResult hotAnnouncementsByPage(PaginationData pData,String section_id,
+			HttpServletRequest request) {
+		String sql=" SELECT t1.uuid,t1.title,t1.create_time,t1.create_useruuid,t1.status, t1.url";
+		sql+=" FROM px_announcements t1 ";
+		sql+=" where t1.status=0 and t1.type="+SystemConstants.common_type_jingpinwenzhang;
+		
+		sql += " order by t1.create_time desc";
 
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(sql);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		
+		PageQueryResult pageQueryResult = this.nSimpleHibernateDao.findByPageForSqlNoTotal(query, pData);
+		List<Map> list=pageQueryResult.getData();
+		for(Map o:list){
+			o.put("reply_count",Integer.valueOf(0));
+			o.put("yes_count",Integer.valueOf(0));
+			o.put("no_count",Integer.valueOf(0));
+			o.put("level",Integer.valueOf(0));
+			o.put("summary","");
+			o.put("imguuids","");
+			o.put("imgList", PxStringUtil.uuids_to_imgSmallUrlurlList(null));
+			
+			if(!PxStringUtil.isUrl((String)o.get("url"))){
+				o.put("webview_url",  PxStringUtil.getArticleByUuid((String)o.get("uuid")));
+			}else{
+				o.put("webview_url",  (String)o.get("url"));
+			}
+			
+		}
+		
+		return pageQueryResult;
+	}
 
 	/**
 	 * 获取发现,每日话题推荐1条.

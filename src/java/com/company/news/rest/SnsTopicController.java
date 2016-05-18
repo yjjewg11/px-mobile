@@ -37,6 +37,7 @@ public class SnsTopicController extends AbstractRESTController {
 			String section_id=request.getParameter("section_id");
 			PaginationData pData = this.getPaginationDataByRequest(request);
 			PageQueryResult list = snsTopicService.hotByPage(pData,section_id,request);
+//			PageQueryResult list = snsTopicService.hotAnnouncementsByPage(pData,section_id,request);
 			
 			model.addAttribute(RestConstants.Return_ResponseMessage_list,list);
 			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
