@@ -166,7 +166,7 @@ public  class EZCameraService extends AbstractService {
 		String sql=sqlFrom;
 		pData.setPageSize(50);
 		
-		  sql += " order by t1.class_uuid asc";
+		  sql += " order by t1.group_uuid,CONVERT( t1.camera_name USING gbk)";
 		 
 		Query  query =this.nSimpleHibernateDao.createSqlQuery(selectsql+sql);
 		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);

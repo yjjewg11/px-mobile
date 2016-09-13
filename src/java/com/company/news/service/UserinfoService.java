@@ -98,19 +98,32 @@ public class UserinfoService extends AbstractService {
 		List<PxStudentContactRealation> pxlist = pxStudentService
 				.getStudentByPhone(parent.getTel());
 
-		if (pxlist != null)
+		if (pxlist != null&&pxlist.size()>0){
+			
 			for (PxStudentContactRealation s : pxlist) {
 				// 更新家长姓名和头像.多个孩子已最后保存为准
 				parent.setName(PxStringUtil
 						.getParentNameByStudentContactRealation(s));
 				parent.setImg(s.getStudent_img());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
-
-				// 有事务管理，统一在Controller调用时处理异常
-				s.setIsreg(SystemConstants.USER_isreg_1);
-				s.setParent_uuid(parent.getUuid());
-				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
+//				
+//				// 有事务管理，统一在Controller调用时处理异常
+//				s.setIsreg(SystemConstants.USER_isreg_1);
+//				s.setParent_uuid(parent.getUuid());
+//				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
 			}
+			
+
+			//更新互动表
+			Integer count=this.nSimpleHibernateDao
+					.getHibernateTemplate()
+					.bulkUpdate(
+							"update PxStudentContactRealation set isreg=?,parent_uuid=? where tel =?",
+							SystemConstants.USER_isreg_1, parent.getUuid(), parent.getTel());
+
+			this.logger.info(parent.getTel()+"=tel.update PxStudentContactRealation count=" + count);
+			
+		}
 
 		/**
 		 * 
@@ -120,20 +133,37 @@ public class UserinfoService extends AbstractService {
 		List<StudentContactRealation> list = studentService
 				.getStudentByPhone(parent.getTel());
 
-		if (list != null)
+		if (list != null&&list.size()>0){
 			for (StudentContactRealation s : list) {
 				// 更新家长姓名和头像.多个孩子已最后保存为准
 				parent.setName(PxStringUtil
 						.getParentNameByStudentContactRealation(s));
 				parent.setImg(s.getStudent_img());
 				this.nSimpleHibernateDao.getHibernateTemplate().save(parent);
-
-				// 有事务管理，统一在Controller调用时处理异常
-				s.setIsreg(SystemConstants.USER_isreg_1);
-				s.setParent_uuid(parent.getUuid());
-				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
+				
+//				// 有事务管理，统一在Controller调用时处理异常
+//				s.setIsreg(SystemConstants.USER_isreg_1);
+//				s.setParent_uuid(parent.getUuid());
+//				this.nSimpleHibernateDao.getHibernateTemplate().save(s);
 			}
+			
+			
 
+			//更新互动表
+			Integer count=this.nSimpleHibernateDao
+					.getHibernateTemplate()
+					.bulkUpdate(
+							"update StudentContactRealation set isreg=?,parent_uuid=? where tel =?",
+							SystemConstants.USER_isreg_1, parent.getUuid(), parent.getTel());
+
+			this.logger.info(parent.getTel()+"=tel.update StudentContactRealation count=" + count);
+			
+			
+		}
+
+		
+		
+		
 		UserRedisCache.setUserCacheByParent(parent);
 		
 		return parent;
@@ -440,13 +470,18 @@ public class UserinfoService extends AbstractService {
 			HttpServletRequest request,ResponseMessage responseMessage){
 		List list = new ArrayList();
 		try {
-			list = getStudentByParentuuid(SessionListener.getUserInfoBySession(
-					request).getUuid());
+//			list = getStudentByParentuuid(SessionListener.getUserInfoBySession(
+//					request).getUuid());
+			SessionUserInfoInterface user=SessionListener.getUserInfoBySession(
+					request);
+			
+			list = getStudentByParentLoginname(user.getLoginname());
+			
 			String group_uuids=getMyChildrenGroupUuidsBySession(request);
 			//String class_uuids=this.getMyChildrenClassuuidsBySession(request);
 			model.addAttribute("group_list", getGroupVObyUuids(group_uuids));
 			//model.addAttribute("class_list", userinfoService.getPClassbyUuids(class_uuids));
-			model.addAttribute("class_list", getAllClassAndPxClass(SessionListener.getUserInfoBySession(request)));
+			model.addAttribute("class_list", getAllClassAndPxClass2(SessionListener.getUserInfoBySession(request)));
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -551,6 +586,7 @@ public class UserinfoService extends AbstractService {
 	 * 
 	 * @return
 	 */
+	@Deprecated
 	public List<Student> getStudentByParentuuid(String uuid) {
 		Session s = this.nSimpleHibernateDao.getSession();
 		String sql = "";
@@ -558,6 +594,25 @@ public class UserinfoService extends AbstractService {
 				.createSQLQuery(
 						"select  DISTINCT {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.parent_uuid='"
 								+ DbUtils.safeToWhereString(uuid) + "'").addEntity("t1", Student.class);
+		List<Student> list = q.list();
+		s.clear();
+		for (Student o : list) {
+			o.setHeadimg(PxStringUtil.imgSmallUrlByUuid(o.getHeadimg()));
+		}
+		return list;
+	}
+	/**
+	 * 查询指定机构的用户列表
+	 * 
+	 * @return
+	 */
+	public List<Student> getStudentByParentLoginname(String tel) {
+		Session s = this.nSimpleHibernateDao.getSession();
+		String sql = "";
+		Query q = s
+				.createSQLQuery(
+						"select  DISTINCT {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.tel='"
+								+ DbUtils.safeToWhereString(tel) + "'").addEntity("t1", Student.class);
 		List<Student> list = q.list();
 		s.clear();
 		for (Student o : list) {
@@ -808,6 +863,7 @@ public class UserinfoService extends AbstractService {
 	 * @param user
 	 * @return
 	 */
+	@Deprecated
 	public List getAllClassAndPxClass(SessionUserInfoInterface user) {
 		
 		//查询幼儿园班级
@@ -831,6 +887,37 @@ public class UserinfoService extends AbstractService {
 		return query.list();
 		
 	}
+	
+
+	/**
+	 * 查询所有班级,包括:幼儿园班级和培训机构
+	 * @param user
+	 * @return
+	 */
+	public List getAllClassAndPxClass2(SessionUserInfoInterface user) {
+		
+		//查询幼儿园班级
+		String sql="SELECT t1.uuid,t1.name,t1.groupuuid from px_class t1"
+				+" inner join px_student t2 on t2.classuuid=t1.uuid  " 
+				+" inner join px_studentcontactrealation t3 on t3.student_uuid=t2.uuid  " 
+				+"   where t3.tel='"
+				+ user.getLoginname() + "'  ";
+		//查询培训机构班级
+		String sqlpxclass = "select t1.uuid,t1.name,t1.groupuuid"
+				+ " from px_pxstudentpxclassrelation t0 "
+				+ " inner join px_pxclass t1 on t0.class_uuid=t1.uuid "
+				+ " inner join px_pxstudent t4 on t0.student_uuid=t4.uuid  "
+				+ " where t0.student_uuid  in( "
+				+ " select  DISTINCT student_uuid from px_pxstudentcontactrealation where tel='"
+				+ user.getLoginname() + "' ) "
+				+" and t1.isdisable ="+SystemConstants.Class_isdisable_0;
+	    
+		Query  query =this.nSimpleHibernateDao.createSQLQuery(sql+" UNION "+sqlpxclass);
+		query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		return query.list();
+		
+	}
+	
 
 	public List getPClassbyUuids(String uuids) {
 		if (StringUtils.isBlank(uuids))

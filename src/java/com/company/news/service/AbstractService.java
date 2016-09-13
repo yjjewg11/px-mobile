@@ -52,6 +52,7 @@ public abstract class AbstractService {
 	 * 
 	 * @return
 	 */
+  @Deprecated
 	public List<StudentOfSession> getStudentOfSessionByParentuuid(String uuid) {
 		Session s = this.nSimpleHibernateDao.getSession();
 		String sql = "";
@@ -68,9 +69,41 @@ public abstract class AbstractService {
 	 * 
 	 * @return
 	 */
+  @Deprecated
 	public String getPxClassuuidsByMyChild(String parentuuid) {
 		String sql = "select class_uuid from px_pxstudentpxclassrelation where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where parent_uuid='"
 								+DbUtils.safeToWhereString( parentuuid) + "' )";
+		Query q = this.nSimpleHibernateDao
+				.createSQLQuery(sql);
+		List list=q.list();
+		return StringUtils.join(list, ",");
+	}
+	
+	
+	/**
+	 * 查询指定机构的用户列表
+	 * 
+	 * @return
+	 */
+	public List<StudentOfSession> getStudentOfSessionByLoginname(String tel) {
+		Session s = this.nSimpleHibernateDao.getSession();
+		String sql = "";
+		Query q = s
+				.createSQLQuery(
+						"select  DISTINCT {t1.*} from px_studentcontactrealation t0,px_student {t1} where t0.student_uuid={t1}.uuid and t0.tel='"
+								+ tel + "'").addEntity("t1",
+						StudentOfSession.class);
+
+		return q.list();
+	}
+	/**
+	 * 返回孩子在培训机构登记的uuid.
+	 * 
+	 * @return
+	 */
+	public String getPxClassuuidsByMyChildByLoginname(String tel) {
+		String sql = "select class_uuid from px_pxstudentpxclassrelation where student_uuid in( select  DISTINCT student_uuid from px_pxstudentcontactrealation where tel='"
+								+tel+ "' )";
 		Query q = this.nSimpleHibernateDao
 				.createSQLQuery(sql);
 		List list=q.list();
@@ -141,11 +174,15 @@ public abstract class AbstractService {
 	public void putSession( HttpSession session,
 			SessionUserInfoInterface parent, HttpServletRequest request)
 			 {
-		List<StudentOfSession> studentOfSessionlist=getStudentOfSessionByParentuuid(parent.getUuid());
+//		List<StudentOfSession> studentOfSessionlist=getStudentOfSessionByParentuuid(parent.getUuid());
+		
+		List<StudentOfSession> studentOfSessionlist=getStudentOfSessionByLoginname(parent.getLoginname());
 		if(studentOfSessionlist==null)studentOfSessionlist=new ArrayList();
 		session.setAttribute(RestConstants.Session_StudentslistOfParent, studentOfSessionlist);
 		//我的孩子参加的培训班
-		String myStudentClassUuids =getPxClassuuidsByMyChild(parent.getUuid());
+//		String myStudentClassUuids =getPxClassuuidsByMyChild(parent.getUuid());
+		
+		String myStudentClassUuids =getPxClassuuidsByMyChildByLoginname(parent.getLoginname());
 		if(myStudentClassUuids==null)myStudentClassUuids="";
 		session.setAttribute(RestConstants.Session_MyStudentClassUuids,myStudentClassUuids);
 		
