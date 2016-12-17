@@ -85,6 +85,47 @@ public class ShareController extends AbstractRESTController {
 	 @Autowired
      private GroupService groupService;
 	
+	 
+	 
+	 
+		private static String shareImgUrlIOS=null;
+	 /**
+		 * 获取老师web登录地址. ios https 
+		 * @param model
+		 * @param request
+		 * @return
+		 */
+		@RequestMapping(value = "/getConfigOfIOS", method = RequestMethod.GET)
+		public String getConfigOfIOS(ModelMap model, HttpServletRequest request) {
+			ResponseMessage responseMessage = RestUtil
+					.addResponseMessageForModelMap(model);
+			try {
+				
+			
+				
+				if(shareImgUrlIOS==null){
+					List list=this.nSimpleHibernateDao
+							.getHibernateTemplate().find(
+									"select description from BaseDataList where typeuuid='shareImgUrlIOS' and datakey=1");
+						
+						if(list!=null&&list.size()>0){
+							shareImgUrlIOS=list.get(0)+"";
+						}else{
+							shareImgUrlIOS="https://www.wenjienet.com/px-rest/i/share_logo.png";
+						}
+			}
+			
+				model.put("shareImgUrl",shareImgUrlIOS);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage("服务器异常:"+e.getMessage());
+				return "";
+			}
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			return "";
+		}
 		/**
 		 * 获取表情列表(url)
 		 * @param model
