@@ -146,7 +146,7 @@ public  class EZCameraService extends AbstractService {
 	
 	
 
-	String Selectsql=" SELECT t1.camera_id as cameraId,t1.camera_name as cameraName,t1.channel_no as channelNo,t1.device_serial as deviceSerial,t1.is_encrypt as isEncrypt,t1.is_shared as isShared,t1.pic_url as picUrl,t1.is_online as isOnline  ";
+	String Selectsql=" SELECT t1.camera_id as cameraId,t1.camera_name as cameraName,t1.channel_no as channelNo,t1.device_serial as deviceSerial,t1.is_encrypt as isEncrypt,t1.is_shared as isShared,t1.pic_url as picUrl,t1.is_online as isOnline,t1.device_id as deviceId ,t1.camera_no as cameraNo  ";
 	String SqlFrom=" FROM ez_camera_info t1 ";
 
 	/**
