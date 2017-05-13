@@ -116,6 +116,7 @@
 				/group/reg.json,/group/list.json,/basedatalist/getAllList.json,
 				/doorrecord/insert.json,/doorrecord/autobind.json,/uploadFile/getImgFile,
 				/userinfo/thirdLogin.json,/userinfo/bindTel.json,/userinfo/bindAccount.json,
+				/userThirdLoginWenXinMP/access_tokenByCode.json,
 				/userThirdLoginQQ/access_token.json,/userThirdLoginWenXin/access_token.json
 			</param-value>
 		</init-param>
