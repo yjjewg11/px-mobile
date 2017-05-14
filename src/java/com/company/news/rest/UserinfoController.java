@@ -33,6 +33,7 @@ import com.company.news.rest.util.MD5Until;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.SnsTopicService;
 import com.company.news.service.UserThirdLoginQQService;
+import com.company.news.service.UserThirdLoginWenXinMPService;
 import com.company.news.service.UserThirdLoginWenXinService;
 import com.company.news.service.UserinfoService;
 import com.company.news.session.UserOfSession;
@@ -47,6 +48,9 @@ public class UserinfoController extends AbstractRESTController {
 	private UserinfoService userinfoService;
 	@Autowired
 	private SnsTopicService snsTopicService;
+	
+	@Autowired
+	private UserThirdLoginWenXinMPService userThirdLoginWenXinMPService;
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public String login(UserLoginForm userLoginForm, ModelMap model,
@@ -746,6 +750,11 @@ public class UserinfoController extends AbstractRESTController {
 				}
 			}else if(SystemConstants.UserThirdLogin_WeiXin.equals(type)){
 				parent= userThirdLoginWenXinService. update_loginByaccess_token(model, request, responseMessage, access_token);
+				if(parent==null){
+					return "";
+				}
+			}else if(SystemConstants.UserThirdLogin_WeiXinApp.equals(type)){
+				parent= userThirdLoginWenXinMPService. update_loginByaccess_token(model, request, responseMessage, access_token);
 				if(parent==null){
 					return "";
 				}
