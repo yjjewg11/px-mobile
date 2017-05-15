@@ -5,19 +5,15 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.id.GUIDGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
-import org.weixin4j.OAuth2;
-import org.weixin4j.OAuth2User;
 import org.weixin4j.WeixinException;
-import org.weixin4j.http.OAuth2Token;
 
 import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
-import com.company.news.cache.redis.UserRedisCache;
 import com.company.news.commons.util.HttpClientUtils;
 import com.company.news.commons.util.PxStringUtil;
 import com.company.news.entity.Parent;
@@ -37,9 +33,16 @@ import com.company.web.listener.SessionListener;
  */
 @Service
 public  class UserThirdLoginWenXinMPService extends AbstractService {
+	
+	//微信小程序-测试登录
+	static public Boolean TestLogin= "true".equals(ProjectProperties.getProperty(
+			"WeixinAppTestLogin", "true"));
+	
+	//微信小程序-密钥
 	static public String WeixinAppSecret= ProjectProperties.getProperty(
 				"WeixinAppSecret", "123123123123");
 	
+	//微信小程序-appid
 	static public String WeixinAppappId= ProjectProperties.getProperty(
 			"WeixinApp_appId", "wx6699cf8b21e12618");
 	@Autowired
@@ -80,10 +83,18 @@ public  class UserThirdLoginWenXinMPService extends AbstractService {
 		Map map=(Map)JSONUtils.jsonToObject(responseJson, Map.class);
 		
 		if(map.get("errmsg")!=null){
-			String errmsg=map.get("errmsg")+"";
-			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
-			responseMessage.setMessage(errmsg);
-			return false;
+			
+			
+			if(TestLogin){
+				map.put("openid", "WenXin_app_test");
+				map.put("session_key", TimeUtils.getCurrentTime(TimeUtils.DEFAULTFORMAT));
+			}else{
+				String errmsg=map.get("errmsg")+"";
+				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+				responseMessage.setMessage(errmsg);
+				return false;
+			}
+			
 
 		}
 		String openid=map.get("openid")+"";
@@ -295,37 +306,43 @@ public  class UserThirdLoginWenXinMPService extends AbstractService {
 			
 			
 		}
-	
+		
+		
 		if(parent==null){//初始化用户成功!
-			parent = new Parent();
-
-				parent.setLoginname(userdb.getUuid());//不能为空,和必须唯一.临时填写,后面变更为parent uuid
-//				parent.setTel();
-				parent.setName(PxStringUtil.getSubString(userdb.getNickname(), 45));
-				parent.setImg(PxStringUtil.getSubString(userdb.getHeadimgurl(), 256));
-				
-				parent.setCreate_time(TimeUtils.getCurrentTimestamp());
-				parent.setDisable(SystemConstants.USER_disable_default);
-				parent.setLogin_time(TimeUtils.getCurrentTimestamp());
-				parent.setTel_verify(SystemConstants.USER_tel_verify_default);
-				parent.setCount(0l);
-				parent.setType(11);
-				nSimpleHibernateDao.save(parent);//生成主键uuid
-				
-//				parent=userinfoService.update_regSecond(parent, responseMessage);
-				
-				//设置关联关心
-				userdb.setRel_useruuid(parent.getUuid());
-				nSimpleHibernateDao.save(userdb);
-				
-				//不能为空,和必须唯一.临时填写,后面变更为parent uuid
-				parent.setLoginname(parent.getUuid());
-				
-				
-				nSimpleHibernateDao.save(parent);//
-				
+			responseMessage.setMessage("请先绑定手机号码。");
+			return null;
 		}
-		UserRedisCache.setUserCacheByParent(parent);
+	
+//		if(parent==null){//初始化用户成功!
+//			parent = new Parent();
+//
+//				parent.setLoginname(userdb.getUuid());//不能为空,和必须唯一.临时填写,后面变更为parent uuid
+////				parent.setTel();
+//				parent.setName(PxStringUtil.getSubString(userdb.getNickname(), 45));
+//				parent.setImg(PxStringUtil.getSubString(userdb.getHeadimgurl(), 256));
+//				
+//				parent.setCreate_time(TimeUtils.getCurrentTimestamp());
+//				parent.setDisable(SystemConstants.USER_disable_default);
+//				parent.setLogin_time(TimeUtils.getCurrentTimestamp());
+//				parent.setTel_verify(SystemConstants.USER_tel_verify_default);
+//				parent.setCount(0l);
+//				parent.setType(11);
+//				nSimpleHibernateDao.save(parent);//生成主键uuid
+//				
+////				parent=userinfoService.update_regSecond(parent, responseMessage);
+//				
+//				//设置关联关心
+//				userdb.setRel_useruuid(parent.getUuid());
+//				nSimpleHibernateDao.save(userdb);
+//				
+//				//不能为空,和必须唯一.临时填写,后面变更为parent uuid
+//				parent.setLoginname(parent.getUuid());
+//				
+//				
+//				nSimpleHibernateDao.save(parent);//
+//				
+//		}
+//		UserRedisCache.setUserCacheByParent(parent);
 //		HttpSession session =userinfoService.sessionCreateByParent(parent, model, request, responseMessage);
 //		// 将关联系学生信息放入
 //		

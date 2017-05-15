@@ -29,11 +29,15 @@ public class SmsService extends AbstractService {
 	private static long MINUTE = 1000 * 60L;
 	//限制重复时间5分钟
 	public static long SMS_TIME_LIMIT = 	Long.valueOf(ProjectProperties.getProperty(
-					"project.SMS.TIME_LIMIT", "5"));
+					"project.SMS.TIME_LIMIT", "1"));
 	
 	//验证码失效时间30分钟
 		public static long SMS_TIME_LIMIT_Effective =  Long.valueOf(ProjectProperties.getProperty(
 						"project.SMS.TIME_LIMIT_Effective", "30"));
+		
+		//是否启用短信验证码
+		String isEnableSmsCode = ProjectProperties.getProperty("isEnableSmsCode",
+				"false");		
 	/**
 	 * 发送短信验证码
 	 * 
@@ -44,6 +48,8 @@ public class SmsService extends AbstractService {
 	 */
 	public ModelMap sendCode(ModelMap model, HttpServletRequest request,
 			String tel, Integer type) {
+		
+		
 		// TODO Auto-generated method stub
 		ResponseMessage responseMessage = (ResponseMessage)model.get(RestConstants.Return_ResponseMessage);
 		String accountSid = SysConfig.getInstance().getProperty("accountSid");
@@ -96,8 +102,22 @@ public class SmsService extends AbstractService {
 		smsdb.setType(SMS_TYPE_USER);
 		// 4位随机数
 		smsdb.setCode(RandomNumberGenerator.getRandomInt(4));
-		String templateSms = "亲，你的短信验证码为：{1}，请于{2}分钟内正确输入验证码.【问界家园】";
+//		String templateSms = "亲，你的短信验证码为：{1}，请于{2}分钟内正确输入验证码.【问界家园】";
 		String parm = smsdb.getCode() + "," + SMS_TIME_LIMIT_Effective;
+
+		
+
+		if(isEnableSmsCode.equals("false")){
+			
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+			responseMessage.setMessage("调试模式："+parm);
+
+			//下次发送短信时间
+			model.put("nextSendCodeMinute", SMS_TIME_LIMIT);
+			
+			return model;
+		}
+	
 
 		// 亲，你的短信验证码为：{1}，请于{2}分钟内正确输入验证码
 		try {
@@ -132,8 +152,13 @@ public class SmsService extends AbstractService {
 		// if(true){//测试保存
 		// return model;
 		// }
+		
+		
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		responseMessage.setMessage("发送成功");
+
+		//下次发送短信时间
+		model.put("nextSendCodeMinute", SMS_TIME_LIMIT);
 		return model;
 	}
 
@@ -142,9 +167,7 @@ public class SmsService extends AbstractService {
 	 * @return
 	 */
 	public boolean VerifySmsCode(ResponseMessage responseMessage,String tel, String smscode) {
-		//是否启用短信验证码
-		String isEnableSmsCode = ProjectProperties.getProperty("isEnableSmsCode",
-				"false");		
+	
 		if(isEnableSmsCode.equals("false"))
 			return true;
 		
