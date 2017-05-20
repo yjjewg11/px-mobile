@@ -17,6 +17,7 @@ import com.company.news.entity.CookbookPlan;
 import com.company.news.entity.User;
 import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.jsonform.CookbookPlanJsonform;
+import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.TimeUtils;
 import com.company.news.vo.ResponseMessage;
 
@@ -91,6 +92,41 @@ public class CookbookPlanService extends AbstractService {
 			return null;
 	}
 
+	
+	/**
+	 * 查询所有班级
+	 * 
+	 * @return
+	 * @throws Exception 
+	 */
+	public List<CookbookPlan> queryBy(String begDateStr, String endDateStr,
+			String groupuuids,SessionUserInfoInterface user)  throws Exception{
+		if (StringUtils.isBlank(groupuuids)) {
+			return null;
+		}
+
+		if (StringUtils.isBlank(begDateStr)) {
+			return null;
+		}
+
+		if (StringUtils.isBlank(endDateStr)) {
+			return null;
+		}
+
+		Date begDate = TimeUtils.string2Timestamp(null, begDateStr);
+
+		Date endDate = TimeUtils.string2Timestamp(null, endDateStr);
+		
+		List<CookbookPlan> list=(List<CookbookPlan>) this.nSimpleHibernateDao
+				.getHibernateTemplate()
+				.find("from CookbookPlan where groupuuid in("+DBUtil.stringsToWhereInValue(groupuuids)+") and plandate<=? and plandate >=?  order by plandate asc",
+						 endDate, begDate);
+		this.nSimpleHibernateDao.getHibernateTemplate().clear();
+		this.warpVoList(list, user);
+		
+		return list;
+	}
+	
 	/**
 	 * 查询所有班级
 	 * 

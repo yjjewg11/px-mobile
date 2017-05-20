@@ -9,10 +9,12 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.company.news.interfaces.SessionUserInfoInterface;
 import com.company.news.rest.util.DBUtil;
 import com.company.news.rest.util.RestUtil;
 import com.company.news.service.UserThirdLoginWenXinMPService;
 import com.company.news.vo.ResponseMessage;
+import com.company.web.listener.SessionListener;
 
 /**
  * 第三分登录,微信小程序
@@ -162,6 +164,47 @@ public class UserThirdLoginWenXinMPController extends AbstractRESTController {
 		}
 		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
 		responseMessage.setMessage("操作成功");
+		return "";
+	}
+
+	
+
+	/**
+	 * 用户登录成功后，调用绑定接口
+	 * @param model
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/bindAccess_token", method = RequestMethod.GET)
+	public String bindAccess_token(ModelMap model, HttpServletRequest request) {
+		ResponseMessage responseMessage = RestUtil
+				.addResponseMessageForModelMap(model);
+		try {
+			String access_token=request.getParameter("access_token");
+			if (StringUtils.isBlank(access_token)) {
+				responseMessage.setMessage("参数:access_token不能为空！");
+				return "";
+			}
+			if(DBUtil.isSqlInjection(access_token, responseMessage))return "";
+			
+			SessionUserInfoInterface sessionUserInfo=(SessionUserInfoInterface)SessionListener.getUserInfoBySession(
+					request);
+			String tel=sessionUserInfo.getLoginname();
+			
+			
+			boolean flag= userThirdLoginWenXinMPService.update_bindTel(model, request, responseMessage, access_token, tel);
+			if(!flag){
+				return "";
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
+			responseMessage.setMessage("服务器异常:"+e.getMessage());
+			return "";
+		}
+		responseMessage.setStatus(RestConstants.Return_ResponseMessage_success);
+		responseMessage.setMessage("绑定成功");
 		return "";
 	}
 

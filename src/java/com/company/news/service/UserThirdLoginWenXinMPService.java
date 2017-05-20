@@ -16,6 +16,7 @@ import com.company.news.ProjectProperties;
 import com.company.news.SystemConstants;
 import com.company.news.commons.util.HttpClientUtils;
 import com.company.news.commons.util.PxStringUtil;
+import com.company.news.commons.util.UUIDGenerator;
 import com.company.news.entity.Parent;
 import com.company.news.entity.UserThirdLoginWenXin;
 import com.company.news.interfaces.SessionUserInfoInterface;
@@ -40,11 +41,11 @@ public  class UserThirdLoginWenXinMPService extends AbstractService {
 	
 	//微信小程序-密钥
 	static public String WeixinAppSecret= ProjectProperties.getProperty(
-				"WeixinAppSecret", "123123123123");
+				"WeixinAppSecret", "WeixinAppSecret");
 	
 	//微信小程序-appid
 	static public String WeixinAppappId= ProjectProperties.getProperty(
-			"WeixinApp_appId", "wx6699cf8b21e12618");
+			"WeixinApp_appId", "wxf722517c204d2d44");
 	@Autowired
 	private SmsService smsService;
 	
@@ -74,7 +75,9 @@ public  class UserThirdLoginWenXinMPService extends AbstractService {
 }
 		 */
 		
-		if(appid==null)appid=WeixinAppappId;
+//		if(appid==null)
+			
+			appid=WeixinAppappId;
 		
 		String url="https://api.weixin.qq.com/sns/jscode2session?appid="+WeixinAppappId+"&secret="+WeixinAppSecret+"&js_code="+code+"&grant_type=authorization_code";
 		String responseJson=HttpClientUtils.get(url);
@@ -87,7 +90,7 @@ public  class UserThirdLoginWenXinMPService extends AbstractService {
 			
 			if(TestLogin){
 				map.put("openid", "WenXin_app_test");
-				map.put("session_key", TimeUtils.getCurrentTime(TimeUtils.DEFAULTFORMAT));
+				map.put("session_key", TimeUtils.getCurrentTime("yyyyMMddHHmmss"));
 			}else{
 				String errmsg=map.get("errmsg")+"";
 				responseMessage.setStatus(RestConstants.Return_ResponseMessage_failed);
@@ -98,7 +101,10 @@ public  class UserThirdLoginWenXinMPService extends AbstractService {
 
 		}
 		String openid=map.get("openid")+"";
-		String session_key=map.get("session_key")+"";
+//		String session_key=map.get("session_key")+"";
+		
+		//不用微信的，有等号，get传输错误
+		String session_key=new UUIDGenerator().generate().toString();
 				
 		//获取用户信息
 		UserThirdLoginWenXin userdb=(UserThirdLoginWenXin)this.nSimpleHibernateDao.getObjectByAttribute(UserThirdLoginWenXin.class, "openid", openid);
@@ -144,6 +150,33 @@ public  class UserThirdLoginWenXinMPService extends AbstractService {
 	 */
 	public boolean update_bindTel(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token,String tel,String smsCode) throws WeixinException,Exception {
 		
+
+		//验证码判断
+		if (!smsService.VerifySmsCode(responseMessage,
+				tel, smsCode)) {
+			return false;
+		}
+		
+		return update_bindTel(model, request, responseMessage, access_token, tel);
+				
+	}
+	
+	
+
+	/**
+	 * 2.当前登录用户，绑定access_token
+	 * @param model
+	 * @param request
+	 * @param responseMessage
+	 * @param access_token
+	 * @param tel
+	 * @param smsCode
+	 * @return
+	 * @throws WeixinException
+	 * @throws Exception
+	 */
+	public boolean update_bindTel(ModelMap model, HttpServletRequest request,ResponseMessage responseMessage,String access_token,String tel) throws WeixinException,Exception {
+		
 //		"https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code"
 		
 		UserThirdLoginWenXin userdb=(UserThirdLoginWenXin)this.nSimpleHibernateDao.getObjectByAttribute(UserThirdLoginWenXin.class, "access_token", access_token);
@@ -159,11 +192,6 @@ public  class UserThirdLoginWenXinMPService extends AbstractService {
 			return false;
 		}
 
-		//验证码判断
-		if (!smsService.VerifySmsCode(responseMessage,
-				tel, smsCode)) {
-			return false;
-		}
 //		
 //		//判断手机是否已经注册
 //		String attribute = "loginname";
